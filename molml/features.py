@@ -181,3 +181,43 @@ class Connectivity(BaseFeature):
         tallies = self._tally_chains(chains, elements, connections)
 
         return [tallies.get(x, 0) for x in self._base_chains]
+
+
+def get_coulomb_matrix(numbers, coords):
+    """
+    Return the coulomb matrix for the given `coords` and `numbers`
+    """
+    top = numpy.outer(numbers, numbers).astype(numpy.float64)
+    r = cdist(coords, coords)
+    with numpy.errstate(divide='ignore', invalid='ignore'):
+        numpy.divide(top, r, top)
+    numpy.fill_diagonal(top, 0.5 * numpy.array(numbers) ** 2.4)
+    top[top == numpy.Infinity] = 0
+    top[numpy.isnan(top)] = 0
+    return top
+
+
+class CoulombMatrix(BaseFeature):
+    def __init__(self, input_type='list'):
+        super(CoulombMatrix, self).__init__(input_type=input_type)
+        self._max_size = None
+
+    def _para_fit(self, X):
+        elements, coords = X
+        return len(elements)
+
+    def fit(self, X, y=None):
+        max_size = map(self._para_fit, X)
+        self._max_size = max(max_size)
+        return self
+
+    def _para_transform(self, X):
+        elements, coords = X
+        if len(elements) > self._max_size:
+            raise ValueError
+
+        padding_difference = self._max_size - len(elements)
+        numbers = [ELE_TO_NUM[x] for x in elements]
+        coulomb_matrix = get_coulomb_matrix(numbers, coords)
+        new_coulomb_matrix = numpy.pad(coulomb_matrix, (0, padding_difference), mode="constant")
+        return new_coulomb_matrix.reshape(-1)

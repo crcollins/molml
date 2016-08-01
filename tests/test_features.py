@@ -2,7 +2,7 @@ import unittest
 
 import numpy
 
-from molml.features import Connectivity
+from molml.features import Connectivity, CoulombMatrix
 
 
 METHANE_COORDS = '''
@@ -186,6 +186,93 @@ class ConnectivityTest(unittest.TestCase):
                                         [ 0,  2,  3,  2],
                                         [ 5, 25,  4, 15]])
         self.assertTrue((a.fit_transform(ALL_DATA) == expected_results).all())
+
+
+class CoulombMatrixTest(unittest.TestCase):
+    def test_fit(self):
+        a = CoulombMatrix()
+        a.fit(ALL_DATA)
+        self.assertEqual(a._max_size, 49)
+
+    def test_transform(self):
+        a = CoulombMatrix()
+        a.fit([METHANE])
+        expected_results = numpy.array([
+            [  36.8581052 ,   5.49459021,   5.49462885,   5.4945    ,
+                5.49031286,   5.49459021,   0.5       ,   0.56071947,
+                0.56071656,   0.56064037,   5.49462885,   0.56071947,
+                0.5       ,   0.56071752,   0.56064089,   5.4945    ,
+                0.56071656,   0.56071752,   0.5       ,   0.56063783,
+                5.49031286,   0.56064037,   0.56064089,   0.56063783,   
+                0.5]])
+        try:
+            numpy.testing.assert_array_almost_equal(
+                                        a.transform([METHANE]),
+                                        expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_small_to_large_transform(self):
+        a = CoulombMatrix()
+        a.fit([METHANE])
+        with self.assertRaises(ValueError):
+            a.transform(ALL_DATA)
+
+    def test_large_to_small_transform(self):
+        a = CoulombMatrix()
+        a.fit([MID])
+
+        expected_results = numpy.array([
+            [ 36.8581052 ,   5.49459021,   5.49462885,   5.4945    ,
+               5.49031286,   0.        ,   0.        ,   0.        ,
+               0.        ,   5.49459021,   0.5       ,   0.56071947,
+               0.56071656,   0.56064037,   0.        ,   0.        ,
+               0.        ,   0.        ,   5.49462885,   0.56071947,
+               0.5       ,   0.56071752,   0.56064089,   0.        ,
+               0.        ,   0.        ,   0.        ,   5.4945    ,
+               0.56071656,   0.56071752,   0.5       ,   0.56063783,
+               0.        ,   0.        ,   0.        ,   0.        ,
+               5.49031286,   0.56064037,   0.56064089,   0.56063783,
+               0.5       ,   0.        ,   0.        ,   0.        ,
+               0.        ,   0.        ,   0.        ,   0.        ,
+               0.        ,   0.        ,   0.        ,   0.        ,
+               0.        ,   0.        ,   0.        ,   0.        ,
+               0.        ,   0.        ,   0.        ,   0.        ,
+               0.        ,   0.        ,   0.        ,   0.        ,
+               0.        ,   0.        ,   0.        ,   0.        ,
+               0.        ,   0.        ,   0.        ,   0.        ,
+               0.        ,   0.        ,   0.        ,   0.        ,
+               0.        ,   0.        ,   0.        ,   0.        ,
+               0.        ]])
+        try:
+            numpy.testing.assert_array_almost_equal(
+                                        a.transform([METHANE]),
+                                        expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
+
+    def test_transform_before_fit(self):
+        a = CoulombMatrix()
+        with self.assertRaises(ValueError):
+            a.transform(ALL_DATA)
+
+    def test_fit_transform(self):
+        a = CoulombMatrix()
+        expected_results = numpy.array([
+            [  36.8581052 ,   5.49459021,   5.49462885,   5.4945    ,
+                5.49031286,   5.49459021,   0.5       ,   0.56071947,
+                0.56071656,   0.56064037,   5.49462885,   0.56071947,
+                0.5       ,   0.56071752,   0.56064089,   5.4945    ,
+                0.56071656,   0.56071752,   0.5       ,   0.56063783,
+                5.49031286,   0.56064037,   0.56064089,   0.56063783,   
+                0.5]])
+        try:
+            numpy.testing.assert_array_almost_equal(
+                                        a.fit_transform([METHANE]),
+                                        expected_results)
+        except AssertionError as e:
+            self.fail(e)
 
 
 
