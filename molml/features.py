@@ -213,7 +213,7 @@ class CoulombMatrix(BaseFeature):
 
     def _para_transform(self, X):
         elements, coords = X
-        if len(elements) > self._max_size:
+        if self._max_size is None or len(elements) > self._max_size:
             raise ValueError
 
         padding_difference = self._max_size - len(elements)
