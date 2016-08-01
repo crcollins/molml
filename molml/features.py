@@ -183,6 +183,75 @@ class Connectivity(BaseFeature):
         return [tallies.get(x, 0) for x in self._base_chains]
 
 
+class EncodedBond(BaseFeature):
+    def __init__(self, input_type='list', segments=100, start=0.2, end=6.0, slope=20.):
+        super(EncodedBond, self).__init__(input_type=input_type)
+        self._element_pairs = None
+        self.segments = segments
+        self.start = start
+        self.end = end
+        self.slope = slope
+
+    def __repr__(self):
+        string = "%s(input_type='%s', segments=%d, start='%g', end='%g', slope='%g')"
+
+        return string % (self.__class__.__name__, self.input_type, 
+                        self.segments, self.start, self.end, self.slope)
+
+    def _para_fit(self, X):
+        elements, coords = X
+
+        counts = {}
+        for ele in elements:
+            if ele not in counts:
+                counts[ele] = 0
+            counts[ele] += 1
+
+        pairs = {}
+        for i, x in enumerate(counts):
+            for j, y in enumerate(counts):
+                if i > j: continue
+                if x == y and counts[x] == 1: continue
+                if x > y:
+                    pairs[y, x] = 1
+                else:
+                    pairs[x, y] = 1
+        return pairs.keys()        
+
+    def fit(self, X, y=None):
+        '''
+        '''
+        pairs = map(self._para_fit, X)
+        self._element_pairs = reduce(lambda x, y: set(x) | set(y), pairs)
+        return self
+
+    def _para_transform(self, X, y=None):
+        if self._element_pairs is None:
+            raise ValueError
+            
+        smoothing_function = scipy.stats.norm.pdf
+
+        pair_idxs = {key: i for i, key in enumerate(self._element_pairs)}
+
+        elements, coords = X
+        vector = numpy.zeros((len(self._element_pairs), self.segments))
+
+        theta = numpy.linspace(self.start, self.end, self.segments)
+        theta = numpy.logspace(numpy.log(self.start), numpy.log(self.end), self.segments)
+        theta = 1/numpy.linspace(1/self.start, 1/self.end, self.segments)
+
+        distances = cdist(coords, coords)
+        for i, ele1 in enumerate(elements):
+            for j, ele2 in enumerate(elements[i + 1:]):
+                j += i + 1
+                value = smoothing_function(self.slope * (theta - distances[i, j]))
+                if ele1 < ele2:
+                    vector[pair_idxs[ele1, ele2]] += value
+                else:
+                    vector[pair_idxs[ele2, ele1]] += value
+        return vector.flatten().tolist()
+
+
 def get_coulomb_matrix(numbers, coords):
     """
     Return the coulomb matrix for the given `coords` and `numbers`
