@@ -150,17 +150,6 @@ class ConnectivityTest(unittest.TestCase):
                             (('C', 'C', '3'),), (('C', 'N', 'Ar'),), 
                             (('C', 'C', '1'),), (('C', 'O', 'Ar'),), 
                             (('C', 'C', '2'),), (('C', 'C', 'Ar'),)]))
-    
-    def test_fit_angle(self):
-        a = Connectivity(depth=3)
-        a.fit(ALL_DATA)
-        self.assertEqual(a._base_chains, 
-                        set([('H', 'N', 'H'), ('C', 'N', 'H'), ('C', 'C', 'O'),
-                            ('N', 'C', 'N'), ('C', 'O', 'C'), ('C', 'N', 'C'),
-                            ('H', 'C', 'H'), ('C', 'O', 'H'), ('C', 'C', 'C'), 
-                            ('C', 'C', 'H'), ('H', 'C', 'O'), ('N', 'C', 'O'), 
-                            ('H', 'C', 'N'), ('C', 'C', 'N')]))
-
 
     def test_transform(self):
         a = Connectivity()
