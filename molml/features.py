@@ -221,3 +221,77 @@ class CoulombMatrix(BaseFeature):
         coulomb_matrix = get_coulomb_matrix(numbers, coords)
         new_coulomb_matrix = numpy.pad(coulomb_matrix, (0, padding_difference), mode="constant")
         return new_coulomb_matrix.reshape(-1)
+
+
+class BagOfBonds(BaseFeature):
+    def __init__(self, input_type='list'):
+        super(BagOfBonds, self).__init__(input_type=input_type)
+        self._bag_sizes = None
+
+    def _para_fit(self, X):
+        elements, coords = X
+        bags = {}
+
+        local = {}
+        for element in elements:
+            if element not in local:
+                local[element] = 0
+            local[element] += 1
+
+        for i, ele1 in enumerate(local.keys()):
+            for j, ele2 in enumerate(local.keys()):
+                if j > i: continue
+                if ele1 == ele2:
+                    # Minus 1 is to remove the diagonal
+                    num = local[ele1] - 1
+                    # Using Gauss summation trick
+                    new_value = num * (num + 1) / 2
+                else:
+                    new_value = local[ele1] * local[ele2]
+
+                sorted_ele = tuple(sorted([ele1, ele2]))
+                bags[sorted_ele] = max(new_value, bags.get(sorted_ele, 0))
+        return {key: value for key, value in bags.items() if value}
+
+    def _max_merge_dict(self, x, y):
+        all_keys = x.keys() + y.keys()
+        return {key: max(x.get(key, 0), y.get(key, 0)) for key in all_keys}
+
+    def fit(self, X, y=None):
+        bags = map(self._para_fit, X)
+        self._bag_sizes = reduce(self._max_merge_dict, bags)
+        return self
+
+    def _para_transform(self, X):
+        elements, coords = X
+        if self._bag_sizes is None:
+            raise ValueError
+
+        # Sort the elements and coords based on the element
+        temp = sorted(zip(elements, coords), key=lambda x: x[0])
+        elements, coords = zip(*temp)
+
+        bags = {key: [0 for i in xrange(value)] for key, value in self._bag_sizes.items()}
+        numbers = [ELE_TO_NUM[x] for x in elements]
+        coulomb_matrix = get_coulomb_matrix(numbers, coords)
+
+        ele_array = numpy.array(elements)
+        for ele1, ele2 in bags.keys():
+            # Select only the rows that are of type ele1
+            first = ele_array == ele1
+
+            # Select only the cols that are of type ele2
+            second = ele_array == ele2
+            # Select only the rows/cols that are in the upper triangle
+            # (This could also be the lower), and are in a row, col with
+            # ele1 and ele2 respectively
+            mask = numpy.triu(numpy.logical_and.outer(first, second), k=1)
+            # Add to correct double element bag highest to lowest
+            values = sorted(coulomb_matrix[mask].tolist(), reverse=True)
+
+            # The molecule being used was fit to something smaller
+            if len(values) > len(bags[ele1, ele2]):
+                raise ValueError
+
+            bags[ele1, ele2][:len(values)] = values
+        return sum(bags.values(), [])

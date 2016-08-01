@@ -2,7 +2,7 @@ import unittest
 
 import numpy
 
-from molml.features import Connectivity, CoulombMatrix
+from molml.features import BagOfBonds, Connectivity, CoulombMatrix
 
 
 METHANE_COORDS = '''
@@ -265,6 +265,79 @@ class CoulombMatrixTest(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
+
+
+class BagOfBondsTest(unittest.TestCase):
+    def test_fit(self):
+        a = BagOfBonds()
+        a.fit([METHANE])
+        expected_results = {
+            ('C', 'H'): 4, 
+            ('H', 'H'): 6,
+        }
+        self.assertEqual(a._bag_sizes, expected_results)
+
+    def test_fit_multi_mol(self):
+        a = BagOfBonds()
+        a.fit(ALL_DATA)
+        expected_results = {
+            ('H', 'O'): 60,
+            ('C', 'H'): 375,
+            ('H', 'N'): 75,
+            ('C', 'C'): 300,
+            ('H', 'H'): 105,
+            ('O', 'O'): 6,
+            ('C', 'N'): 125,
+            ('N', 'O'): 20,
+            ('C', 'O'): 100,
+            ('N', 'N'): 10,
+        }
+        self.assertEqual(a._bag_sizes, expected_results)
+
+    def test_transform(self):
+        a = BagOfBonds()
+        a.fit([METHANE])
+        expected_results = numpy.array([
+            [ 0.56071947,  0.56071752,  0.56071656,  0.56064089,  0.56064037,
+              0.56063783,  5.49462885,  5.49459021,  5.4945    ,  5.49031286]
+        ])
+        try:
+            numpy.testing.assert_array_almost_equal(
+                                        a.transform([METHANE]),
+                                        expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_small_to_large_transform(self):
+        a = BagOfBonds()
+        a.fit([METHANE])
+        with self.assertRaises(ValueError):
+            a.transform(ALL_DATA)
+
+    def test_large_to_small_transform(self):
+        a = BagOfBonds()
+        a.fit([BIG])
+
+        expected_results = numpy.array([
+            [0.0] * 60 + 
+            [5.494628848219048, 5.494590213211275, 5.494499999706413, 
+            5.49031286145183] +
+            [0.0] * 746 +
+            [0.5607194714171738, 0.5607175240809282, 0.5607165613824526, 
+            0.5606408892793993, 0.5606403708987712, 0.560637829974531] + 
+            [0.0] * 360
+            ])
+        try:
+            numpy.testing.assert_array_almost_equal(
+                                        a.transform([METHANE]),
+                                        expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_transform_before_fit(self):
+        a = BagOfBonds()
+        with self.assertRaises(ValueError):
+            a.transform(ALL_DATA)
 
 
 
