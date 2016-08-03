@@ -237,8 +237,6 @@ class EncodedBond(BaseFeature):
         vector = numpy.zeros((len(self._element_pairs), self.segments))
 
         theta = numpy.linspace(self.start, self.end, self.segments)
-        theta = numpy.logspace(numpy.log(self.start), numpy.log(self.end), self.segments)
-        theta = 1/numpy.linspace(1/self.start, 1/self.end, self.segments)
 
         distances = cdist(coords, coords)
         for i, ele1 in enumerate(elements):
