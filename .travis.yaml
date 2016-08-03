@@ -1,0 +1,28 @@
+language: python
+python:
+  - "2.6"
+  - "2.7"
+  # - "3.2"
+  # - "3.3"
+  # - "3.4"
+  # - "3.5"
+  # - "3.5-dev" # 3.5 development branch
+  # - "nightly" # currently points to 3.6-dev
+
+notifications:
+  email: false
+
+cache: pip
+
+# command to install dependencies
+install: 
+  - travis_retry pip install numpy
+  - travis_retry pip install scipy
+  - pip install -q coveralls coverage
+
+# command to run tests
+script: 
+  - nosetests --cover-branches --with-coverage --cover-package=molml --cover-erase
+
+after_success:
+  coveralls
