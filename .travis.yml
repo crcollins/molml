@@ -21,6 +21,7 @@ addon:
       - gfortran
       - liblapack-dev
       - libatlas-dev
+      - libblas-dev
       - build-essential
       - python-scipy
 
