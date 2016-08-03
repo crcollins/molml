@@ -14,16 +14,9 @@ notifications:
 
 cache: pip
 
-addon:
-  apt:
-    packages:
-      - python-dev
-      - gfortran
-      - liblapack-dev
-      - libatlas-dev
-      - libblas-dev
-      - build-essential
-      - python-scipy
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install python-dev gfortran liblapack-dev libatlas-dev libblas-dev build-essential python-scipy
 
 # command to install dependencies
 install: 
