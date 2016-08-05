@@ -3,7 +3,7 @@ from scipy.spatial.distance import cdist
 import scipy.stats
 
 
-from utils import get_connections, ELE_TO_NUM
+from utils import get_connections, ELE_TO_NUM, SMOOTHING_FUNCTIONS
 
 
 class BaseFeature(object):
@@ -184,19 +184,20 @@ class Connectivity(BaseFeature):
 
 
 class EncodedBond(BaseFeature):
-    def __init__(self, input_type='list', segments=100, start=0.2, end=6.0, slope=20.):
+    def __init__(self, input_type='list', segments=100, smoothing="norm", start=0.2, end=6.0, slope=20.):
         super(EncodedBond, self).__init__(input_type=input_type)
         self._element_pairs = None
         self.segments = segments
+        self.smoothing = smoothing
         self.start = start
         self.end = end
         self.slope = slope
 
     def __repr__(self):
-        string = "%s(input_type='%s', segments=%d, start=%g, end=%g, slope=%g)"
+        string = "%s(input_type='%s', segments=%d, smoothing='%s', start=%g, end=%g, slope=%g)"
 
         return string % (self.__class__.__name__, self.input_type, 
-                        self.segments, self.start, self.end, self.slope)
+                        self.segments, self.smoothing, self.start, self.end, self.slope)
 
     def _para_fit(self, X):
         elements, coords = X
@@ -228,8 +229,8 @@ class EncodedBond(BaseFeature):
     def _para_transform(self, X, y=None):
         if self._element_pairs is None:
             raise ValueError
-            
-        smoothing_function = scipy.stats.norm.pdf
+        
+        smoothing_function = SMOOTHING_FUNCTIONS[self.smoothing]
 
         pair_idxs = {key: i for i, key in enumerate(self._element_pairs)}
 

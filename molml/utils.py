@@ -1,4 +1,6 @@
 from scipy.spatial.distance import cdist
+from scipy.special import expit
+import scipy.stats
 
 
 ELE_TO_NUM = {
@@ -54,6 +56,18 @@ BOND_LENGTHS = {
         "1":   1.07,
     },
 }
+
+
+SMOOTHING_FUNCTIONS = {
+    "norm_cdf": scipy.stats.norm.cdf,
+    "zero_one": lambda x: (x > 0.).astype(float),
+    "expit": expit,
+    "tanh": lambda x: (numpy.tanh(x)+1) / 2,
+    "norm": scipy.stats.norm.pdf,
+    "expit_pdf": scipy.stats.logistic.pdf,
+    "spike": lambda x: (numpy.abs(x) < 1.).astype(float)
+}
+
 
 def get_bond_type(element1, element2, dist):
     '''
