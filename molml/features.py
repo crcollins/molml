@@ -49,7 +49,7 @@ class Connectivity(BaseFeature):
         self._base_chains = None
 
     def __repr__(self):
-        return "%s(input_type='%s', depth='%d', use_bond_order=%s)" % (self.__class__.__name__, self.input_type, self.depth, self.use_bond_order)
+        return "%s(input_type='%s', depth=%d, use_bond_order=%s)" % (self.__class__.__name__, self.input_type, self.depth, self.use_bond_order)
 
     def _loop_depth(self, connections):
         '''
@@ -193,7 +193,7 @@ class EncodedBond(BaseFeature):
         self.slope = slope
 
     def __repr__(self):
-        string = "%s(input_type='%s', segments=%d, start='%g', end='%g', slope='%g')"
+        string = "%s(input_type='%s', segments=%d, start=%g, end=%g, slope=%g)"
 
         return string % (self.__class__.__name__, self.input_type, 
                         self.segments, self.start, self.end, self.slope)
