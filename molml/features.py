@@ -1,13 +1,21 @@
+import multiprocessing
+
 import numpy
 from scipy.spatial.distance import cdist
 import scipy.stats
-
+from pathos.multiprocessing import ProcessingPool as Pool
 
 from utils import get_connections, ELE_TO_NUM, SMOOTHING_FUNCTIONS
 
 
+def func_star(args):
+    f = args[0]
+    args = args[1:]
+    return f(*args)
+
+
 class BaseFeature(object):
-    def __init__(self, input_type='list'):
+    def __init__(self, input_type='list', n_jobs=1):
         '''
         Currently, the only input_type supported is 'list'
 
@@ -16,9 +24,44 @@ class BaseFeature(object):
         [(x1, y1, z1), (x2, y2, z2), ..., (xn, yn, zn)].
         '''
         self.input_type = input_type
+        self.n_jobs = n_jobs
 
     def __repr__(self):
-        return "%s(input_type='%s')" % (self.__class__.__name__, self.input_type)
+        return "%s(input_type='%s', n_jobs=%d)" % (self.__class__.__name__, self.input_type, self.n_jobs)
+
+    def map(self, f, seq):
+        '''
+        Parallel implementation of map
+        '''
+        if self.n_jobs < 1:
+            n_jobs = multiprocessing.cpu_count()
+        elif self.n_jobs == 1:
+            return map(f, seq)
+        else:
+            n_jobs = self.n_jobs
+
+        pool = Pool(processes=n_jobs)
+        results = pool.map(f, seq)
+        return results
+
+    def reduce(self, f, seq):
+        '''
+        Parallel implementation of reduce
+
+        This changes the problem from being O(n) steps to O(lg n)
+        '''
+        if self.n_jobs < 1:
+            n_jobs = multiprocessing.cpu_count()
+        elif self.n_jobs == 1:
+            return reduce(f, seq)
+        else:
+            n_jobs = self.n_jobs
+
+        pool = Pool(processes=n_jobs)
+        while len(seq) > 1:
+            pairs = [(f, seq[i], seq[i+1]) for i in xrange(0,len(seq)-1, 2)]
+            seq = self.map(func_star, pairs) + [seq[-1]] * (len(seq) % 2)
+        return seq[0]
 
     def fit(self, X, y=None):
         raise NotImplementedError
@@ -29,7 +72,7 @@ class BaseFeature(object):
 
     def transform(self, X, y=None):
         '''Framework for a potentially parallel transform'''
-        results = map(self._para_transform, X)
+        results = self.map(self._para_transform, X)
         return numpy.array(results)
 
     def fit_transform(self, X, y=None):
@@ -42,14 +85,14 @@ class Connectivity(BaseFeature):
     '''
     A collection of feature types based on the connectivity of atoms.
     '''
-    def __init__(self, input_type='list', depth=1, use_bond_order=False):
-        super(Connectivity, self).__init__(input_type=input_type)
+    def __init__(self, input_type='list', n_jobs=1, depth=1, use_bond_order=False):
+        super(Connectivity, self).__init__(input_type=input_type, n_jobs=n_jobs)
         self.depth = depth
         self.use_bond_order = use_bond_order
         self._base_chains = None
 
     def __repr__(self):
-        return "%s(input_type='%s', depth=%d, use_bond_order=%s)" % (self.__class__.__name__, self.input_type, self.depth, self.use_bond_order)
+        return "%s(input_type='%s', n_jobs=%d, depth=%d, use_bond_order=%s)" % (self.__class__.__name__, self.input_type, self.n_jobs, self.depth, self.use_bond_order)
 
     def _loop_depth(self, connections):
         '''
@@ -165,8 +208,8 @@ class Connectivity(BaseFeature):
     def fit(self, X, y=None):
         '''
         '''
-        base_chains = map(self._para_fit, X)
-        self._base_chains = reduce(lambda x, y: set(x) | set(y), base_chains)
+        base_chains = self.map(self._para_fit, X)
+        self._base_chains = self.reduce(lambda x, y: set(x) | set(y), base_chains)
         return self
 
     def _para_transform(self, X, y=None):
@@ -184,8 +227,8 @@ class Connectivity(BaseFeature):
 
 
 class EncodedBond(BaseFeature):
-    def __init__(self, input_type='list', segments=100, smoothing="norm", start=0.2, end=6.0, slope=20.):
-        super(EncodedBond, self).__init__(input_type=input_type)
+    def __init__(self, input_type='list', n_jobs=1, segments=100, smoothing="norm", start=0.2, end=6.0, slope=20.):
+        super(EncodedBond, self).__init__(input_type=input_type, n_jobs=n_jobs)
         self._element_pairs = None
         self.segments = segments
         self.smoothing = smoothing
@@ -194,9 +237,9 @@ class EncodedBond(BaseFeature):
         self.slope = slope
 
     def __repr__(self):
-        string = "%s(input_type='%s', segments=%d, smoothing='%s', start=%g, end=%g, slope=%g)"
+        string = "%s(input_type='%s', n_jobs=%d, segments=%d, smoothing='%s', start=%g, end=%g, slope=%g)"
 
-        return string % (self.__class__.__name__, self.input_type, 
+        return string % (self.__class__.__name__, self.input_type, self.n_jobs,
                         self.segments, self.smoothing, self.start, self.end, self.slope)
 
     def _para_fit(self, X):
@@ -222,8 +265,8 @@ class EncodedBond(BaseFeature):
     def fit(self, X, y=None):
         '''
         '''
-        pairs = map(self._para_fit, X)
-        self._element_pairs = reduce(lambda x, y: set(x) | set(y), pairs)
+        pairs = self.map(self._para_fit, X)
+        self._element_pairs = self.reduce(lambda x, y: set(x) | set(y), pairs)
         return self
 
     def _para_transform(self, X, y=None):
@@ -266,8 +309,8 @@ def get_coulomb_matrix(numbers, coords):
 
 
 class CoulombMatrix(BaseFeature):
-    def __init__(self, input_type='list'):
-        super(CoulombMatrix, self).__init__(input_type=input_type)
+    def __init__(self, input_type='list', n_jobs=1):
+        super(CoulombMatrix, self).__init__(input_type=input_type, n_jobs=n_jobs)
         self._max_size = None
 
     def _para_fit(self, X):
@@ -275,7 +318,7 @@ class CoulombMatrix(BaseFeature):
         return len(elements)
 
     def fit(self, X, y=None):
-        max_size = map(self._para_fit, X)
+        max_size = self.map(self._para_fit, X)
         self._max_size = max(max_size)
         return self
 
@@ -292,8 +335,8 @@ class CoulombMatrix(BaseFeature):
 
 
 class BagOfBonds(BaseFeature):
-    def __init__(self, input_type='list'):
-        super(BagOfBonds, self).__init__(input_type=input_type)
+    def __init__(self, input_type='list', n_jobs=1):
+        super(BagOfBonds, self).__init__(input_type=input_type, n_jobs=n_jobs)
         self._bag_sizes = None
 
     def _para_fit(self, X):
@@ -326,8 +369,8 @@ class BagOfBonds(BaseFeature):
         return {key: max(x.get(key, 0), y.get(key, 0)) for key in all_keys}
 
     def fit(self, X, y=None):
-        bags = map(self._para_fit, X)
-        self._bag_sizes = reduce(self._max_merge_dict, bags)
+        bags = self.map(self._para_fit, X)
+        self._bag_sizes = self.reduce(self._max_merge_dict, bags)
         return self
 
     def _para_transform(self, X):

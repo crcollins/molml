@@ -2,7 +2,7 @@ import unittest
 
 import numpy
 
-from molml.features import BagOfBonds, Connectivity, CoulombMatrix, EncodedBond
+from molml.features import BagOfBonds, BaseFeature, Connectivity, CoulombMatrix, EncodedBond
 
 
 METHANE_COORDS = '''
@@ -89,6 +89,38 @@ MID_ELEMENTS = '''C C O O O O H H H'''.strip().split()
 MID = (MID_ELEMENTS, MID_COORDS)
 
 ALL_DATA = [METHANE, MID, BIG]
+
+
+class BaseFeatureTest(unittest.TestCase):
+    def test_map_n_jobs_negative(self):
+        a = BaseFeature(n_jobs=-1)
+        res = a.map(lambda x: x ** 2, range(10))
+        self.assertEqual(res, [x ** 2 for x in xrange(10)])
+
+    def test_map_n_jobs_one(self):
+        a = BaseFeature(n_jobs=1)
+        res = a.map(lambda x: x ** 2, range(10))
+        self.assertEqual(res, [x ** 2 for x in xrange(10)])
+
+    def test_map_n_jobs_greater(self):
+        a = BaseFeature(n_jobs=2)
+        res = a.map(lambda x: x ** 2, range(10))
+        self.assertEqual(res, [x ** 2 for x in xrange(10)])
+
+    def test_reduce_n_jobs_negative(self):
+        a = BaseFeature(n_jobs=-1)
+        res = a.reduce(lambda x, y: x + y, range(10))
+        self.assertEqual(res, sum(xrange(10)))
+
+    def test_reduce_n_jobs_one(self):
+        a = BaseFeature(n_jobs=1)
+        res = a.reduce(lambda x, y: x + y, range(10))
+        self.assertEqual(res, sum(xrange(10)))
+
+    def test_reduce_n_jobs_greater(self):
+        a = BaseFeature(n_jobs=2)
+        res = a.reduce(lambda x, y: x + y, range(10))
+        self.assertEqual(res, sum(xrange(10)))
 
 
 class ConnectivityTest(unittest.TestCase):
