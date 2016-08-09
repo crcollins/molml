@@ -3,7 +3,7 @@ import unittest
 import numpy
 
 from molml.features import BagOfBonds, BaseFeature, Connectivity, CoulombMatrix, EncodedBond
-
+from molml.features import func_star, get_coulomb_matrix
 
 METHANE_COORDS = '''
 0.99826008 -0.00246000 -0.00436000
@@ -91,6 +91,25 @@ MID = (MID_ELEMENTS, MID_COORDS)
 ALL_DATA = [METHANE, MID, BIG]
 
 
+class OtherTest(unittest.TestCase):
+    def test_func_star(self):
+        res = func_star((lambda x, y: x + y, 2, 3))
+        self.assertEqual(res, 5)
+
+    def test_get_coulomb_matrix(self):
+        res = get_coulomb_matrix([1, 1], [[0.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
+        expected_results = numpy.array([
+                                [0.5, 1.0],
+                                [1.0, 0.5]])
+        try:
+            numpy.testing.assert_array_almost_equal(
+                res,
+                expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
+
+
 class BaseFeatureTest(unittest.TestCase):
     def test_map_n_jobs_negative(self):
         a = BaseFeature(n_jobs=-1)
@@ -120,6 +139,7 @@ class BaseFeatureTest(unittest.TestCase):
     def test_reduce_n_jobs_greater(self):
         a = BaseFeature(n_jobs=2)
         res = a.reduce(lambda x, y: x + y, range(10))
+        print "estest"
         self.assertEqual(res, sum(xrange(10)))
 
 
