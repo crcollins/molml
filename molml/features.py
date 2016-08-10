@@ -5,7 +5,7 @@ from scipy.spatial.distance import cdist
 import scipy.stats
 from pathos.multiprocessing import ProcessingPool as Pool
 
-from utils import get_connections, ELE_TO_NUM, SMOOTHING_FUNCTIONS
+from utils import get_connections, read_file_data, ELE_TO_NUM, SMOOTHING_FUNCTIONS
 
 
 def _func_star(args):
@@ -25,17 +25,33 @@ def _func_star(args):
 class BaseFeature(object):
     def __init__(self, input_type='list', n_jobs=1):
         '''
-        Currently, the only input_type supported is 'list'
+        There are two values for input_type that are supported: 'list' or 'filename'
 
         If the input is 'list', then it must be an iterable of (elements, coodinates pairs) for each molecule. 
         Where the elements are an iterable of the form (ele1, ele2, ..., elen) and coordinates are an iterable of the form 
         [(x1, y1, z1), (x2, y2, z2), ..., (xn, yn, zn)].
+
+        If the input is 'filename', then it must be an iterable of paths/filenames for each molecule.
+        The files must then be of the form 
+        ele1 x1 y1 z1
+        ele2 x2 y2 z2
+        ...
+        elen xn yn zn
         '''
         self.input_type = input_type
         self.n_jobs = n_jobs
 
     def __repr__(self):
         return "%s(input_type='%s', n_jobs=%d)" % (self.__class__.__name__, self.input_type, self.n_jobs)
+
+    def convert_input(self, X):
+        if self.input_type == "list":
+            elements, coordinates = X
+        elif self.input_type == "filename":
+            elements, numbers, coordinates = read_file_data(X)
+        else:
+            raise ValueError
+        return elements, coordinates
 
     def map(self, f, seq):
         '''
@@ -207,7 +223,7 @@ class Connectivity(BaseFeature):
         return results
 
     def _para_fit(self, X):
-        elements, coords = X
+        elements, coords = self.convert_input(X)
         connections = get_connections(elements, coords)
         chains = self._loop_depth(connections)
         all_counts = self._tally_chains(chains, elements, connections)
@@ -226,7 +242,7 @@ class Connectivity(BaseFeature):
         if self._base_chains is None:
             raise ValueError
 
-        elements, coords = X
+        elements, coords = self.convert_input(X)
         connections = get_connections(elements, coords)
         chains = self._loop_depth(connections)
         tallies = self._tally_chains(chains, elements, connections)
@@ -251,7 +267,7 @@ class EncodedBond(BaseFeature):
                         self.segments, self.smoothing, self.start, self.end, self.slope)
 
     def _para_fit(self, X):
-        elements, coords = X
+        elements, coords = self.convert_input(X)
 
         counts = {}
         for ele in elements:
@@ -285,7 +301,7 @@ class EncodedBond(BaseFeature):
 
         pair_idxs = {key: i for i, key in enumerate(self._element_pairs)}
 
-        elements, coords = X
+        elements, coords = self.convert_input(X)
         vector = numpy.zeros((len(self._element_pairs), self.segments))
 
         theta = numpy.linspace(self.start, self.end, self.segments)
@@ -322,7 +338,7 @@ class CoulombMatrix(BaseFeature):
         self._max_size = None
 
     def _para_fit(self, X):
-        elements, coords = X
+        elements, coords = self.convert_input(X)
         return len(elements)
 
     def fit(self, X, y=None):
@@ -331,7 +347,7 @@ class CoulombMatrix(BaseFeature):
         return self
 
     def _para_transform(self, X):
-        elements, coords = X
+        elements, coords = self.convert_input(X)
         if self._max_size is None or len(elements) > self._max_size:
             raise ValueError
 
@@ -348,7 +364,7 @@ class BagOfBonds(BaseFeature):
         self._bag_sizes = None
 
     def _para_fit(self, X):
-        elements, coords = X
+        elements, coords = self.convert_input(X)
         bags = {}
 
         local = {}
@@ -382,7 +398,7 @@ class BagOfBonds(BaseFeature):
         return self
 
     def _para_transform(self, X):
-        elements, coords = X
+        elements, coords = self.convert_input(X)
         if self._bag_sizes is None:
             raise ValueError
 

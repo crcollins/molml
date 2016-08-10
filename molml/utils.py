@@ -1,3 +1,4 @@
+import numpy
 from scipy.spatial.distance import cdist
 from scipy.special import expit
 import scipy.stats
@@ -112,3 +113,26 @@ def get_connections(elements, coords):
                     connections[x] = {}
                 connections[x][y] = bond_type
     return connections
+
+
+def read_file_data(path):
+    """
+    Reads a file and extracts the molecules geometry
+
+    The file should be in the format
+    ele0 x0 y0 z0
+    ele1 x1 y1 z1
+    ...
+    """
+    elements = []
+    numbers = []
+    coords = []
+    with open(path, 'r') as f:
+        for line in f:
+            ele, x, y, z = line.strip().split()
+            point = (float(x), float(y), float(z))
+            elements.append(ele)
+            numbers.append(ELE_TO_NUM[ele])
+            coords.append(point)
+    return elements, numbers, numpy.array(coords)
+

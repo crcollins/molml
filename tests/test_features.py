@@ -1,3 +1,4 @@
+import os
 import unittest
 
 import numpy
@@ -142,6 +143,26 @@ class BaseFeatureTest(unittest.TestCase):
         print "estest"
         self.assertEqual(res, sum(xrange(10)))
 
+    def test_convert_input_list(self):
+        a = BaseFeature(input_type="list")
+        res = a.convert_input(METHANE)
+        self.assertEqual(res, METHANE)
+
+    def test_convert_input_filename(self):
+        a = BaseFeature(input_type="filename")
+        path = os.path.join(os.path.dirname(__file__), "data", "methane.out")
+        eles, coords = a.convert_input(path)
+        self.assertEqual(eles, METHANE_ELEMENTS)
+        try:
+            numpy.testing.assert_array_almost_equal(
+                    coords, METHANE_COORDS)
+        except AssertionError as e:
+                self.fail(e)
+
+    def test_convert_input_error(self):
+        a = BaseFeature(input_type="error")
+        with self.assertRaises(ValueError):
+            a.convert_input("bad data")
 
 class ConnectivityTest(unittest.TestCase):
     def test_fit_atom(self):
