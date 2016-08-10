@@ -140,7 +140,6 @@ class BaseFeatureTest(unittest.TestCase):
     def test_reduce_n_jobs_greater(self):
         a = BaseFeature(n_jobs=2)
         res = a.reduce(lambda x, y: x + y, range(10))
-        print "estest"
         self.assertEqual(res, sum(xrange(10)))
 
     def test_convert_input_list(self):
