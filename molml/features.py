@@ -8,7 +8,15 @@ from pathos.multiprocessing import ProcessingPool as Pool
 from utils import get_connections, ELE_TO_NUM, SMOOTHING_FUNCTIONS
 
 
-def func_star(args):
+def _func_star(args):
+    '''
+    A function and argument expanding helper function
+
+    The first item in args is callable, and the remainder of the items are
+    used as expanded arguments. This is to make the function header for reduce
+    the same for the normal and parallel versions. Otherwise, the functions
+    would have to do their own unpacking of arguments.
+    '''
     f = args[0]
     args = args[1:]
     return f(*args)
@@ -60,7 +68,7 @@ class BaseFeature(object):
         pool = Pool(processes=n_jobs)
         while len(seq) > 1:
             pairs = [(f, seq[i], seq[i+1]) for i in xrange(0,len(seq)-1, 2)]
-            seq = self.map(func_star, pairs) + [seq[-1]] * (len(seq) % 2)
+            seq = self.map(_func_star, pairs) + [seq[-1]] * (len(seq) % 2)
         return seq[0]
 
     def fit(self, X, y=None):

@@ -3,7 +3,7 @@ import unittest
 import numpy
 
 from molml.features import BagOfBonds, BaseFeature, Connectivity, CoulombMatrix, EncodedBond
-from molml.features import func_star, get_coulomb_matrix
+from molml.features import _func_star, get_coulomb_matrix
 
 METHANE_COORDS = '''
 0.99826008 -0.00246000 -0.00436000
@@ -92,8 +92,8 @@ ALL_DATA = [METHANE, MID, BIG]
 
 
 class OtherTest(unittest.TestCase):
-    def test_func_star(self):
-        res = func_star((lambda x, y: x + y, 2, 3))
+    def test__func_star(self):
+        res = _func_star((lambda x, y: x + y, 2, 3))
         self.assertEqual(res, 5)
 
     def test_get_coulomb_matrix(self):
