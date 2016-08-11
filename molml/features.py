@@ -4,7 +4,8 @@ import numpy
 from scipy.spatial.distance import cdist
 from pathos.multiprocessing import ProcessingPool as Pool
 
-from utils import get_connections, read_file_data, ELE_TO_NUM, SMOOTHING_FUNCTIONS
+from utils import get_connections, read_file_data
+from utils import ELE_TO_NUM, SMOOTHING_FUNCTIONS
 
 
 def _func_star(args):
@@ -41,7 +42,8 @@ class BaseFeature(object):
         self.n_jobs = n_jobs
 
     def __repr__(self):
-        return "%s(input_type='%s', n_jobs=%d)" % (type(self).__name__, self.input_type, self.n_jobs)
+        return "%s(input_type='%s', n_jobs=%d)" % (
+            type(self).__name__, self.input_type, self.n_jobs)
 
     def convert_input(self, X):
         '''
@@ -53,10 +55,12 @@ class BaseFeature(object):
             If input_type is 'list', then it must be an iterable of (elements,
             coodinates pairs) for each molecule. Where the elements are an
             iterable of the form (ele1, ele2, ..., elen) and coordinates are an
-            iterable of the form [(x1, y1, z1), (x2, y2, z2), ..., (xn, yn, zn)].
+            iterable of the form [(x1, y1, z1), (x2, y2, z2), ..., (xn, yn,
+            zn)].
 
             If input_type is 'filename', then it must be an iterable of
-            paths/filenames for each molecule. The files must then be of the form
+            paths/filenames for each molecule. The files must then be of the 
+            form
             ele1 x1 y1 z1
             ele2 x2 y2 z2
             ...
@@ -76,7 +80,8 @@ class BaseFeature(object):
         elif self.input_type == "filename":
             elements, numbers, coordinates = read_file_data(X)
         else:
-            raise ValueError("The input_type '%s' is not allowed." % self.input_type)
+            raise ValueError("The input_type '%s' is not allowed." %
+                                self.input_type)
         return elements, coordinates
 
     def map(self, f, seq):
@@ -130,7 +135,7 @@ class BaseFeature(object):
             return reduce(f, seq)
 
         while len(seq) > 1:
-            pairs = [(f, seq[i], seq[i+1]) for i in xrange(0,len(seq)-1, 2)]
+            pairs = [(f, seq[i], seq[i + 1]) for i in xrange(0, len(seq) - 1, 2)]
             seq = self.map(_func_star, pairs) + [seq[-1]] * (len(seq) % 2)
         return seq[0]
 
@@ -181,7 +186,9 @@ class Connectivity(BaseFeature):
         self._base_chains = None
 
     def __repr__(self):
-        return "%s(input_type='%s', n_jobs=%d, depth=%d, use_bond_order=%s)" % (type(self).__name__, self.input_type, self.n_jobs, self.depth, self.use_bond_order)
+        return "%s(input_type='%s', n_jobs=%d, depth=%d, use_bond_order=%s)" % (
+                    type(self).__name__, self.input_type, self.n_jobs,
+                    self.depth, self.use_bond_order)
 
     def _loop_depth(self, connections):
         '''
@@ -194,7 +201,7 @@ class Connectivity(BaseFeature):
 
     def _expand_chains(self, initial, connections):
         '''
-        This uses the connectivity information to add one more atom to each 
+        This uses the connectivity information to add one more atom to each
         chain. Returns a list of index chains that are one index longer than
         the inputs in initial.
         '''
@@ -208,7 +215,8 @@ class Connectivity(BaseFeature):
         for item in initial:
             # We use the first item because the indexing is easier?
             for x in connections[item[0]]:
-                if x in item: continue
+                if x in item:
+                    continue
                 new = (x, ) + item
                 if new[0] > new[-1]:
                     new = new[::-1]
@@ -220,7 +228,7 @@ class Connectivity(BaseFeature):
         '''
         This is used to select the two indicies that define the sorting order
         for the chains. The two returned values correspond to the lower and
-        the higher values. 
+        the higher values.
 
         Parameters
         ----------
@@ -280,7 +288,7 @@ class Connectivity(BaseFeature):
 
     def _tally_chains(self, chains, nodes, connections=None):
         '''
-        Tally all the chain types and return a dictonary with all the counts of 
+        Tally all the chain types and return a dictonary with all the counts of
         the types.
         '''
         results = {}
@@ -307,14 +315,16 @@ class Connectivity(BaseFeature):
         '''
         '''
         base_chains = self.map(self._para_fit, X)
-        self._base_chains = set(self.reduce(lambda x, y: set(x) | set(y), base_chains))
+        f = lambda x, y: set(x) | set(y)
+        self._base_chains = set(self.reduce(f, base_chains))
         return self
 
     def _para_transform(self, X, y=None):
         '''
         '''
         if self._base_chains is None:
-            raise ValueError("This %s instance is not fitted yet. Call 'fit' first." % type(self).__name__)
+            msg = "This %s instance is not fitted yet. Call 'fit' first."
+            raise ValueError(msg % type(self).__name__)
 
         elements, coords = self.convert_input(X)
         connections = get_connections(elements, coords)
@@ -375,7 +385,6 @@ class EncodedBond(BaseFeature):
 
     def __repr__(self):
         string = "%s(input_type='%s', n_jobs=%d, segments=%d, smoothing='%s', start=%g, end=%g, slope=%g)"
-
         return string % (type(self).__name__, self.input_type, self.n_jobs,
                         self.segments, self.smoothing, self.start, self.end, self.slope)
 
@@ -391,27 +400,30 @@ class EncodedBond(BaseFeature):
         pairs = {}
         for i, x in enumerate(counts):
             for j, y in enumerate(counts):
-                if i > j: continue
-                if x == y and counts[x] == 1: continue
+                if i > j:
+                    continue
+                if x == y and counts[x] == 1:
+                    continue
                 if x > y:
                     pairs[y, x] = 1
                 else:
                     pairs[x, y] = 1
-        return pairs.keys()        
+        return pairs.keys()
 
     def fit(self, X, y=None):
         '''
         '''
-
         pairs = self.map(self._para_fit, X)
-        self._element_pairs = set(self.reduce(lambda x, y: set(x) | set(y), pairs))
+        f = lambda x, y: set(x) | set(y)
+        self._element_pairs = set(self.reduce(f, pairs))
         return self
 
     def _para_transform(self, X, y=None):
         if self._element_pairs is None:
-            raise ValueError("This %s instance is not fitted yet. Call 'fit' first." % type(self).__name__)
-        
-        smoothing_function = SMOOTHING_FUNCTIONS[self.smoothing]
+            msg = "This %s instance is not fitted yet. Call 'fit' first."
+            raise ValueError(msg % type(self).__name__)
+
+        smoothing_func = SMOOTHING_FUNCTIONS[self.smoothing]
 
         pair_idxs = {key: i for i, key in enumerate(self._element_pairs)}
 
@@ -424,7 +436,7 @@ class EncodedBond(BaseFeature):
         for i, ele1 in enumerate(elements):
             for j, ele2 in enumerate(elements[i + 1:]):
                 j += i + 1
-                value = smoothing_function(self.slope * (theta - distances[i, j]))
+                value = smoothing_func(self.slope * (theta - distances[i, j]))
                 if ele1 < ele2:
                     vector[pair_idxs[ele1, ele2]] += value
                 else:
@@ -483,9 +495,12 @@ class CoulombMatrix(BaseFeature):
     def _para_transform(self, X):
         elements, coords = self.convert_input(X)
         if self._max_size is None:
-            raise ValueError("This %s instance is not fitted yet. Call 'fit' first." % type(self).__name__)
+            msg = "This %s instance is not fitted yet. Call 'fit' first."
+            raise ValueError(msg % type(self).__name__)
         if len(elements) > self._max_size:
-            raise ValueError("The fit molecules (%d) were not as large as the ones that are being transformed (%d)." % (self._max_size, len(elements)))
+            msg = "The fit molecules (%d) were not as large as the ones that"
+            msg += " are being transformed (%d)."
+            raise ValueError(msg % (self._max_size, len(elements)))
 
         padding_difference = self._max_size - len(elements)
         numbers = [ELE_TO_NUM[x] for x in elements]
@@ -529,7 +544,8 @@ class BagOfBonds(BaseFeature):
 
         for i, ele1 in enumerate(local.keys()):
             for j, ele2 in enumerate(local.keys()):
-                if j > i: continue
+                if j > i:
+                    continue
                 if ele1 == ele2:
                     # Minus 1 is to remove the diagonal
                     num = local[ele1] - 1
@@ -554,7 +570,8 @@ class BagOfBonds(BaseFeature):
     def _para_transform(self, X):
         elements, coords = self.convert_input(X)
         if self._bag_sizes is None:
-            raise ValueError("This %s instance is not fitted yet. Call 'fit' first." % type(self).__name__)
+            msg = "This %s instance is not fitted yet. Call 'fit' first."
+            raise ValueError(msg % type(self).__name__)
 
         # Sort the elements and coords based on the element
         temp = sorted(zip(elements, coords), key=lambda x: x[0])
@@ -580,7 +597,8 @@ class BagOfBonds(BaseFeature):
 
             # The molecule being used was fit to something smaller
             if len(values) > len(bags[ele1, ele2]):
-                raise ValueError("The size of the %s bag is too small for this input" % ((ele1, ele2), ))
+                msg = "The size of the %s bag is too small for this input"
+                raise ValueError(msg % ((ele1, ele2), ))
 
             bags[ele1, ele2][:len(values)] = values
         return sum(bags.values(), [])

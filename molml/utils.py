@@ -72,12 +72,13 @@ SMOOTHING_FUNCTIONS = {
 
 def get_bond_type(element1, element2, dist):
     '''
-    Given a pair of elements and a distance, return the bond order between them.
-    If there is no bond, return None.
+    Given a pair of elements and a distance, return the bond order between
+    them. If there is no bond, return None.
     '''
     for key in TYPE_ORDER[::-1]:
         try:
-            if dist < (BOND_LENGTHS[element1][key] + BOND_LENGTHS[element2][key]):
+            cutoff = BOND_LENGTHS[element1][key] + BOND_LENGTHS[element2][key]
+            if dist < cutoff:
                 return key
         except KeyError:
             continue
@@ -104,7 +105,8 @@ def get_connections(elements, coords):
             j += i + 1
             dist = dist_mat[i, j]
             bond_type = get_bond_type(element1, element2, dist)
-            if not bond_type: continue
+            if not bond_type:
+                continue
 
             # Loop over both connection directions
             # A -> B and A <- B
@@ -133,4 +135,3 @@ def read_file_data(path):
             numbers.append(ELE_TO_NUM[ele])
             coords.append(point)
     return elements, numbers, numpy.array(coords)
-
