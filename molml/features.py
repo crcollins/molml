@@ -42,7 +42,7 @@ class BaseFeature(object):
         self.n_jobs = n_jobs
 
     def __repr__(self):
-        return "%s(input_type='%s', n_jobs=%d)" % (self.__class__.__name__, self.input_type, self.n_jobs)
+        return "%s(input_type='%s', n_jobs=%d)" % (type(self).__name__, self.input_type, self.n_jobs)
 
     def convert_input(self, X):
         if self.input_type == "list":
@@ -116,7 +116,7 @@ class Connectivity(BaseFeature):
         self._base_chains = None
 
     def __repr__(self):
-        return "%s(input_type='%s', n_jobs=%d, depth=%d, use_bond_order=%s)" % (self.__class__.__name__, self.input_type, self.n_jobs, self.depth, self.use_bond_order)
+        return "%s(input_type='%s', n_jobs=%d, depth=%d, use_bond_order=%s)" % (type(self).__name__, self.input_type, self.n_jobs, self.depth, self.use_bond_order)
 
     def _loop_depth(self, connections):
         '''
@@ -263,7 +263,7 @@ class EncodedBond(BaseFeature):
     def __repr__(self):
         string = "%s(input_type='%s', n_jobs=%d, segments=%d, smoothing='%s', start=%g, end=%g, slope=%g)"
 
-        return string % (self.__class__.__name__, self.input_type, self.n_jobs,
+        return string % (type(self).__name__, self.input_type, self.n_jobs,
                         self.segments, self.smoothing, self.start, self.end, self.slope)
 
     def _para_fit(self, X):
