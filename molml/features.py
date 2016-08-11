@@ -2,7 +2,6 @@ import multiprocessing
 
 import numpy
 from scipy.spatial.distance import cdist
-import scipy.stats
 from pathos.multiprocessing import ProcessingPool as Pool
 
 from utils import get_connections, read_file_data, ELE_TO_NUM, SMOOTHING_FUNCTIONS
@@ -127,14 +126,9 @@ class BaseFeature(object):
         results : object
             A single reduced object based on 'seq' and 'f'
         '''
-        if self.n_jobs < 1:
-            n_jobs = multiprocessing.cpu_count()
-        elif self.n_jobs == 1:
+        if self.n_jobs == 1:
             return reduce(f, seq)
-        else:
-            n_jobs = self.n_jobs
 
-        pool = Pool(processes=n_jobs)
         while len(seq) > 1:
             pairs = [(f, seq[i], seq[i+1]) for i in xrange(0,len(seq)-1, 2)]
             seq = self.map(_func_star, pairs) + [seq[-1]] * (len(seq) % 2)
