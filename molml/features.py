@@ -233,7 +233,7 @@ class Connectivity(BaseFeature):
         '''
         '''
         base_chains = self.map(self._para_fit, X)
-        self._base_chains = self.reduce(lambda x, y: set(x) | set(y), base_chains)
+        self._base_chains = set(self.reduce(lambda x, y: set(x) | set(y), base_chains))
         return self
 
     def _para_transform(self, X, y=None):
@@ -291,7 +291,7 @@ class EncodedBond(BaseFeature):
         '''
 
         pairs = self.map(self._para_fit, X)
-        self._element_pairs = self.reduce(lambda x, y: set(x) | set(y), pairs)
+        self._element_pairs = set(self.reduce(lambda x, y: set(x) | set(y), pairs))
         return self
 
     def _para_transform(self, X, y=None):

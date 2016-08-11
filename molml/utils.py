@@ -98,7 +98,7 @@ def get_connections(elements, coords):
     '''
     dist_mat = cdist(coords, coords)
 
-    connections = {}
+    connections = {i: {} for i in xrange(len(elements))}
     for i, element1 in enumerate(elements):
         for j, element2 in enumerate(elements[i+1:]):
             j += i + 1
@@ -109,8 +109,6 @@ def get_connections(elements, coords):
             # Loop over both connection directions
             # A -> B and A <- B
             for x, y in ((i, j), (j, i)):
-                if x not in connections:
-                    connections[x] = {}
                 connections[x][y] = bond_type
     return connections
 

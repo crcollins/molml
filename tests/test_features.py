@@ -16,7 +16,7 @@ METHANE_COORDS = '''
 METHANE_COORDS = numpy.array([map(float,x.split()) for x in METHANE_COORDS.strip().split('\n')])
 METHANE_ELEMENTS = "C H H H H".strip().split()
 METHANE = (METHANE_ELEMENTS, METHANE_COORDS)
-
+METHANE2 = (METHANE[0], 2 * METHANE[1])
 
 BIG_COORDS = '''
 -4.577500 -2.027000 0.000100
@@ -170,6 +170,13 @@ class ConnectivityTest(unittest.TestCase):
         self.assertEqual(a._base_chains, 
                         set([('N',), ('C',), ('O',), ('H',)]))
 
+    def test_fit_atom_separated(self):
+        a = Connectivity(depth=1)
+        a.fit([METHANE2])
+        self.assertEqual(a._base_chains,
+                        set([('C',), ('H',)]))
+        self.assertTrue((a.transform([METHANE2]) == numpy.array([[1, 4]])).all())
+
     def test_fit_bond(self):
         a = Connectivity(depth=2)
         a.fit(ALL_DATA)
@@ -226,7 +233,7 @@ class ConnectivityTest(unittest.TestCase):
         a = Connectivity()
         a.fit(ALL_DATA)
         expected_results = numpy.array([[ 0,  1,  0,  4],
-                                        [ 0,  2,  3,  2],
+                                        [ 0,  2,  4,  3],
                                         [ 5, 25,  4, 15]])
         self.assertTrue((a.transform(ALL_DATA) == expected_results).all())
 
@@ -234,7 +241,7 @@ class ConnectivityTest(unittest.TestCase):
         a = Connectivity()
         a.fit([METHANE])
         expected_results = numpy.array([[ 1,  4],
-                                        [ 2,  2],
+                                        [ 2,  3],
                                         [25, 15]])
         self.assertTrue((a.transform(ALL_DATA) == expected_results).all())
 
@@ -242,7 +249,7 @@ class ConnectivityTest(unittest.TestCase):
         a = Connectivity()
         a.fit([BIG])
         expected_results = numpy.array([[ 0,  1,  0,  4],
-                                        [ 0,  2,  3,  2],
+                                        [ 0,  2,  4,  3],
                                         [ 5, 25,  4, 15]])
         self.assertTrue((a.transform(ALL_DATA) == expected_results).all())
 
@@ -254,7 +261,7 @@ class ConnectivityTest(unittest.TestCase):
     def test_fit_transform(self):
         a = Connectivity()
         expected_results = numpy.array([[ 0,  1,  0,  4],
-                                        [ 0,  2,  3,  2],
+                                        [ 0,  2,  4,  3],
                                         [ 5, 25,  4, 15]])
         self.assertTrue((a.fit_transform(ALL_DATA) == expected_results).all())
 
