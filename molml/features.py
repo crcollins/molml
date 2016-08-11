@@ -50,7 +50,7 @@ class BaseFeature(object):
         elif self.input_type == "filename":
             elements, numbers, coordinates = read_file_data(X)
         else:
-            raise ValueError
+            raise ValueError("The input_type '%s' is not allowed." % self.input_type)
         return elements, coordinates
 
     def map(self, f, seq):
@@ -240,7 +240,7 @@ class Connectivity(BaseFeature):
         '''
         '''
         if self._base_chains is None:
-            raise ValueError
+            raise ValueError("This %s instance is not fitted yet. Call 'fit' first." % type(self).__name__)
 
         elements, coords = self.convert_input(X)
         connections = get_connections(elements, coords)
@@ -289,13 +289,14 @@ class EncodedBond(BaseFeature):
     def fit(self, X, y=None):
         '''
         '''
+
         pairs = self.map(self._para_fit, X)
         self._element_pairs = self.reduce(lambda x, y: set(x) | set(y), pairs)
         return self
 
     def _para_transform(self, X, y=None):
         if self._element_pairs is None:
-            raise ValueError
+            raise ValueError("This %s instance is not fitted yet. Call 'fit' first." % type(self).__name__)
         
         smoothing_function = SMOOTHING_FUNCTIONS[self.smoothing]
 
@@ -348,8 +349,10 @@ class CoulombMatrix(BaseFeature):
 
     def _para_transform(self, X):
         elements, coords = self.convert_input(X)
-        if self._max_size is None or len(elements) > self._max_size:
-            raise ValueError
+        if self._max_size is None:
+            raise ValueError("This %s instance is not fitted yet. Call 'fit' first." % type(self).__name__)
+        if len(elements) > self._max_size:
+            raise ValueError("The fit molecules (%d) were not as large as the ones that are being transformed (%d)." % (self._max_size, len(elements)))
 
         padding_difference = self._max_size - len(elements)
         numbers = [ELE_TO_NUM[x] for x in elements]
@@ -400,7 +403,7 @@ class BagOfBonds(BaseFeature):
     def _para_transform(self, X):
         elements, coords = self.convert_input(X)
         if self._bag_sizes is None:
-            raise ValueError
+            raise ValueError("This %s instance is not fitted yet. Call 'fit' first." % type(self).__name__)
 
         # Sort the elements and coords based on the element
         temp = sorted(zip(elements, coords), key=lambda x: x[0])
@@ -426,7 +429,7 @@ class BagOfBonds(BaseFeature):
 
             # The molecule being used was fit to something smaller
             if len(values) > len(bags[ele1, ele2]):
-                raise ValueError
+                raise ValueError("The size of the %s bag is too small for this input" % ((ele1, ele2), ))
 
             bags[ele1, ele2][:len(values)] = values
         return sum(bags.values(), [])
