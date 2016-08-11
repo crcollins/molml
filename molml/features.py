@@ -23,21 +23,21 @@ def _func_star(args):
 
 
 class BaseFeature(object):
+    '''
+    A base class for all the features.
+
+    Parameters
+    ----------
+    input_type : string, default='list'
+        Specifies the format the input values will be (must be one of 'list'
+        or 'filename').
+
+    n_jobs : int, default=1
+        Specifies the number of processes to create when generating the
+        features. Positive numbers specify a specifc amount, and numbers less
+        than 1 will use the number of cores the computer has.
+    '''
     def __init__(self, input_type='list', n_jobs=1):
-        '''
-        There are two values for input_type that are supported: 'list' or 'filename'
-
-        If the input is 'list', then it must be an iterable of (elements, coodinates pairs) for each molecule. 
-        Where the elements are an iterable of the form (ele1, ele2, ..., elen) and coordinates are an iterable of the form 
-        [(x1, y1, z1), (x2, y2, z2), ..., (xn, yn, zn)].
-
-        If the input is 'filename', then it must be an iterable of paths/filenames for each molecule.
-        The files must then be of the form 
-        ele1 x1 y1 z1
-        ele2 x2 y2 z2
-        ...
-        elen xn yn zn
-        '''
         self.input_type = input_type
         self.n_jobs = n_jobs
 
@@ -45,6 +45,33 @@ class BaseFeature(object):
         return "%s(input_type='%s', n_jobs=%d)" % (type(self).__name__, self.input_type, self.n_jobs)
 
     def convert_input(self, X):
+        '''
+        Converts the input (as specified in self.input_type) to a usable form
+
+        Parameters
+        ----------
+        X : list or string (depends on the instance value of input_type)
+            If input_type is 'list', then it must be an iterable of (elements,
+            coodinates pairs) for each molecule. Where the elements are an
+            iterable of the form (ele1, ele2, ..., elen) and coordinates are an
+            iterable of the form [(x1, y1, z1), (x2, y2, z2), ..., (xn, yn, zn)].
+
+            If input_type is 'filename', then it must be an iterable of
+            paths/filenames for each molecule. The files must then be of the form
+            ele1 x1 y1 z1
+            ele2 x2 y2 z2
+            ...
+            elen xn yn zn
+
+        Returns
+        -------
+        elements : list, shape=[n_atoms]
+            A list of all the element symbols in the molecule
+
+        coordinates : array, shape=[n_atoms, 3]
+            An array of all the coordinates of the atoms in the molecule.
+            These are assumed to be in angstroms.
+        '''
         if self.input_type == "list":
             elements, coordinates = X
         elif self.input_type == "filename":
@@ -56,6 +83,19 @@ class BaseFeature(object):
     def map(self, f, seq):
         '''
         Parallel implementation of map
+
+        Parameters
+        ----------
+        f : callable
+            A function to map to all the values in 'seq'
+
+        seq : iterable
+            An iterable of values to process with 'f'
+
+        Returns
+        -------
+        results : list, shape=[len(seq)]
+            The evaluated values
         '''
         if self.n_jobs < 1:
             n_jobs = multiprocessing.cpu_count()
@@ -73,6 +113,19 @@ class BaseFeature(object):
         Parallel implementation of reduce
 
         This changes the problem from being O(n) steps to O(lg n)
+
+        Parameters
+        ----------
+        f : callable
+            A function to use to reduce the values of 'seq'
+
+        seq : iterable
+            An iterable of values to process
+
+        Returns
+        -------
+        results : object
+            A single reduced object based on 'seq' and 'f'
         '''
         if self.n_jobs < 1:
             n_jobs = multiprocessing.cpu_count()
@@ -108,6 +161,24 @@ class BaseFeature(object):
 class Connectivity(BaseFeature):
     '''
     A collection of feature types based on the connectivity of atoms.
+
+    Parameters
+    ----------
+    input_type : string, default='list'
+        Specifies the format the input values will be (must be one of 'list'
+        or 'filename').
+
+    n_jobs : int, default=1
+        Specifies the number of processes to create when generating the
+        features. Positive numbers specify a specifc amount, and numbers less
+        than 1 will use the number of cores the computer has.
+
+    depth : int, default=1
+        The length of the atom chains to generate for connections
+
+    use_bond_order : boolean, default=False
+        Specifies whether or not to use bond order information (C-C versus
+        C=C). Note: for depth=1, this option does nothing.
     '''
     def __init__(self, input_type='list', n_jobs=1, depth=1, use_bond_order=False):
         super(Connectivity, self).__init__(input_type=input_type, n_jobs=n_jobs)
@@ -157,8 +228,18 @@ class Connectivity(BaseFeature):
         for the chains. The two returned values correspond to the lower and
         the higher values. 
 
-        Arguments:
-            x: An integer length of the chain
+        Parameters
+        ----------
+        x : int
+            An integer length of the chain
+
+        Returns
+        -------
+        lower : int
+            The lower index value when sorting
+
+        upper : int
+            The upper index value when sorting
         '''
         if x == 1:
             return 0, 0
@@ -170,7 +251,6 @@ class Connectivity(BaseFeature):
         Reorder chain
 
         Sort the chains such that they are in a canonical ordering
-
         '''
         first, second = self._get_ordering_idxs(len(labelled))
         while first >= 0 and second < len(labelled):
@@ -251,6 +331,45 @@ class Connectivity(BaseFeature):
 
 
 class EncodedBond(BaseFeature):
+    '''
+    A smoothed histogram of atomic distances.
+
+    This is a method to generallize the idea of bond counting. Instead of
+    seeing bonds as a discrete count that is thresholded at a given length,
+    they are seen as general distance histograms. This is supplemented with
+    smoothing functions.
+
+    Parameters
+    ----------
+    input_type : string, default='list'
+        Specifies the format the input values will be (must be one of 'list'
+        or 'filename').
+
+    n_jobs : int, default=1
+        Specifies the number of processes to create when generating the
+        features. Positive numbers specify a specifc amount, and numbers less
+        than 1 will use the number of cores the computer has.
+
+    segments : int, default=100
+        The number of bins/segments to use when generating the histogram.
+        Empirically, it has been found that values beyond 50-100 have little
+        benefit.
+
+    smoothing : string or callable, default='norm'
+        A string or callable to use to smooth the histogram values. If a
+        callable is given, it must take just a single argument that is a float.
+        For a list of supported default functions look at SMOOTHING_FUNCTIONS.
+
+    start : float, default=0.2
+        The starting point for the histgram sampling in angstroms.
+
+    end : float, default=6.0
+        The ending point for the histogram sampling in angstroms.
+
+    slope : float, default=20.
+        A parameter to tune the smoothing values. This is applied as a
+        multiplication before calling the smoothing function.
+    '''
     def __init__(self, input_type='list', n_jobs=1, segments=100, smoothing="norm", start=0.2, end=6.0, slope=20.):
         super(EncodedBond, self).__init__(input_type=input_type, n_jobs=n_jobs)
         self._element_pairs = None
@@ -334,6 +453,26 @@ def get_coulomb_matrix(numbers, coords):
 
 
 class CoulombMatrix(BaseFeature):
+    '''
+    A molecular descriptor based on Coulomb interactions.
+
+    This is a feature that uses a Coulomb-like interaction between all atoms
+    in the molecule to generate a matrix that is then vectorized.
+
+    C_ij = Z_i Z_j / | r_i - r_j |
+    C_ii = 0.5 Z_i ** 2.4
+
+    Parameters
+    ----------
+    input_type : string, default='list'
+        Specifies the format the input values will be (must be one of 'list'
+        or 'filename').
+
+    n_jobs : int, default=1
+        Specifies the number of processes to create when generating the
+        features. Positive numbers specify a specifc amount, and numbers less
+        than 1 will use the number of cores the computer has.
+    '''
     def __init__(self, input_type='list', n_jobs=1):
         super(CoulombMatrix, self).__init__(input_type=input_type, n_jobs=n_jobs)
         self._max_size = None
@@ -362,6 +501,24 @@ class CoulombMatrix(BaseFeature):
 
 
 class BagOfBonds(BaseFeature):
+    '''
+    A molecular descriptor that groups interactions from the Coulomb Matrix
+
+    This feature starts the same as the Coulomb Matrix, and then interaction
+    terms of the same element pair are grouped together and then sorted before
+    they are vectorized.
+
+    Parameters
+    ----------
+    input_type : string, default='list'
+        Specifies the format the input values will be (must be one of 'list'
+        or 'filename').
+
+    n_jobs : int, default=1
+        Specifies the number of processes to create when generating the
+        features. Positive numbers specify a specifc amount, and numbers less
+        than 1 will use the number of cores the computer has.
+    '''
     def __init__(self, input_type='list', n_jobs=1):
         super(BagOfBonds, self).__init__(input_type=input_type, n_jobs=n_jobs)
         self._bag_sizes = None
