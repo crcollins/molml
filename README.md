@@ -3,6 +3,79 @@ MolML
 [![Build Status](https://travis-ci.org/crcollins/molml.svg?branch=master)](https://travis-ci.org/crcollins/molml)
 [![Coverage Status](https://coveralls.io/repos/github/crcollins/molml/badge.svg?branch=master)](https://coveralls.io/github/crcollins/molml?branch=master)
 
-A library to interface molecules and machine learning.
+A library to interface molecules and machine learning. The goal of this library is to be a simple way to convert molecules into a vector representation for later use with libraries such as [scikit-learn](http://scikit-learn.org/). This is done using a similar API scheme.
+
+All of the coordinates are assumed to be in angstroms.
+
+
+Example Usage
+=============
+
+    >>> from molml.features import CoulombMatrix
+    >>> feat = CoulombMatrix()
+    >>> H2 = (
+    ...             ['H', 'H'],
+    ...             [
+    ...                     [0.0, 0.0, 0.0],
+    ...                     [1.0, 0.0, 0.0],
+    ...             ]
+    ... )
+    >>> HCN = (
+    ...             ['H', 'C', 'N'],
+    ...             [
+    ...                     [-1.0, 0.0, 0.0],
+    ...                     [ 0.0, 0.0, 0.0],
+    ...                     [ 1.0, 0.0, 0.0],
+    ...             ]
+    ... )
+    >>> feat.fit([H2, HCN])
+    CoulombMatrix(input_type='list', n_jobs=1)
+    >>> feat.transform([H2])
+    array([[ 0.5,  1. ,  0. ,  1. ,  0.5,  0. ,  0. ,  0. ,  0. ]])
+    >>> feat.transform([H2, HCN])
+    array([[  0.5      ,   1.       ,   0.       ,   1.       ,   0.5      ,
+            0.       ,   0.       ,   0.       ,   0.       ],
+            [  0.5      ,   6.       ,   3.5      ,   6.       ,  36.8581052,
+            42.       ,   3.5      ,  42.       ,  53.3587074]])
+
+
+Dependencies
+============
+
+MolML requires python 2.7, numpy, scipy, and pathos. The specific versions that have been tested are numpy 1.9.1, scipy 0.15.1, and pathos 0.2.0, but newer versions should work.
+
+
+Install
+=======
+
+Once the dependeicies are installed, the package can be installed with pip.
+
+    $ pip install molml
+
+Or for the bleeding edge version, you can use
+
+    $ pip install git+git://github.com/crcollins/molml
+
+
+Development
+===========
+
+To install a development version, just clone the git repo.
+
+    $ git clone https://github.com/crcollins/moml
+
+Pull requests and bug reports are welcomed!
+
+
+Testing
+=======
+
+To run the tests, make sure that `nose` is installed and then run:
+
+    $ nosetests
+
+To include coverage information, make sure that `coverage` is installed and then run:
+
+    $ nosetests --with-coverage --cover-package=molml --cover-erase
 
 
