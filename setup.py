@@ -17,4 +17,7 @@ setup(
     packages=['molml'],
     test_suite='nose.collector',
     tests_require=['nose'],
+    install_requires=[
+        'pathos',
+    ],
 )
