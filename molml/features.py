@@ -140,19 +140,71 @@ class BaseFeature(object):
         return seq[0]
 
     def fit(self, X, y=None):
+        '''
+        Fit the model
+
+        Parameters
+        ----------
+        X : list, shape=(n_samples, )
+            A list of objects to use to fit.
+
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        '''
         raise NotImplementedError
 
     def _para_transform(self, X):
-        '''A stupidly parallel implementation of the transformation'''
+        '''
+        A single instance of the transform procedure
+
+        This is formulated in a way that the transformations can be done
+        completely parallel with map.
+
+        Parameters
+        ----------
+        X : object
+            An object to use for the transform
+
+        Returns
+        -------
+        value : array-like
+            The features extracted from the molecule
+        '''
         raise NotImplementedError
 
     def transform(self, X, y=None):
-        '''Framework for a potentially parallel transform'''
+        '''
+        Framework for a potentially parallel transform
+
+        Parameters
+        ----------
+        X : list, shape=(n_samples, )
+            A list of objects to use to transform
+
+        Returns
+        -------
+        array : array, shape=(n_samples, n_features)
+            The transformed features
+        '''
         results = self.map(self._para_transform, X)
         return numpy.array(results)
 
     def fit_transform(self, X, y=None):
-        '''A naive default implementation of fitting and transforming'''
+        '''
+        A naive default implementation of fitting and transforming
+
+        Parameters
+        ----------
+        X : list, shape=(n_samples, )
+            A list of objects to use to fit and then transform
+
+        Returns
+        -------
+        array : array, shape=(n_samples, n_features)
+            The transformed features
+        '''
         self.fit(X, y)
         return self.transform(X, y)
 
@@ -193,6 +245,16 @@ class Connectivity(BaseFeature):
     def _loop_depth(self, connections):
         '''
         Loop over the depth number expanding chains
+
+        Parameters
+        ----------
+        connections : dict, key->list of keys
+            A dictonary edge table with all the bidirectional connections
+
+        Returns
+        -------
+        chains : list
+            A list of key tuples of all the chains in the molecule
         '''
         chains = [(x, ) for x in connections.keys()]
         for i in xrange(self.depth - 1):
@@ -202,8 +264,21 @@ class Connectivity(BaseFeature):
     def _expand_chains(self, initial, connections):
         '''
         This uses the connectivity information to add one more atom to each
-        chain. Returns a list of index chains that are one index longer than
-        the inputs in initial.
+        chain.
+
+        Parameters
+        ----------
+        initial : list
+            A list of key tuples of all the chains in the molecule
+
+        connections : dict, key->list of keys
+            A dictonary edge table with all the bidirectional connections
+
+        Returns
+        -------
+        results : list
+            A list of index chains that are one index longer than the inputs
+            in initial.
         '''
         if len(initial) and len(initial[0]) > 1:
             # All of the chains are duplicated and reversed.
@@ -253,6 +328,22 @@ class Connectivity(BaseFeature):
         Reorder chain
 
         Sort the chains such that they are in a canonical ordering
+
+        Parameters
+        ----------
+        chain : tuple
+            The atom index values in the chain
+
+        labelled : tuple
+            Elements corresponding to the chain indices
+
+        Returns
+        -------
+        chain : tuple
+            Atom index values for the sorted chain
+
+        labelled : tuple
+            Elements corresponding to the sorted chain indices
         '''
         first, second = self._get_ordering_idxs(len(labelled))
         while first >= 0 and second < len(labelled):
@@ -274,6 +365,22 @@ class Connectivity(BaseFeature):
         '''
         Converts a chain based on just elements into one that includes bond
         order.
+
+        Parameters
+        ----------
+        chain : tuple
+            The atom index values in the chain
+
+        labelled : tuple
+            Elements corresponding to the chain indices
+
+        connections : dict, key->list of keys
+            A dictonary edge table with all the bidirectional connections
+
+        Returns
+        -------
+        labelled : list
+            The new labelled chain if use_bond_order is set
         '''
         if self.use_bond_order and len(labelled) > 1:
             temp = []
@@ -290,6 +397,22 @@ class Connectivity(BaseFeature):
         '''
         Tally all the chain types and return a dictonary with all the counts of
         the types.
+
+        Parameters
+        ----------
+        chains : list
+            All of the chains in the molecule
+
+        nodes : list
+            All of the element labels of the atoms
+
+        connections : dict, key->list of keys
+            A dictonary edge table with all the bidirectional connections
+
+        Returns
+        -------
+        results : dict, labelled_chain->int
+            Totals of the number of each type of chain
         '''
         results = {}
         for chain in chains:
@@ -305,6 +428,22 @@ class Connectivity(BaseFeature):
         return results
 
     def _para_fit(self, X):
+        '''
+        A single instance of the fit procedure
+
+        This is formulated in a way that the fits can be done completely
+        parallel in a map/reduce fashion.
+
+        Parameters
+        ----------
+        X : object
+            An object to use for the fit
+
+        Returns
+        -------
+        value : list
+            All the chains in the molecule
+        '''
         elements, coords = self.convert_input(X)
         connections = get_connections(elements, coords)
         chains = self._loop_depth(connections)
@@ -313,6 +452,17 @@ class Connectivity(BaseFeature):
 
     def fit(self, X, y=None):
         '''
+        Fit the model
+
+        Parameters
+        ----------
+        X : list, shape=(n_samples, )
+            A list of objects to use to fit.
+
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
         '''
         base_chains = self.map(self._para_fit, X)
         f = lambda x, y: set(x) | set(y)
@@ -321,6 +471,20 @@ class Connectivity(BaseFeature):
 
     def _para_transform(self, X, y=None):
         '''
+        A single instance of the transform procedure
+
+        This is formulated in a way that the transformations can be done
+        completely parallel with map.
+
+        Parameters
+        ----------
+        X : object
+            An object to use for the transform
+
+        Returns
+        -------
+        value : list
+            The features extracted from the molecule
         '''
         if self._base_chains is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
@@ -389,6 +553,22 @@ class EncodedBond(BaseFeature):
                         self.segments, self.smoothing, self.start, self.end, self.slope)
 
     def _para_fit(self, X):
+        '''
+        A single instance of the fit procedure
+
+        This is formulated in a way that the fits can be done completely
+        parallel in a map/reduce fashion.
+
+        Parameters
+        ----------
+        X : object
+            An object to use for the fit
+
+        Returns
+        -------
+        value : list
+            All the element pairs in the molecule
+        '''
         elements, coords = self.convert_input(X)
 
         counts = {}
@@ -412,6 +592,17 @@ class EncodedBond(BaseFeature):
 
     def fit(self, X, y=None):
         '''
+        Fit the model
+
+        Parameters
+        ----------
+        X : list, shape=(n_samples, )
+            A list of objects to use to fit.
+
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
         '''
         pairs = self.map(self._para_fit, X)
         f = lambda x, y: set(x) | set(y)
@@ -419,6 +610,22 @@ class EncodedBond(BaseFeature):
         return self
 
     def _para_transform(self, X, y=None):
+        '''
+        A single instance of the transform procedure
+
+        This is formulated in a way that the transformations can be done
+        completely parallel with map.
+
+        Parameters
+        ----------
+        X : object
+            An object to use for the transform
+
+        Returns
+        -------
+        value : list
+            The features extracted from the molecule
+        '''
         if self._element_pairs is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)
@@ -446,7 +653,23 @@ class EncodedBond(BaseFeature):
 
 def get_coulomb_matrix(numbers, coords):
     """
-    Return the coulomb matrix for the given `coords` and `numbers`
+    Return the coulomb matrix for the given coords and numbers
+
+    C_ij = Z_i Z_j / | r_i - r_j |
+    C_ii = 0.5 Z_i ** 2.4
+
+    Parameters
+    ----------
+    numbers : array-like, shape=(n_atoms, )
+        The atomic numbers of all the atoms
+
+    coords : array-like, shape=(n_atoms, 3)
+        The xyz coordinates of all the atoms (in angstroms)
+
+    Returns
+    -------
+    top : array, shape=(n_atoms, n_atoms)
+        The coulomb matrix
     """
     top = numpy.outer(numbers, numbers).astype(numpy.float64)
     r = cdist(coords, coords)
@@ -484,15 +707,60 @@ class CoulombMatrix(BaseFeature):
         self._max_size = None
 
     def _para_fit(self, X):
+        '''
+        A single instance of the fit procedure
+
+        This is formulated in a way that the fits can be done completely
+        parallel in a map/reduce fashion.
+
+        Parameters
+        ----------
+        X : object
+            An object to use for the fit
+
+        Returns
+        -------
+        value : int
+            The number of atoms in the molecule
+        '''
         elements, coords = self.convert_input(X)
         return len(elements)
 
     def fit(self, X, y=None):
+        '''
+        Fit the model
+
+        Parameters
+        ----------
+        X : list, shape=(n_samples, )
+            A list of objects to use to fit.
+
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        '''
         max_size = self.map(self._para_fit, X)
         self._max_size = max(max_size)
         return self
 
     def _para_transform(self, X):
+        '''
+        A single instance of the transform procedure
+
+        This is formulated in a way that the transformations can be done
+        completely parallel with map.
+
+        Parameters
+        ----------
+        X : object
+            An object to use for the transform
+
+        Returns
+        -------
+        value : array
+            The features extracted from the molecule
+        '''
         elements, coords = self.convert_input(X)
         if self._max_size is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
@@ -533,6 +801,22 @@ class BagOfBonds(BaseFeature):
         self._bag_sizes = None
 
     def _para_fit(self, X):
+        '''
+        A single instance of the fit procedure
+
+        This is formulated in a way that the fits can be done completely
+        parallel in a map/reduce fashion.
+
+        Parameters
+        ----------
+        X : object
+            An object to use for the fit
+
+        Returns
+        -------
+        value : list
+            All the element pairs in the molecule
+        '''
         elements, coords = self.convert_input(X)
         bags = {}
 
@@ -559,15 +843,57 @@ class BagOfBonds(BaseFeature):
         return {key: value for key, value in bags.items() if value}
 
     def _max_merge_dict(self, x, y):
+        '''
+        Merge the values of two dictonaries using the max of their values
+
+        Parameters
+        ----------
+        x : dict, key->number
+
+        y : dict, key->number
+
+        Returns
+        -------
+        dict : dict, key->number
+        '''
         all_keys = x.keys() + y.keys()
         return {key: max(x.get(key, 0), y.get(key, 0)) for key in all_keys}
 
     def fit(self, X, y=None):
+        '''
+        Fit the model
+
+        Parameters
+        ----------
+        X : list, shape=(n_samples, )
+            A list of objects to use to fit.
+
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        '''
         bags = self.map(self._para_fit, X)
         self._bag_sizes = self.reduce(self._max_merge_dict, bags)
         return self
 
     def _para_transform(self, X):
+        '''
+        A single instance of the transform procedure
+
+        This is formulated in a way that the transformations can be done
+        completely parallel with map.
+
+        Parameters
+        ----------
+        X : object
+            An object to use for the transform
+
+        Returns
+        -------
+        value : array
+            The features extracted from the molecule
+        '''
         elements, coords = self.convert_input(X)
         if self._bag_sizes is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
