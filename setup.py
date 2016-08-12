@@ -8,7 +8,7 @@ except ImportError:
 
 setup(
     name='molml',
-    version='0.0.1',
+    version='0.1.0',
     description='An interface between molecules and machine learning',
     author='Chris Collins',
     author_email='chris@crcollins.com',
