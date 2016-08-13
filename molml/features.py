@@ -234,6 +234,11 @@ class Connectivity(BaseFeature):
     use_coordination : boolean, default=False
         Specifies whether or not to use the coordination number of the atoms
         (C1 vs C2 vs C3 vs C4).
+
+    Attributes
+    ----------
+    _base_chains : set, tuples
+        All the chains that are in the fit molecules.
     '''
     def __init__(self, input_type='list', n_jobs=1, depth=1,
                     use_bond_order=False, use_coordination=False):
@@ -549,7 +554,12 @@ class EncodedBond(BaseFeature):
     max_depth : int, default=0
         A parameter to set the maximum geodesic distance to include in the
         interactions. A value of 0 signifies that all interactions are
-        included
+        included.
+
+    Attributes
+    ----------
+    _element_pairs : list
+        A list of all the element pairs in the fit molecules.
     '''
     def __init__(self, input_type='list', n_jobs=1, segments=100, smoothing="norm", start=0.2, end=6.0, slope=20., max_depth=0):
         super(EncodedBond, self).__init__(input_type=input_type, n_jobs=n_jobs)
@@ -721,6 +731,12 @@ class CoulombMatrix(BaseFeature):
         Specifies the number of processes to create when generating the
         features. Positive numbers specify a specifc amount, and numbers less
         than 1 will use the number of cores the computer has.
+
+    Attributes
+    ----------
+    _max_size : int
+        The size of the largest molecule in the fit molecules by number of
+        atoms.
     '''
     def __init__(self, input_type='list', n_jobs=1):
         super(CoulombMatrix, self).__init__(input_type=input_type, n_jobs=n_jobs)
@@ -815,6 +831,12 @@ class BagOfBonds(BaseFeature):
         Specifies the number of processes to create when generating the
         features. Positive numbers specify a specifc amount, and numbers less
         than 1 will use the number of cores the computer has.
+
+    Attributes
+    ----------
+    _bag_sizes : dict, element pair->int
+        A dictonary mapping element pairs to the maximum size of that element
+        pair block in all the fit molecules.
     '''
     def __init__(self, input_type='list', n_jobs=1):
         super(BagOfBonds, self).__init__(input_type=input_type, n_jobs=n_jobs)
