@@ -4,3 +4,5 @@ env/*
 .coverage
 *.egg-info/*
 dist/*
+build/*
+examples/*.mat
