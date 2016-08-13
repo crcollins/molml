@@ -230,17 +230,23 @@ class Connectivity(BaseFeature):
     use_bond_order : boolean, default=False
         Specifies whether or not to use bond order information (C-C versus
         C=C). Note: for depth=1, this option does nothing.
+
+    use_coordination : boolean, default=False
+        Specifies whether or not to use the coordination number of the atoms
+        (C1 vs C2 vs C3 vs C4).
     '''
-    def __init__(self, input_type='list', n_jobs=1, depth=1, use_bond_order=False):
+    def __init__(self, input_type='list', n_jobs=1, depth=1,
+                    use_bond_order=False, use_coordination=False):
         super(Connectivity, self).__init__(input_type=input_type, n_jobs=n_jobs)
         self.depth = depth
         self.use_bond_order = use_bond_order
+        self.use_coordination = use_coordination
         self._base_chains = None
 
     def __repr__(self):
-        return "%s(input_type='%s', n_jobs=%d, depth=%d, use_bond_order=%s)" % (
+        return "%s(input_type='%s', n_jobs=%d, depth=%d, use_bond_order=%s, use_coordination=%s)" % (
                     type(self).__name__, self.input_type, self.n_jobs,
-                    self.depth, self.use_bond_order)
+                    self.depth, self.use_bond_order, self.use_coordination)
 
     def _loop_depth(self, connections):
         '''
@@ -417,7 +423,9 @@ class Connectivity(BaseFeature):
         results = {}
         for chain in chains:
             labelled = tuple(nodes[x] for x in chain)
-
+            if self.use_coordination:
+                extra = tuple(str(len(connections[x])) for x in chain)
+                labelled = tuple(x + y for x, y in zip(labelled, extra))
             chain, labelled = self._sort_chain(chain, labelled)
             labelled = self._convert_to_bond_order(chain, labelled, connections)
 

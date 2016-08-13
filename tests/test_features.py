@@ -229,6 +229,14 @@ class ConnectivityTest(unittest.TestCase):
                             (('C', 'C', '1'),), (('C', 'O', 'Ar'),), 
                             (('C', 'C', '2'),), (('C', 'C', 'Ar'),)]))
 
+    def test_fit_atom_coordination(self):
+        a = Connectivity(depth=1, use_coordination=True)
+        a.fit(ALL_DATA)
+        self.assertEqual(a._base_chains,
+                        set([('C1',), ('N3',), ('N2',), ('O2',), ('N1',),
+                            ('O1',), ('C4',), ('H0',), ('H1',), ('O0',),
+                            ('C3',), ('C2',)]))
+
     def test_transform(self):
         a = Connectivity()
         a.fit(ALL_DATA)
