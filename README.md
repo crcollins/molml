@@ -62,7 +62,7 @@ Development
 
 To install a development version, just clone the git repo.
 
-    $ git clone https://github.com/crcollins/moml
+    $ git clone https://github.com/crcollins/molml
 
 Pull requests and bug reports are welcomed!
 
