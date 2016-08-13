@@ -4,7 +4,7 @@ import numpy
 from scipy.spatial.distance import cdist
 from pathos.multiprocessing import ProcessingPool as Pool
 
-from utils import get_connections, read_file_data
+from utils import get_connections, read_file_data, get_depth_threshold_mask_connections
 from utils import ELE_TO_NUM, SMOOTHING_FUNCTIONS
 
 
@@ -545,8 +545,13 @@ class EncodedBond(BaseFeature):
     slope : float, default=20.
         A parameter to tune the smoothing values. This is applied as a
         multiplication before calling the smoothing function.
+
+    max_depth : int, default=0
+        A parameter to set the maximum geodesic distance to include in the
+        interactions. A value of 0 signifies that all interactions are
+        included
     '''
-    def __init__(self, input_type='list', n_jobs=1, segments=100, smoothing="norm", start=0.2, end=6.0, slope=20.):
+    def __init__(self, input_type='list', n_jobs=1, segments=100, smoothing="norm", start=0.2, end=6.0, slope=20., max_depth=0):
         super(EncodedBond, self).__init__(input_type=input_type, n_jobs=n_jobs)
         self._element_pairs = None
         self.segments = segments
@@ -554,11 +559,12 @@ class EncodedBond(BaseFeature):
         self.start = start
         self.end = end
         self.slope = slope
+        self.max_depth = max_depth
 
     def __repr__(self):
-        string = "%s(input_type='%s', n_jobs=%d, segments=%d, smoothing='%s', start=%g, end=%g, slope=%g)"
+        string = "%s(input_type='%s', n_jobs=%d, segments=%d, smoothing='%s', start=%g, end=%g, slope=%g, max_depth=%d)"
         return string % (type(self).__name__, self.input_type, self.n_jobs,
-                        self.segments, self.smoothing, self.start, self.end, self.slope)
+                        self.segments, self.smoothing, self.start, self.end, self.slope, self.max_depth)
 
     def _para_fit(self, X):
         '''
@@ -647,10 +653,16 @@ class EncodedBond(BaseFeature):
 
         theta = numpy.linspace(self.start, self.end, self.segments)
 
+        connections = get_connections(elements, coords)
+        mat = get_depth_threshold_mask_connections(connections, max_depth=self.max_depth)
+
         distances = cdist(coords, coords)
         for i, ele1 in enumerate(elements):
             for j, ele2 in enumerate(elements[i + 1:]):
                 j += i + 1
+                if not mat[i, j]:
+                    continue
+
                 value = smoothing_func(self.slope * (theta - distances[i, j]))
                 if ele1 < ele2:
                     vector[pair_idxs[ele1, ele2]] += value

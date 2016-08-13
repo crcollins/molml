@@ -476,6 +476,78 @@ class EncodedBondTest(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
+    def test_max_depth_neg(self):
+        a = EncodedBond(max_depth=-1)
+        # This is a cheap test to prevent needing all the values here
+        expected_results = numpy.array([
+                                        0.503237244954, # mean
+                                        0.857850829564, # std
+                                        0., # min
+                                        7.15861023, # max
+        ])
+        try:
+            m = a.fit_transform([BIG])
+            value = numpy.array([
+                                m.mean(),
+                                m.std(),
+                                m.min(),
+                                m.max(),
+            ])
+            numpy.testing.assert_array_almost_equal(
+                                        value,
+                                        expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_max_depth_1(self):
+        a = EncodedBond(max_depth=1)
+
+        # This is a cheap test to prevent needing all the values here
+        expected_results = numpy.array([
+                                        0.0443793, # mean
+                                        0.33766942, # std
+                                        0., # min
+                                        5.76559336, # max
+        ])
+        try:
+            m = a.fit_transform([BIG])
+            value = numpy.array([
+                                m.mean(),
+                                m.std(),
+                                m.min(),
+                                m.max(),
+            ])
+            numpy.testing.assert_array_almost_equal(
+                                        value,
+                                        expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_max_depth_3(self):
+        a = EncodedBond(max_depth=3)
+
+        # This is a cheap test to prevent needing all the values here
+        expected_results = numpy.array([
+                                        0.18434482, # mean
+                                        0.62589799, # std
+                                        0., # min
+                                        7.15861023, # max
+        ])
+        try:
+            m = a.fit_transform([BIG])
+            value = numpy.array([
+                                m.mean(),
+                                m.std(),
+                                m.min(),
+                                m.max(),
+            ])
+            numpy.testing.assert_array_almost_equal(
+                                        value,
+                                        expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
+
 
 class CoulombMatrixTest(unittest.TestCase):
     def test_fit(self):

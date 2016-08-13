@@ -135,3 +135,32 @@ def read_file_data(path):
             numbers.append(ELE_TO_NUM[ele])
             coords.append(point)
     return elements, numbers, numpy.array(coords)
+
+
+def get_depth_threshold_mask_connections(connections, max_depth=1):
+    mat = numpy.zeros((len(connections), len(connections)))
+    for key, values in connections.items():
+        for val in values:
+            mat[key, val] = 1
+    return get_depth_threshold_mask(mat, max_depth)
+
+
+def get_depth_threshold_mask(mat, max_depth=1):
+    '''
+    Given a connectivity matrix (either strings or ints), return a mask that is
+    True at [i,j] if there exists a path from i to j that is of length
+    `max_depth` or fewer.
+    This is done by repeated matrix multiplication of the connectivity matrix.
+    If `max_depth` is less than 1, this will return all True array.
+    '''
+    if max_depth < 1:
+        temp = numpy.ones(mat.shape).astype(bool)
+        return numpy.array(temp)
+
+    mask = mat.copy().astype(bool)
+    d = numpy.matrix(mat).astype(int)
+    acc = d.copy()
+    for i in xrange(2, max_depth + 1):
+        acc *= d
+        mask |= (acc == 1)
+    return numpy.array(mask)
