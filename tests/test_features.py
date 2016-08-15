@@ -327,7 +327,7 @@ class EncodedBondTest(unittest.TestCase):
            2.72818756e-247,   9.63801330e-265,   8.62757854e-283,
            1.95694499e-301,   1.12498748e-320] +
           [0.00000000e+000] * 51
-])
+        ])
         try:
             numpy.testing.assert_array_almost_equal(
                                         a.transform([METHANE]),
@@ -547,6 +547,59 @@ class EncodedBondTest(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
+    def test_spacing_inverse(self):
+        a = EncodedBond(spacing="inverse")
+
+        # This is a cheap test to prevent needing all the values here
+        expected_results = numpy.array([
+                                        0.051207, # mean
+                                        0.269248, # std
+                                        0., # min
+                                        2.387995, # max
+        ])
+        try:
+            m = a.fit_transform([METHANE])
+            value = numpy.array([
+                                m.mean(),
+                                m.std(),
+                                m.min(),
+                                m.max(),
+            ])
+            numpy.testing.assert_array_almost_equal(
+                                        value,
+                                        expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_spacing_log(self):
+        a = EncodedBond(spacing="log")
+
+        # This is a cheap test to prevent needing all the values here
+        expected_results = numpy.array([
+                                        0.072768, # mean
+                                        0.318508, # std
+                                        0., # min
+                                        2.339376, # max
+        ])
+        try:
+            m = a.fit_transform([METHANE])
+            value = numpy.array([
+                                m.mean(),
+                                m.std(),
+                                m.min(),
+                                m.max(),
+            ])
+            numpy.testing.assert_array_almost_equal(
+                                        value,
+                                        expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_spacing_invalid(self):
+        a = EncodedBond(spacing="not valid")
+
+        with self.assertRaises(KeyError):
+            m = a.fit_transform([METHANE])
 
 
 class CoulombMatrixTest(unittest.TestCase):

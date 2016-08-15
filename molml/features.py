@@ -556,12 +556,19 @@ class EncodedBond(BaseFeature):
         interactions. A value of 0 signifies that all interactions are
         included.
 
+    spacing : string, default="linear"
+        The histogram interval spacing type. Must be one of ("linear", 
+        "inverse", or "log"). Linear spacing is normal spacing. Inverse takes
+        and evaluates the distances as 1/r and the start and end points are 
+        1/x. For log spacing, the distances are evaluated as numpy.log(r)
+        and the start and end points are numpy.log(x).
+
     Attributes
     ----------
     _element_pairs : list
         A list of all the element pairs in the fit molecules.
     '''
-    def __init__(self, input_type='list', n_jobs=1, segments=100, smoothing="norm", start=0.2, end=6.0, slope=20., max_depth=0):
+    def __init__(self, input_type='list', n_jobs=1, segments=100, smoothing="norm", start=0.2, end=6.0, slope=20., max_depth=0, spacing="linear"):
         super(EncodedBond, self).__init__(input_type=input_type, n_jobs=n_jobs)
         self._element_pairs = None
         self.segments = segments
@@ -570,11 +577,12 @@ class EncodedBond(BaseFeature):
         self.end = end
         self.slope = slope
         self.max_depth = max_depth
+        self.spacing = spacing
 
     def __repr__(self):
-        string = "%s(input_type='%s', n_jobs=%d, segments=%d, smoothing='%s', start=%g, end=%g, slope=%g, max_depth=%d)"
+        string = "%s(input_type='%s', n_jobs=%d, segments=%d, smoothing='%s', start=%g, end=%g, slope=%g, max_depth=%d, spacing='%s')"
         return string % (type(self).__name__, self.input_type, self.n_jobs,
-                        self.segments, self.smoothing, self.start, self.end, self.slope, self.max_depth)
+                        self.segments, self.smoothing, self.start, self.end, self.slope, self.max_depth, self.spacing)
 
     def _para_fit(self, X):
         '''
@@ -661,7 +669,15 @@ class EncodedBond(BaseFeature):
         elements, coords = self.convert_input(X)
         vector = numpy.zeros((len(self._element_pairs), self.segments))
 
-        theta = numpy.linspace(self.start, self.end, self.segments)
+        thetas = {
+            "log": (numpy.linspace(numpy.log(self.start), numpy.log(self.end), self.segments), lambda x: numpy.log(x)),
+            "inverse": (numpy.linspace(1/self.start, 1/self.end, self.segments), lambda x: 1/x),
+            "linear": (numpy.linspace(self.start, self.end, self.segments), lambda x: x),
+        }
+        try:
+            theta, f = thetas[self.spacing]
+        except KeyError:
+            raise KeyError("The value of '%s' is not a valid spacing type." % self.spacing) 
 
         connections = get_connections(elements, coords)
         mat = get_depth_threshold_mask_connections(connections, max_depth=self.max_depth)
@@ -673,7 +689,7 @@ class EncodedBond(BaseFeature):
                 if not mat[i, j]:
                     continue
 
-                value = smoothing_func(self.slope * (theta - distances[i, j]))
+                value = smoothing_func(self.slope * (theta - f(distances[i, j])))
                 if ele1 < ele2:
                     vector[pair_idxs[ele1, ele2]] += value
                 else:
