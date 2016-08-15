@@ -746,7 +746,7 @@ class CoulombMatrix(BaseFeature):
     Hansen, K.; Montavon, G.; Biegler, F.; Fazli, S.; Rupp, M.; Scheffler, M.;
     von Lilienfeld, O. A.; Tkatchenko, A.; Muller, K.-R. Assessment and
     Validation of Machine Learning Methods for Predicting Molecular
-    Atomization Energies. J. Chem. Theory Comput. 2013, 9, 3404–3419.
+    Atomization Energies. J. Chem. Theory Comput. 2013, 9, 3404-3419.
 
     Parameters
     ----------
@@ -853,7 +853,7 @@ class BagOfBonds(BaseFeature):
     Hansen, K.; Biegler, F.; Ramakrishnan, R.; Pronobis, W.; von Lilienfeld,
     O. A.; Muller, K.-R.; Tkatchenko, A. Machine Learning Predictions of
     Molecular Properties: Accurate Many-body Potentials and Nonlocality in
-    Chemical Space. J. Phys. Chem. Lett. 2015, 6, 2326–2331.
+    Chemical Space. J. Phys. Chem. Lett. 2015, 6, 2326-2331.
 
     Parameters
     ----------
