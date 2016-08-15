@@ -737,6 +737,17 @@ class CoulombMatrix(BaseFeature):
     C_ij = Z_i Z_j / | r_i - r_j |
     C_ii = 0.5 Z_i ** 2.4
 
+    References
+    ----------
+    Rupp, M.; Tkatchenko, A.; Muller, K.-R.; von Lilienfeld, O. A. Fast and
+    Accurate Modeling of Molecular Atomization Energies with Machine Learning.
+    Phys. Rev. Lett. 2012, 108, 058301.
+
+    Hansen, K.; Montavon, G.; Biegler, F.; Fazli, S.; Rupp, M.; Scheffler, M.;
+    von Lilienfeld, O. A.; Tkatchenko, A.; Muller, K.-R. Assessment and
+    Validation of Machine Learning Methods for Predicting Molecular
+    Atomization Energies. J. Chem. Theory Comput. 2013, 9, 3404–3419.
+
     Parameters
     ----------
     input_type : string, default='list'
@@ -836,6 +847,13 @@ class BagOfBonds(BaseFeature):
     This feature starts the same as the Coulomb Matrix, and then interaction
     terms of the same element pair are grouped together and then sorted before
     they are vectorized.
+
+    References
+    ----------
+    Hansen, K.; Biegler, F.; Ramakrishnan, R.; Pronobis, W.; von Lilienfeld,
+    O. A.; Muller, K.-R.; Tkatchenko, A. Machine Learning Predictions of
+    Molecular Properties: Accurate Many-body Potentials and Nonlocality in
+    Chemical Space. J. Phys. Chem. Lett. 2015, 6, 2326–2331.
 
     Parameters
     ----------
