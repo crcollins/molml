@@ -1,3 +1,4 @@
+import inspect
 import multiprocessing
 
 import numpy
@@ -43,8 +44,11 @@ class BaseFeature(object):
         self.n_jobs = n_jobs
 
     def __repr__(self):
-        return "%s(input_type='%s', n_jobs=%d)" % (
-            type(self).__name__, self.input_type, self.n_jobs)
+        argspec = inspect.getargspec(type(self).__init__)
+        # Delete the only non-keyword argument
+        args = [x for x in argspec.args if x != "self"]
+        params = ["%s=%r" % (x, y) for x, y in zip(args, argspec.defaults)]
+        return "%s(%s)" % (type(self).__name__, ', '.join(params))
 
     def convert_input(self, X):
         '''
@@ -254,13 +258,6 @@ class Connectivity(BaseFeature):
         self.use_bond_order = use_bond_order
         self.use_coordination = use_coordination
         self._base_chains = None
-
-    def __repr__(self):
-        msg = "%s(input_type='%s', n_jobs=%d, depth=%d, use_bond_order=%s,"
-        msg += " use_coordination=%s)"
-        return msg % (
-                      type(self).__name__, self.input_type, self.n_jobs,
-                      self.depth, self.use_bond_order, self.use_coordination)
 
     def _loop_depth(self, connections):
         '''
@@ -591,13 +588,6 @@ class EncodedBond(BaseFeature):
         self.slope = slope
         self.max_depth = max_depth
         self.spacing = spacing
-
-    def __repr__(self):
-        msg = "%s(input_type='%s', n_jobs=%d, segments=%d, smoothing='%s',"
-        msg += " start=%g, end=%g, slope=%g, max_depth=%d, spacing='%s')"
-        return msg % (type(self).__name__, self.input_type, self.n_jobs,
-                      self.segments, self.smoothing, self.start, self.end,
-                      self.slope, self.max_depth, self.spacing)
 
     def _para_fit(self, X):
         '''
