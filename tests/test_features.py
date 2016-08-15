@@ -167,7 +167,7 @@ class ConnectivityTest(unittest.TestCase):
     def test_fit_atom(self):
         a = Connectivity(depth=1)
         a.fit(ALL_DATA)
-        self.assertEqual(a._base_chains, 
+        self.assertEqual(a._base_chains,
                         set([('N',), ('C',), ('O',), ('H',)]))
 
     def test_fit_atom_separated(self):
@@ -180,53 +180,53 @@ class ConnectivityTest(unittest.TestCase):
     def test_fit_bond(self):
         a = Connectivity(depth=2)
         a.fit(ALL_DATA)
-        self.assertEqual(a._base_chains, 
-                        set([('H', 'O'), ('C', 'H'), ('H', 'N'), ('C', 'C'), 
+        self.assertEqual(a._base_chains,
+                        set([('H', 'O'), ('C', 'H'), ('H', 'N'), ('C', 'C'),
                             ('H', 'H'), ('O', 'O'), ('C', 'N'), ('C', 'O')]))
 
     def test_fit_angle(self):
         a = Connectivity(depth=3)
         a.fit(ALL_DATA)
-        self.assertEqual(a._base_chains, 
+        self.assertEqual(a._base_chains,
                         set([('H', 'N', 'H'), ('C', 'N', 'H'), ('C', 'C', 'O'),
                             ('N', 'C', 'N'), ('C', 'O', 'C'), ('C', 'N', 'C'),
-                            ('H', 'C', 'H'), ('C', 'O', 'H'), ('C', 'C', 'C'), 
-                            ('C', 'C', 'H'), ('H', 'C', 'O'), ('N', 'C', 'O'), 
+                            ('H', 'C', 'H'), ('C', 'O', 'H'), ('C', 'C', 'C'),
+                            ('C', 'C', 'H'), ('H', 'C', 'O'), ('N', 'C', 'O'),
                             ('H', 'C', 'N'), ('C', 'C', 'N')]))
-        
+
     def test_fit_dihedral(self):
         # This is to test the double order flipping (CCCH vs HCCC)
         a = Connectivity(depth=4)
         a.fit(ALL_DATA)
         self.assertEqual(a._base_chains,
-                        set([('N', 'C', 'N', 'C'), ('C', 'C', 'C', 'O'), 
-                            ('H', 'C', 'O', 'C'), ('H', 'C', 'C', 'N'), 
-                            ('H', 'C', 'N', 'C'), ('N', 'C', 'C', 'O'), 
-                            ('C', 'C', 'C', 'N'), ('H', 'C', 'C', 'H'), 
-                            ('C', 'C', 'N', 'C'), ('O', 'C', 'N', 'C'), 
-                            ('C', 'C', 'O', 'C'), ('C', 'C', 'C', 'H'), 
-                            ('C', 'C', 'C', 'C'), ('H', 'C', 'C', 'O'), 
-                            ('C', 'C', 'N', 'H'), ('N', 'C', 'O', 'H'), 
+                        set([('N', 'C', 'N', 'C'), ('C', 'C', 'C', 'O'),
+                            ('H', 'C', 'O', 'C'), ('H', 'C', 'C', 'N'),
+                            ('H', 'C', 'N', 'C'), ('N', 'C', 'C', 'O'),
+                            ('C', 'C', 'C', 'N'), ('H', 'C', 'C', 'H'),
+                            ('C', 'C', 'N', 'C'), ('O', 'C', 'N', 'C'),
+                            ('C', 'C', 'O', 'C'), ('C', 'C', 'C', 'H'),
+                            ('C', 'C', 'C', 'C'), ('H', 'C', 'C', 'O'),
+                            ('C', 'C', 'N', 'H'), ('N', 'C', 'O', 'H'),
                             ('C', 'C', 'O', 'H'), ('N', 'C', 'N', 'H')]))
 
     def test_fit_atom_bond(self):
         # This should be the exact same thing as doing it with use_bond_order=False
         a = Connectivity(depth=1, use_bond_order=True)
         a.fit(ALL_DATA)
-        self.assertEqual(a._base_chains, 
+        self.assertEqual(a._base_chains,
                         set([('N',), ('C',), ('O',), ('H',)]))
-        
+
 
     def test_fit_bond_bond(self):
         a = Connectivity(depth=2, use_bond_order=True)
         a.fit(ALL_DATA)
-        self.assertEqual(a._base_chains, 
-                        set([(('H', 'N', '1'),), (('C', 'N', '3'),), 
-                            (('H', 'O', '1'),), (('H', 'H', '1'),), 
-                            (('C', 'H', '1'),), (('O', 'O', '1'),), 
-                            (('C', 'N', '2'),), (('C', 'O', '1'),), 
-                            (('C', 'C', '3'),), (('C', 'N', 'Ar'),), 
-                            (('C', 'C', '1'),), (('C', 'O', 'Ar'),), 
+        self.assertEqual(a._base_chains,
+                        set([(('H', 'N', '1'),), (('C', 'N', '3'),),
+                            (('H', 'O', '1'),), (('H', 'H', '1'),),
+                            (('C', 'H', '1'),), (('O', 'O', '1'),),
+                            (('C', 'N', '2'),), (('C', 'O', '1'),),
+                            (('C', 'C', '3'),), (('C', 'N', 'Ar'),),
+                            (('C', 'C', '1'),), (('C', 'O', 'Ar'),),
                             (('C', 'C', '2'),), (('C', 'C', 'Ar'),)]))
 
     def test_fit_atom_coordination(self):
@@ -279,9 +279,9 @@ class EncodedBondTest(unittest.TestCase):
     def test_fit(self):
         a = EncodedBond()
         a.fit(ALL_DATA)
-        self.assertEqual(a._element_pairs, 
-                        set([('H', 'O'), ('O', 'O'), ('N', 'O'), ('C', 'O'), 
-                            ('C', 'H'), ('H', 'N'), ('H', 'H'), ('C', 'C'), 
+        self.assertEqual(a._element_pairs,
+                        set([('H', 'O'), ('O', 'O'), ('N', 'O'), ('C', 'O'),
+                            ('C', 'H'), ('H', 'N'), ('H', 'H'), ('C', 'C'),
                             ('C', 'N'), ('N', 'N')]))
 
     def test_transform(self):
@@ -308,7 +308,7 @@ class EncodedBondTest(unittest.TestCase):
            1.21023873e-171,   3.10767677e-186,   2.02186537e-201,
            3.33288419e-217,   1.39200184e-233,   1.47302795e-250,
            3.94942399e-268,   2.68292247e-286,   4.61778888e-305] +
-          [0.00000000e+000] * 40 + 
+          [0.00000000e+000] * 40 +
           [1.16211813e-069,   7.02993879e-061,
            1.07752720e-052,   4.18485776e-045,   4.11821720e-038,
            1.02686702e-031,   6.48777691e-026,   1.03861520e-020,
@@ -340,7 +340,7 @@ class EncodedBondTest(unittest.TestCase):
         a.fit([MID])
 
         expected_results = numpy.array([
-            [0.00000000e+000] * 100 + 
+            [0.00000000e+000] * 100 +
             [1.16211813e-069,   7.02993879e-061,
             1.07752720e-052,   4.18485776e-045,   4.11821720e-038,
             1.02686702e-031,   6.48777691e-026,   1.03861520e-020,
@@ -358,7 +358,7 @@ class EncodedBondTest(unittest.TestCase):
             1.63780015e-198,   3.55640431e-214,   1.95681076e-230,
             2.72818756e-247,   9.63801330e-265,   8.62757854e-283,
             1.95694499e-301,   1.12498748e-320] +
-            [0.00000000e+000] * 151 + 
+            [0.00000000e+000] * 151 +
             [3.71282290e-218,   2.44307522e-202,   4.07306219e-187,
             1.72050858e-172,   1.84138348e-158,   4.99324926e-145,
             3.43062977e-132,   5.97194862e-120,   2.63396427e-108,
@@ -411,7 +411,7 @@ class EncodedBondTest(unittest.TestCase):
            1.21023873e-171,   3.10767677e-186,   2.02186537e-201,
            3.33288419e-217,   1.39200184e-233,   1.47302795e-250,
            3.94942399e-268,   2.68292247e-286,   4.61778888e-305] +
-          [0.00000000e+000] * 40 + 
+          [0.00000000e+000] * 40 +
           [1.16211813e-069,   7.02993879e-061,
            1.07752720e-052,   4.18485776e-045,   4.11821720e-038,
            1.02686702e-031,   6.48777691e-026,   1.03861520e-020,
@@ -599,7 +599,7 @@ class EncodedBondTest(unittest.TestCase):
         a = EncodedBond(spacing="not valid")
 
         with self.assertRaises(KeyError):
-            m = a.fit_transform([METHANE])
+            a.fit_transform([METHANE])
 
 
 class CoulombMatrixTest(unittest.TestCase):
@@ -617,7 +617,7 @@ class CoulombMatrixTest(unittest.TestCase):
                 0.56071656,   0.56064037,   5.49462885,   0.56071947,
                 0.5       ,   0.56071752,   0.56064089,   5.4945    ,
                 0.56071656,   0.56071752,   0.5       ,   0.56063783,
-                5.49031286,   0.56064037,   0.56064089,   0.56063783,   
+                5.49031286,   0.56064037,   0.56064089,   0.56063783,
                 0.5]])
         try:
             numpy.testing.assert_array_almost_equal(
@@ -670,7 +670,7 @@ class CoulombMatrixTest(unittest.TestCase):
                 0.56071656,   0.56064037,   5.49462885,   0.56071947,
                 0.5       ,   0.56071752,   0.56064089,   5.4945    ,
                 0.56071656,   0.56071752,   0.5       ,   0.56063783,
-                5.49031286,   0.56064037,   0.56064089,   0.56063783,   
+                5.49031286,   0.56064037,   0.56064089,   0.56063783,
                 0.5]])
         try:
             numpy.testing.assert_array_almost_equal(
@@ -686,7 +686,7 @@ class BagOfBondsTest(unittest.TestCase):
         a = BagOfBonds()
         a.fit([METHANE])
         expected_results = {
-            ('C', 'H'): 4, 
+            ('C', 'H'): 4,
             ('H', 'H'): 6,
         }
         self.assertEqual(a._bag_sizes, expected_results)
@@ -733,12 +733,12 @@ class BagOfBondsTest(unittest.TestCase):
         a.fit([BIG])
 
         expected_results = numpy.array([
-            [0.0] * 60 + 
-            [5.494628848219048, 5.494590213211275, 5.494499999706413, 
+            [0.0] * 60 +
+            [5.494628848219048, 5.494590213211275, 5.494499999706413,
             5.49031286145183] +
             [0.0] * 746 +
-            [0.5607194714171738, 0.5607175240809282, 0.5607165613824526, 
-            0.5606408892793993, 0.5606403708987712, 0.560637829974531] + 
+            [0.5607194714171738, 0.5607175240809282, 0.5607165613824526,
+            0.5606408892793993, 0.5606403708987712, 0.560637829974531] +
             [0.0] * 360
             ])
         try:

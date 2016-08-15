@@ -54,7 +54,7 @@ def get_data_train_test(data, fold=0):
     R_train = data['R'][train_idxs]
     Z_train = data['Z'][train_idxs]
     Xin_train = zip(Z_train, R_train)
-    
+
     R_test = data['R'][test_idxs]
     Z_test = data['Z'][test_idxs]
     Xin_test = zip(Z_test, R_test)
@@ -85,8 +85,3 @@ def load_qm7_data():
 def load_qm7(fold=0):
     data = load_qm7_data()
     return get_data_train_test(data, fold=fold)
-
-
-
-
-

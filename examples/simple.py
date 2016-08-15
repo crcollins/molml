@@ -1,4 +1,3 @@
-import numpy
 from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_absolute_error as MAE
 
@@ -12,7 +11,7 @@ if __name__ == "__main__":
     Xin_train, Xin_test, y_train, y_test = load_qm7()
 
     # Change this to make the tranformations parallel
-    # Values less than 1 will set to the number of cores the CPU has 
+    # Values less than 1 will set to the number of cores the CPU has
     N_JOBS = 1
 
     # Just a few examples of different features
@@ -37,4 +36,4 @@ if __name__ == "__main__":
         train_error = MAE(clf.predict(X_train), y_train)
         test_error = MAE(clf.predict(X_test), y_test)
         print "Train MAE: %.4f Test MAE: %.4f" % (train_error, test_error)
-        print 
+        print

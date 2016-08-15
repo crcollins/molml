@@ -4,7 +4,8 @@ import numpy
 from scipy.spatial.distance import cdist
 from pathos.multiprocessing import ProcessingPool as Pool
 
-from utils import get_connections, read_file_data, get_depth_threshold_mask_connections
+from utils import get_connections, read_file_data
+from utils import get_depth_threshold_mask_connections
 from utils import ELE_TO_NUM, SMOOTHING_FUNCTIONS
 
 
@@ -59,7 +60,7 @@ class BaseFeature(object):
             zn)].
 
             If input_type is 'filename', then it must be an iterable of
-            paths/filenames for each molecule. The files must then be of the 
+            paths/filenames for each molecule. The files must then be of the
             form
             ele1 x1 y1 z1
             ele2 x2 y2 z2
@@ -81,7 +82,7 @@ class BaseFeature(object):
             elements, numbers, coordinates = read_file_data(X)
         else:
             raise ValueError("The input_type '%s' is not allowed." %
-                                self.input_type)
+                             self.input_type)
         return elements, coordinates
 
     def map(self, f, seq):
@@ -246,17 +247,20 @@ class Connectivity(BaseFeature):
         All the chains that are in the fit molecules.
     '''
     def __init__(self, input_type='list', n_jobs=1, depth=1,
-                    use_bond_order=False, use_coordination=False):
-        super(Connectivity, self).__init__(input_type=input_type, n_jobs=n_jobs)
+                 use_bond_order=False, use_coordination=False):
+        super(Connectivity, self).__init__(input_type=input_type,
+                                           n_jobs=n_jobs)
         self.depth = depth
         self.use_bond_order = use_bond_order
         self.use_coordination = use_coordination
         self._base_chains = None
 
     def __repr__(self):
-        return "%s(input_type='%s', n_jobs=%d, depth=%d, use_bond_order=%s, use_coordination=%s)" % (
-                    type(self).__name__, self.input_type, self.n_jobs,
-                    self.depth, self.use_bond_order, self.use_coordination)
+        msg = "%s(input_type='%s', n_jobs=%d, depth=%d, use_bond_order=%s,"
+        msg += " use_coordination=%s)"
+        return msg % (
+                      type(self).__name__, self.input_type, self.n_jobs,
+                      self.depth, self.use_bond_order, self.use_coordination)
 
     def _loop_depth(self, connections):
         '''
@@ -437,7 +441,8 @@ class Connectivity(BaseFeature):
                 extra = tuple(str(len(connections[x])) for x in chain)
                 labelled = tuple(x + y for x, y in zip(labelled, extra))
             chain, labelled = self._sort_chain(chain, labelled)
-            labelled = self._convert_to_bond_order(chain, labelled, connections)
+            labelled = self._convert_to_bond_order(chain, labelled,
+                                                   connections)
 
             labelled = tuple(labelled)
             if labelled not in results:
@@ -483,8 +488,8 @@ class Connectivity(BaseFeature):
             Returns the instance itself.
         '''
         base_chains = self.map(self._para_fit, X)
-        f = lambda x, y: set(x) | set(y)
-        self._base_chains = set(self.reduce(f, base_chains))
+        self._base_chains = set(self.reduce(lambda x, y: set(x) | set(y),
+                                            base_chains))
         return self
 
     def _para_transform(self, X, y=None):
@@ -562,9 +567,9 @@ class EncodedBond(BaseFeature):
         included.
 
     spacing : string, default="linear"
-        The histogram interval spacing type. Must be one of ("linear", 
+        The histogram interval spacing type. Must be one of ("linear",
         "inverse", or "log"). Linear spacing is normal spacing. Inverse takes
-        and evaluates the distances as 1/r and the start and end points are 
+        and evaluates the distances as 1/r and the start and end points are
         1/x. For log spacing, the distances are evaluated as numpy.log(r)
         and the start and end points are numpy.log(x).
 
@@ -573,8 +578,11 @@ class EncodedBond(BaseFeature):
     _element_pairs : list
         A list of all the element pairs in the fit molecules.
     '''
-    def __init__(self, input_type='list', n_jobs=1, segments=100, smoothing="norm", start=0.2, end=6.0, slope=20., max_depth=0, spacing="linear"):
-        super(EncodedBond, self).__init__(input_type=input_type, n_jobs=n_jobs)
+    def __init__(self, input_type='list', n_jobs=1, segments=100,
+                 smoothing="norm", start=0.2, end=6.0, slope=20., max_depth=0,
+                 spacing="linear"):
+        super(EncodedBond, self).__init__(input_type=input_type,
+                                          n_jobs=n_jobs)
         self._element_pairs = None
         self.segments = segments
         self.smoothing = smoothing
@@ -585,9 +593,11 @@ class EncodedBond(BaseFeature):
         self.spacing = spacing
 
     def __repr__(self):
-        string = "%s(input_type='%s', n_jobs=%d, segments=%d, smoothing='%s', start=%g, end=%g, slope=%g, max_depth=%d, spacing='%s')"
-        return string % (type(self).__name__, self.input_type, self.n_jobs,
-                        self.segments, self.smoothing, self.start, self.end, self.slope, self.max_depth, self.spacing)
+        msg = "%s(input_type='%s', n_jobs=%d, segments=%d, smoothing='%s',"
+        msg += " start=%g, end=%g, slope=%g, max_depth=%d, spacing='%s')"
+        return msg % (type(self).__name__, self.input_type, self.n_jobs,
+                      self.segments, self.smoothing, self.start, self.end,
+                      self.slope, self.max_depth, self.spacing)
 
     def _para_fit(self, X):
         '''
@@ -642,8 +652,8 @@ class EncodedBond(BaseFeature):
             Returns the instance itself.
         '''
         pairs = self.map(self._para_fit, X)
-        f = lambda x, y: set(x) | set(y)
-        self._element_pairs = set(self.reduce(f, pairs))
+        self._element_pairs = set(self.reduce(lambda x, y: set(x) | set(y),
+                                              pairs))
         return self
 
     def _para_transform(self, X, y=None):
@@ -675,17 +685,25 @@ class EncodedBond(BaseFeature):
         vector = numpy.zeros((len(self._element_pairs), self.segments))
 
         thetas = {
-            "log": (numpy.linspace(numpy.log(self.start), numpy.log(self.end), self.segments), lambda x: numpy.log(x)),
-            "inverse": (numpy.linspace(1/self.start, 1/self.end, self.segments), lambda x: 1/x),
-            "linear": (numpy.linspace(self.start, self.end, self.segments), lambda x: x),
+            "log": (numpy.linspace(numpy.log(self.start), numpy.log(self.end),
+                                   self.segments),
+                    lambda x: numpy.log(x)),
+            "inverse": (numpy.linspace(1/self.start, 1/self.end,
+                                       self.segments),
+                        lambda x: 1/x),
+            "linear": (numpy.linspace(self.start, self.end,
+                                      self.segments),
+                       lambda x: x),
         }
         try:
             theta, f = thetas[self.spacing]
         except KeyError:
-            raise KeyError("The value of '%s' is not a valid spacing type." % self.spacing) 
+            msg = "The value of '%s' is not a valid spacing type."
+            raise KeyError(msg % self.spacing)
 
         connections = get_connections(elements, coords)
-        mat = get_depth_threshold_mask_connections(connections, max_depth=self.max_depth)
+        mat = get_depth_threshold_mask_connections(connections,
+                                                   max_depth=self.max_depth)
 
         distances = cdist(coords, coords)
         for i, ele1 in enumerate(elements):
@@ -694,7 +712,8 @@ class EncodedBond(BaseFeature):
                 if not mat[i, j]:
                     continue
 
-                value = smoothing_func(self.slope * (theta - f(distances[i, j])))
+                diff = theta - f(distances[i, j])
+                value = smoothing_func(self.slope * diff)
                 if ele1 < ele2:
                     vector[pair_idxs[ele1, ele2]] += value
                 else:
@@ -771,7 +790,8 @@ class CoulombMatrix(BaseFeature):
         atoms.
     '''
     def __init__(self, input_type='list', n_jobs=1):
-        super(CoulombMatrix, self).__init__(input_type=input_type, n_jobs=n_jobs)
+        super(CoulombMatrix, self).__init__(input_type=input_type,
+                                            n_jobs=n_jobs)
         self._max_size = None
 
     def _para_fit(self, X):
@@ -841,7 +861,9 @@ class CoulombMatrix(BaseFeature):
         padding_difference = self._max_size - len(elements)
         numbers = [ELE_TO_NUM[x] for x in elements]
         coulomb_matrix = get_coulomb_matrix(numbers, coords)
-        new_coulomb_matrix = numpy.pad(coulomb_matrix, (0, padding_difference), mode="constant")
+        new_coulomb_matrix = numpy.pad(coulomb_matrix,
+                                       (0, padding_difference),
+                                       mode="constant")
         return new_coulomb_matrix.reshape(-1)
 
 
@@ -984,7 +1006,8 @@ class BagOfBonds(BaseFeature):
         temp = sorted(zip(elements, coords), key=lambda x: x[0])
         elements, coords = zip(*temp)
 
-        bags = {key: [0 for i in xrange(value)] for key, value in self._bag_sizes.items()}
+        bags = {key: [0 for i in xrange(value)]
+                for key, value in self._bag_sizes.items()}
         numbers = [ELE_TO_NUM[x] for x in elements]
         coulomb_matrix = get_coulomb_matrix(numbers, coords)
 
