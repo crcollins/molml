@@ -1,5 +1,5 @@
 *.pyc
-env/*
+env*/*
 .coverage_html/*
 .coverage
 *.egg-info/*
