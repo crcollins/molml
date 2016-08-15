@@ -47,7 +47,8 @@ class BaseFeature(object):
         argspec = inspect.getargspec(type(self).__init__)
         # Delete the only non-keyword argument
         args = [x for x in argspec.args if x != "self"]
-        params = ["%s=%r" % (x, y) for x, y in zip(args, argspec.defaults)]
+        values = [getattr(self, x) for x in args]
+        params = ["%s=%r" % (x, y) for x, y in zip(args, values)]
         return "%s(%s)" % (type(self).__name__, ', '.join(params))
 
     def convert_input(self, X):
