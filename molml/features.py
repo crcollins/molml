@@ -135,8 +135,13 @@ class BaseFeature(object):
             return reduce(f, seq)
 
         while len(seq) > 1:
-            pairs = [(f, seq[i], seq[i + 1]) for i in xrange(0, len(seq) - 1, 2)]
-            seq = self.map(_func_star, pairs) + [seq[-1]] * (len(seq) % 2)
+            pairs = [(f, x, y) for x, y in zip(seq[::2], seq[1::2])]
+            temp_seq = self.map(_func_star, pairs)
+            # If the sequence length is odd add the last element on
+            # This is because it will not get included with the zip
+            if len(seq) % 2:
+                temp_seq.append(seq[-1])
+            seq = temp_seq
         return seq[0]
 
     def fit(self, X, y=None):
