@@ -668,7 +668,11 @@ class EncodedBond(BaseFeature):
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)
 
-        smoothing_func = SMOOTHING_FUNCTIONS[self.smoothing]
+        try:
+            smoothing_func = SMOOTHING_FUNCTIONS[self.smoothing]
+        except KeyError:
+            msg = "The value '%s' is not a valid spacing type."
+            raise KeyError(msg % self.smoothing)
 
         pair_idxs = {key: i for i, key in enumerate(self._element_pairs)}
 
@@ -689,7 +693,7 @@ class EncodedBond(BaseFeature):
         try:
             theta, f = thetas[self.spacing]
         except KeyError:
-            msg = "The value of '%s' is not a valid spacing type."
+            msg = "The value '%s' is not a valid spacing type."
             raise KeyError(msg % self.spacing)
 
         connections = get_connections(elements, coords)

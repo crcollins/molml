@@ -418,6 +418,12 @@ class EncodedBondTest(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
+    def test_smoothing_function_error(self):
+        a = EncodedBond(smoothing="not valid")
+
+        with self.assertRaises(KeyError):
+            a.fit_transform([METHANE])
+
     def test_max_depth_neg(self):
         a = EncodedBond(max_depth=-1)
         # This is a cheap test to prevent needing all the values here
