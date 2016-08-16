@@ -62,7 +62,18 @@ class BaseFeature(object):
             coodinates pairs) for each molecule. Where the elements are an
             iterable of the form (ele1, ele2, ..., elen) and coordinates are an
             iterable of the form [(x1, y1, z1), (x2, y2, z2), ..., (xn, yn,
-            zn)].
+            zn)]. This allows allows for connections to be incldued. This is a
+            dictonary where the keys are the indices of the atoms and the
+            values are dictonaries with the key being another index and the
+            value is the bond order (one of '1', 'Ar', '2', or '3').
+            Example for methane
+            {
+                0: {1: "1", 2: "1", 3: "1", 4: "1"},
+                1: {0: "1"},
+                2: {0: "1"},
+                3: {0: "1"},
+                4: {0: "1"},
+            }
 
             If input_type is 'filename', then it must be an iterable of
             paths/filenames for each molecule. The files must then be of the
