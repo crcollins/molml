@@ -81,14 +81,21 @@ class BaseFeature(object):
             An array of all the coordinates of the atoms in the molecule.
             These are assumed to be in angstroms.
         '''
+        connections = None
         if self.input_type == "list":
-            elements, coordinates = X
+            try:
+                elements, coordinates = X
+            except ValueError:
+                elements, coordinates, connections = X
         elif self.input_type == "filename":
             elements, numbers, coordinates = read_file_data(X)
         else:
             raise ValueError("The input_type '%s' is not allowed." %
                              self.input_type)
-        return elements, coordinates
+
+        if connections is None:
+            connections = get_connections(elements, coordinates)
+        return elements, coordinates, connections
 
     def map(self, f, seq):
         '''
@@ -465,8 +472,8 @@ class Connectivity(BaseFeature):
         value : list
             All the chains in the molecule
         '''
-        elements, coords = self.convert_input(X)
-        connections = get_connections(elements, coords)
+        elements, coords, connections = self.convert_input(X)
+        # connections = get_connections(elements, coords)
         chains = self._loop_depth(connections)
         all_counts = self._tally_chains(chains, elements, connections)
         return all_counts.keys()
@@ -511,8 +518,8 @@ class Connectivity(BaseFeature):
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)
 
-        elements, coords = self.convert_input(X)
-        connections = get_connections(elements, coords)
+        elements, coords, connections = self.convert_input(X)
+        # connections = get_connections(elements, coords)
         chains = self._loop_depth(connections)
         tallies = self._tally_chains(chains, elements, connections)
 
@@ -607,7 +614,7 @@ class EncodedBond(BaseFeature):
         value : list
             All the element pairs in the molecule
         '''
-        elements, coords = self.convert_input(X)
+        elements, coords, connections = self.convert_input(X)
 
         counts = {}
         for ele in elements:
@@ -676,7 +683,7 @@ class EncodedBond(BaseFeature):
 
         pair_idxs = {key: i for i, key in enumerate(self._element_pairs)}
 
-        elements, coords = self.convert_input(X)
+        elements, coords, connections = self.convert_input(X)
         vector = numpy.zeros((len(self._element_pairs), self.segments))
 
         thetas = {
@@ -696,7 +703,7 @@ class EncodedBond(BaseFeature):
             msg = "The value '%s' is not a valid spacing type."
             raise KeyError(msg % self.spacing)
 
-        connections = get_connections(elements, coords)
+        # connections = get_connections(elements, coords)
         mat = get_depth_threshold_mask_connections(connections,
                                                    max_depth=self.max_depth)
 
@@ -806,7 +813,7 @@ class CoulombMatrix(BaseFeature):
         value : int
             The number of atoms in the molecule
         '''
-        elements, coords = self.convert_input(X)
+        elements, coords, connections = self.convert_input(X)
         return len(elements)
 
     def fit(self, X, y=None):
@@ -844,7 +851,7 @@ class CoulombMatrix(BaseFeature):
         value : array
             The features extracted from the molecule
         '''
-        elements, coords = self.convert_input(X)
+        elements, coords, connections = self.convert_input(X)
         if self._max_size is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)
@@ -915,7 +922,7 @@ class BagOfBonds(BaseFeature):
         value : list
             All the element pairs in the molecule
         '''
-        elements, coords = self.convert_input(X)
+        elements, coords, connections = self.convert_input(X)
         bags = {}
 
         local = {}
@@ -992,7 +999,7 @@ class BagOfBonds(BaseFeature):
         value : array
             The features extracted from the molecule
         '''
-        elements, coords = self.convert_input(X)
+        elements, coords, connections = self.convert_input(X)
         if self._bag_sizes is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)

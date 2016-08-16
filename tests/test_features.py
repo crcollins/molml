@@ -81,14 +81,30 @@ class BaseFeatureTest(unittest.TestCase):
 
     def test_convert_input_list(self):
         a = BaseFeature(input_type="list")
-        res = a.convert_input(METHANE)
-        self.assertEqual(res, METHANE)
+        eles, coords, connections = a.convert_input(METHANE)
+        compare_connections = {
+            0: {1: "1", 2: "1", 3: "1", 4: "1"},
+            1: {0: "1"},
+            2: {0: "1"},
+            3: {0: "1"},
+            4: {0: "1"},
+        }
+        self.assertEqual(connections, compare_connections)
+        self.assertEqual((eles, coords), METHANE)
 
     def test_convert_input_filename(self):
         a = BaseFeature(input_type="filename")
         path = os.path.join(os.path.dirname(__file__), "data", "methane.out")
-        eles, coords = a.convert_input(path)
+        eles, coords, connections = a.convert_input(path)
         self.assertEqual(eles, METHANE_ELEMENTS)
+        compare_connections = {
+            0: {1: "1", 2: "1", 3: "1", 4: "1"},
+            1: {0: "1"},
+            2: {0: "1"},
+            3: {0: "1"},
+            4: {0: "1"},
+        }
+        self.assertEqual(connections, compare_connections)
         try:
             numpy.testing.assert_array_almost_equal(
                 coords, METHANE_COORDS)
