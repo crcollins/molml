@@ -5,9 +5,9 @@ import numpy
 from scipy.spatial.distance import cdist
 from pathos.multiprocessing import ProcessingPool as Pool
 
-from utils import get_connections, read_file_data
 from utils import get_depth_threshold_mask_connections
 from utils import ELE_TO_NUM, SMOOTHING_FUNCTIONS
+from utils import LazyValues, read_file_data
 
 
 def _func_star(args):
@@ -85,28 +85,25 @@ class BaseFeature(object):
 
         Returns
         -------
-        elements : list, shape=[n_atoms]
-            A list of all the element symbols in the molecule
-
-        coordinates : array, shape=[n_atoms, 3]
-            An array of all the coordinates of the atoms in the molecule.
-            These are assumed to be in angstroms.
+        values : Object
+            An object that allows the lazy evaluation of different properties
         '''
         connections = None
         if self.input_type == "list":
             try:
-                elements, coordinates = X
+                elements, coords = X
             except ValueError:
-                elements, coordinates, connections = X
+                elements, coords, connections = X
+            values = LazyValues(elements=elements, coords=coords,
+                                connections=connections)
         elif self.input_type == "filename":
-            elements, numbers, coordinates = read_file_data(X)
+            elements, numbers, coords = read_file_data(X)
+            values = LazyValues(elements=elements, numbers=numbers,
+                                coords=coords)
         else:
             raise ValueError("The input_type '%s' is not allowed." %
                              self.input_type)
-
-        if connections is None:
-            connections = get_connections(elements, coordinates)
-        return elements, coordinates, connections
+        return values
 
     def map(self, f, seq):
         '''
@@ -483,10 +480,10 @@ class Connectivity(BaseFeature):
         value : list
             All the chains in the molecule
         '''
-        elements, coords, connections = self.convert_input(X)
-        # connections = get_connections(elements, coords)
-        chains = self._loop_depth(connections)
-        all_counts = self._tally_chains(chains, elements, connections)
+        data = self.convert_input(X)
+        chains = self._loop_depth(data.connections)
+        all_counts = self._tally_chains(chains, data.elements,
+                                        data.connections)
         return all_counts.keys()
 
     def fit(self, X, y=None):
@@ -529,10 +526,9 @@ class Connectivity(BaseFeature):
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)
 
-        elements, coords, connections = self.convert_input(X)
-        # connections = get_connections(elements, coords)
-        chains = self._loop_depth(connections)
-        tallies = self._tally_chains(chains, elements, connections)
+        data = self.convert_input(X)
+        chains = self._loop_depth(data.connections)
+        tallies = self._tally_chains(chains, data.elements, data.connections)
 
         return [tallies.get(x, 0) for x in self._base_chains]
 
@@ -625,10 +621,10 @@ class EncodedBond(BaseFeature):
         value : list
             All the element pairs in the molecule
         '''
-        elements, coords, connections = self.convert_input(X)
+        data = self.convert_input(X)
 
         counts = {}
-        for ele in elements:
+        for ele in data.elements:
             if ele not in counts:
                 counts[ele] = 0
             counts[ele] += 1
@@ -694,7 +690,8 @@ class EncodedBond(BaseFeature):
 
         pair_idxs = {key: i for i, key in enumerate(self._element_pairs)}
 
-        elements, coords, connections = self.convert_input(X)
+        data = self.convert_input(X)
+
         vector = numpy.zeros((len(self._element_pairs), self.segments))
 
         thetas = {
@@ -714,13 +711,12 @@ class EncodedBond(BaseFeature):
             msg = "The value '%s' is not a valid spacing type."
             raise KeyError(msg % self.spacing)
 
-        # connections = get_connections(elements, coords)
-        mat = get_depth_threshold_mask_connections(connections,
+        mat = get_depth_threshold_mask_connections(data.connections,
                                                    max_depth=self.max_depth)
 
-        distances = cdist(coords, coords)
-        for i, ele1 in enumerate(elements):
-            for j, ele2 in enumerate(elements[i + 1:]):
+        distances = cdist(data.coords, data.coords)
+        for i, ele1 in enumerate(data.elements):
+            for j, ele2 in enumerate(data.elements[i + 1:]):
                 j += i + 1
                 if not mat[i, j]:
                     continue
@@ -824,8 +820,8 @@ class CoulombMatrix(BaseFeature):
         value : int
             The number of atoms in the molecule
         '''
-        elements, coords, connections = self.convert_input(X)
-        return len(elements)
+        data = self.convert_input(X)
+        return len(data.elements)
 
     def fit(self, X, y=None):
         '''
@@ -862,18 +858,17 @@ class CoulombMatrix(BaseFeature):
         value : array
             The features extracted from the molecule
         '''
-        elements, coords, connections = self.convert_input(X)
+        data = self.convert_input(X)
         if self._max_size is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)
-        if len(elements) > self._max_size:
+        if len(data.numbers) > self._max_size:
             msg = "The fit molecules (%d) were not as large as the ones that"
             msg += " are being transformed (%d)."
-            raise ValueError(msg % (self._max_size, len(elements)))
+            raise ValueError(msg % (self._max_size, len(data.numbers)))
 
-        padding_difference = self._max_size - len(elements)
-        numbers = [ELE_TO_NUM[x] for x in elements]
-        coulomb_matrix = get_coulomb_matrix(numbers, coords)
+        padding_difference = self._max_size - len(data.numbers)
+        coulomb_matrix = get_coulomb_matrix(data.numbers, data.coords)
         new_coulomb_matrix = numpy.pad(coulomb_matrix,
                                        (0, padding_difference),
                                        mode="constant")
@@ -933,11 +928,11 @@ class BagOfBonds(BaseFeature):
         value : list
             All the element pairs in the molecule
         '''
-        elements, coords, connections = self.convert_input(X)
+        data = self.convert_input(X)
         bags = {}
 
         local = {}
-        for element in elements:
+        for element in data.elements:
             if element not in local:
                 local[element] = 0
             local[element] += 1
@@ -1010,13 +1005,13 @@ class BagOfBonds(BaseFeature):
         value : array
             The features extracted from the molecule
         '''
-        elements, coords, connections = self.convert_input(X)
+        data = self.convert_input(X)
         if self._bag_sizes is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)
 
         # Sort the elements and coords based on the element
-        temp = sorted(zip(elements, coords), key=lambda x: x[0])
+        temp = sorted(zip(data.elements, data.coords), key=lambda x: x[0])
         elements, coords = zip(*temp)
 
         bags = {key: [0 for i in xrange(value)]

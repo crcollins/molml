@@ -81,7 +81,7 @@ class BaseFeatureTest(unittest.TestCase):
 
     def test_convert_input_list(self):
         a = BaseFeature(input_type="list")
-        eles, coords, connections = a.convert_input(METHANE)
+        data = a.convert_input(METHANE)
         compare_connections = {
             0: {1: "1", 2: "1", 3: "1", 4: "1"},
             1: {0: "1"},
@@ -89,14 +89,27 @@ class BaseFeatureTest(unittest.TestCase):
             3: {0: "1"},
             4: {0: "1"},
         }
-        self.assertEqual(connections, compare_connections)
-        self.assertEqual((eles, coords), METHANE)
+        self.assertEqual(data.connections, compare_connections)
+        self.assertEqual((data.elements, data.coords), METHANE)
+
+    def test_convert_input_list_connections(self):
+        a = BaseFeature(input_type="list")
+        connections = {
+            0: {1: "1", 2: "1", 3: "1", 4: "1"},
+            1: {0: "1"},
+            2: {0: "1"},
+            3: {0: "1"},
+            4: {0: "1"},
+        }
+        data = a.convert_input([METHANE[0], METHANE[1], connections])
+        self.assertEqual(data.connections, connections)
+        self.assertEqual((data.elements, data.coords), METHANE)
 
     def test_convert_input_filename(self):
         a = BaseFeature(input_type="filename")
         path = os.path.join(os.path.dirname(__file__), "data", "methane.out")
-        eles, coords, connections = a.convert_input(path)
-        self.assertEqual(eles, METHANE_ELEMENTS)
+        data = a.convert_input(path)
+        self.assertEqual(data.elements, METHANE_ELEMENTS)
         compare_connections = {
             0: {1: "1", 2: "1", 3: "1", 4: "1"},
             1: {0: "1"},
@@ -104,10 +117,10 @@ class BaseFeatureTest(unittest.TestCase):
             3: {0: "1"},
             4: {0: "1"},
         }
-        self.assertEqual(connections, compare_connections)
+        self.assertEqual(data.connections, compare_connections)
         try:
             numpy.testing.assert_array_almost_equal(
-                coords, METHANE_COORDS)
+                data.coords, METHANE_COORDS)
         except AssertionError as e:
             self.fail(e)
 

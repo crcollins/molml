@@ -164,3 +164,82 @@ def get_depth_threshold_mask(mat, max_depth=1):
         acc *= d
         mask |= (acc == 1)
     return numpy.array(mask)
+
+
+class LazyValues(object):
+    '''
+    An object to store molecule graph properties in a lazy fashion.
+
+    This object allows only needing to compute different molecule graph
+    properties if they are needed. The prime example of this being the
+    computation of connections.
+
+    Parameters
+    ----------
+    connections : dict, key->list of keys, default=None
+        A dictonary edge table with all the bidirectional connections.
+
+    numbers : array-like, shape=(n_atoms, ), default=None
+        The atomic numbers of all the atoms.
+
+    coords : array-like, shape=(n_atoms, 3), default=None
+        The xyz coordinates of all the atoms (in angstroms).
+
+    elements : array-like, shape=(n_atoms, ), default=None
+        The element symbols of all the atoms.
+
+
+    Attributes
+    ----------
+    connections : dict, key->list of keys
+        A dictonary edge table with all the bidirectional connections. If the
+        initialized value for this was None, then this will be computed from
+        the coords and numbers/elements.
+
+    numbers : array-like, shape=(n_atoms, )
+        The atomic numbers of all the atoms. If the initialized value for this
+        was None, then this will be computed from the elements.
+
+    coords : array-like, shape=(n_atoms, 3)
+        The xyz coordinates of all the atoms (in angstroms).
+
+    elements : array-like, shape=(n_atoms, )
+        The element symbols of all the atoms. If the initialized value for this
+        was None, then this will be computed from the numbers.
+    '''
+    def __init__(self, connections=None, coords=None, numbers=None,
+                 elements=None):
+        self._connections = connections
+        self._coords = coords
+        self._numbers = numbers
+        self._elements = elements
+
+    @property
+    def connections(self):
+        if self._connections is None:
+            self._connections = get_connections(self.elements, self.coords)
+        return self._connections
+
+    @property
+    def coords(self):
+        if self._coords is None:
+            raise ValueError("No coordinates exist.")
+        return self._coords
+
+    @property
+    def numbers(self):
+        if self._numbers is None:
+            if self._elements is not None:
+                self._numbers = [ELE_TO_NUM[x] for x in self._elements]
+            else:
+                raise ValueError("No elements to convert to numbers.")
+        return self._numbers
+
+    @property
+    def elements(self):
+        if self._elements is None:
+            if self._numbers is not None:
+                self._elements = [NUM_TO_ELE[x] for x in self._numbers]
+            else:
+                raise ValueError("No numbers to convert to elements.")
+        return self._elements
