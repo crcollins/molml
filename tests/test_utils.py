@@ -1,6 +1,8 @@
 import unittest
 
-from molml.utils import LazyValues
+import numpy
+
+from molml.utils import LazyValues, SMOOTHING_FUNCTIONS
 
 
 ELEMENTS = ['C', 'H', 'H', 'H', 'H']
@@ -19,6 +21,33 @@ CONNECTIONS = {
     3: {0: "1"},
     4: {0: "1"},
 }
+
+
+class UtilsTest(unittest.TestCase):
+
+    def test_smoothing_zero_one(self):
+        f = SMOOTHING_FUNCTIONS['zero_one']
+        values = numpy.array([-1000., -1., -0.5, 0, 0.5, 1., 1000.])
+        expected = numpy.array([0., 0., 0., 0., 1., 1., 1.])
+        self.assertTrue((f(values) == expected).all())
+
+    def test_smoothing_tanh(self):
+        f = SMOOTHING_FUNCTIONS['tanh']
+        values = numpy.array([-1000., -1., -0.5, 0, 0.5, 1., 1000.])
+        expected = numpy.array([0., 0.11920292, 0.26894142, 0.5,
+                                0.73105858, 0.88079708, 1.])
+        try:
+            numpy.testing.assert_array_almost_equal(
+                f(values),
+                expected)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_smoothing_spike(self):
+        f = SMOOTHING_FUNCTIONS['spike']
+        values = numpy.array([-1000., -1., -0.5, 0, 0.5, 1., 1000.])
+        expected = numpy.array([0., 0., 1., 1., 1., 0., 0.])
+        self.assertTrue((f(values) == expected).all())
 
 
 class LazyValuesTest(unittest.TestCase):
