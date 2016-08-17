@@ -30,9 +30,11 @@ class BaseFeature(object):
 
     Parameters
     ----------
-    input_type : string, default='list'
-        Specifies the format the input values will be (must be one of 'list'
-        or 'filename').
+    input_type : string or list, default='list'
+        Specifies the format the input values will be (must be one of 'list',
+        'filename', or a list of strings). If it is a list of strings, the
+        strings tell the order of (and if they are included) the different
+        molecule attributes (coords, elements, numbers, connections).
 
     n_jobs : int, default=1
         Specifies the number of processes to create when generating the
@@ -83,6 +85,10 @@ class BaseFeature(object):
             ...
             elen xn yn zn
 
+            If input_type is a list, then they will be treated as labels to
+            each of the arguments passed in via a tuple. For example,
+            input_type="list" can be reproduced with ["elements", "coords"]
+            or ["elements", "coords", "connections"].
         Returns
         -------
         values : Object
@@ -100,6 +106,9 @@ class BaseFeature(object):
             elements, numbers, coords = read_file_data(X)
             values = LazyValues(elements=elements, numbers=numbers,
                                 coords=coords)
+        elif type(self.input_type) in (list, tuple):
+            d = {x: y for x, y in zip(self.input_type, X)}
+            values = LazyValues(**d)
         else:
             raise ValueError("The input_type '%s' is not allowed." %
                              self.input_type)

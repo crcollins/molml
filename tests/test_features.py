@@ -124,6 +124,27 @@ class BaseFeatureTest(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
+    def test_convert_input_ele_coords(self):
+        a = BaseFeature(input_type=["elements", "coords"])
+        data = a.convert_input([METHANE_ELEMENTS, METHANE_COORDS])
+        self.assertEqual(data.elements, METHANE_ELEMENTS)
+        try:
+            numpy.testing.assert_array_almost_equal(
+                data.coords, METHANE_COORDS)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_convert_input_num_ele(self):
+        a = BaseFeature(input_type=["numbers", "elements"])
+        data = a.convert_input([METHANE_NUMBERS, METHANE_ELEMENTS])
+        self.assertEqual(data.elements, METHANE_ELEMENTS)
+        self.assertEqual(data.numbers, METHANE_NUMBERS)
+
+    def test_convert_input_invalid_list(self):
+        a = BaseFeature(input_type=["error"])
+        with self.assertRaises(TypeError):
+            a.convert_input("bad data")
+
     def test_convert_input_error(self):
         a = BaseFeature(input_type="error")
         with self.assertRaises(ValueError):
