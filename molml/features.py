@@ -704,22 +704,18 @@ class EncodedBond(BaseFeature):
         vector = numpy.zeros((len(self._element_pairs), self.segments))
 
         thetas = {
-            "log": (numpy.linspace(numpy.log(self.start), numpy.log(self.end),
-                                   self.segments),
-                    lambda x: numpy.log(x)),
-            "inverse": (numpy.linspace(1/self.start, 1/self.end,
-                                       self.segments),
-                        lambda x: 1/x),
-            "linear": (numpy.linspace(self.start, self.end,
-                                      self.segments),
-                       lambda x: x),
+            "log": lambda x: numpy.log(x),
+            "inverse": lambda x: 1 / x,
+            "linear": lambda x: x,
         }
         try:
-            theta, f = thetas[self.spacing]
+            theta_func = thetas[self.spacing]
         except KeyError:
             msg = "The value '%s' is not a valid spacing type."
             raise KeyError(msg % self.spacing)
 
+        theta = numpy.linspace(theta_func(self.start), theta_func(self.end),
+                               self.segments)
         mat = get_depth_threshold_mask_connections(data.connections,
                                                    max_depth=self.max_depth)
 
@@ -730,12 +726,10 @@ class EncodedBond(BaseFeature):
                 if not mat[i, j]:
                     continue
 
-                diff = theta - f(distances[i, j])
+                diff = theta - theta_func(distances[i, j])
                 value = smoothing_func(self.slope * diff)
-                if ele1 < ele2:
-                    vector[pair_idxs[ele1, ele2]] += value
-                else:
-                    vector[pair_idxs[ele2, ele1]] += value
+                eles = tuple(sorted([ele1, ele2]))
+                vector[pair_idxs[eles]] += value
         return vector.flatten().tolist()
 
 
