@@ -7,11 +7,11 @@ except ImportError:
     from distutils.core import setup
 
 with open('README.md', 'r') as f:
-    LONG_DESCRIPTION = f.read() 
+    LONG_DESCRIPTION = f.read()
 
 setup(
     name='molml',
-    version='0.1.0',
+    version='0.2.0',
     description='An interface between molecules and machine learning',
     long_description=LONG_DESCRIPTION,
     author='Chris Collins',
