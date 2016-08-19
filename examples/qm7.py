@@ -30,7 +30,7 @@ if __name__ == "__main__":
         X_train = tf.fit_transform(Xin_train)
         X_test = tf.transform(Xin_test)
 
-        # We will not do an hyperparmeter searching for simplicity
+        # We will not do a hyperparmeter search for simplicity
         clf = Ridge()
         clf.fit(X_train, y_train)
         train_error = MAE(clf.predict(X_train), y_train)
