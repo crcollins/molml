@@ -43,7 +43,7 @@ Example Usage
             42.       ,   3.5      ,  42.       ,  53.3587074]])
 ```
 
-For more examples, look in the [examples](https://github.com/crcollins/molml/tree/master/examples).
+For more examples, look in the [examples](https://github.com/crcollins/molml/tree/master/examples). Note: To run some of the examples scikit-learn>=0.16.0 is required.
 
 
 Dependencies
