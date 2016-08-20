@@ -2,6 +2,9 @@ MolML
 =====
 [![Build Status](https://travis-ci.org/crcollins/molml.svg?branch=master)](https://travis-ci.org/crcollins/molml)
 [![Coverage Status](https://coveralls.io/repos/github/crcollins/molml/badge.svg?branch=master)](https://coveralls.io/github/crcollins/molml?branch=master)
+[![PyPI version](https://img.shields.io/pypi/v/MolML.svg?style=flat)](http://pypi.python.org/pypi/MolML)
+[![License](https://img.shields.io/pypi/l/MolML.svg?style=flat)](https://github.com/crcollins/molml/blob/master/LICENSE.txt)
+
 
 A library to interface molecules and machine learning. The goal of this library is to be a simple way to convert molecules into a vector representation for later use with libraries such as [scikit-learn](http://scikit-learn.org/). This is done using a similar API scheme.
 
@@ -11,22 +14,23 @@ All of the coordinates are assumed to be in angstroms.
 Example Usage
 =============
 
+```python
     >>> from molml.features import CoulombMatrix
     >>> feat = CoulombMatrix()
     >>> H2 = (
-    ...             ['H', 'H'],
-    ...             [
-    ...                     [0.0, 0.0, 0.0],
-    ...                     [1.0, 0.0, 0.0],
-    ...             ]
+    ...         ['H', 'H'],
+    ...         [
+    ...             [0.0, 0.0, 0.0],
+    ...             [1.0, 0.0, 0.0],
+    ...         ]
     ... )
     >>> HCN = (
-    ...             ['H', 'C', 'N'],
-    ...             [
-    ...                     [-1.0, 0.0, 0.0],
-    ...                     [ 0.0, 0.0, 0.0],
-    ...                     [ 1.0, 0.0, 0.0],
-    ...             ]
+    ...         ['H', 'C', 'N'],
+    ...         [
+    ...             [-1.0, 0.0, 0.0],
+    ...             [ 0.0, 0.0, 0.0],
+    ...             [ 1.0, 0.0, 0.0],
+    ...         ]
     ... )
     >>> feat.fit([H2, HCN])
     CoulombMatrix(input_type='list', n_jobs=1)
@@ -37,6 +41,9 @@ Example Usage
             0.       ,   0.       ,   0.       ,   0.       ],
             [  0.5      ,   6.       ,   3.5      ,   6.       ,  36.8581052,
             42.       ,   3.5      ,  42.       ,  53.3587074]])
+```
+
+For more examples, look in the [examples](https://github.com/crcollins/molml/tree/master/examples).
 
 
 Dependencies
@@ -77,5 +84,4 @@ To run the tests, make sure that `nose` is installed and then run:
 To include coverage information, make sure that `coverage` is installed and then run:
 
     $ nosetests --with-coverage --cover-package=molml --cover-erase
-
 
