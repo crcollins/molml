@@ -51,6 +51,10 @@ class Shell(BaseFeature):
         return self
 
     def _para_transform(self, X):
+        if self._elements is None:
+            msg = "This %s instance is not fitted yet. Call 'fit' first."
+            raise ValueError(msg % type(self).__name__)
+
         data = self.convert_input(X)
 
         vectors = []
