@@ -5,9 +5,11 @@ class Shell(BaseFeature):
     '''
 
     '''
-    def __init__(self, input_type='list', n_jobs=1, depth=1):
+    def __init__(self, input_type='list', n_jobs=1, depth=1,
+                 use_coordination=False):
         super(Shell, self).__init__(input_type=input_type, n_jobs=n_jobs)
         self.depth = depth
+        self.use_coordination = use_coordination
         self._elements = None
 
     def _loop_depth(self, start, connections):
@@ -30,10 +32,12 @@ class Shell(BaseFeature):
                 frontier.append(x)
         return limit
 
-    def _tally_chains(self, limit, elements):
+    def _tally_chains(self, limits, elements, connections=None):
         counts = {}
-        for x in limit:
+        for x in limits:
             ele = elements[x]
+            if self.use_coordination:
+                ele += str(len(connections[x]))
             if ele not in counts:
                 counts[ele] = 0
             counts[ele] += 1
@@ -42,7 +46,12 @@ class Shell(BaseFeature):
     def _para_fit(self, X):
         data = self.convert_input(X)
         # This is just a cheap way to approximate the actual value
-        return set(data.elements)
+        elements = data.elements
+        connections = data.connections
+        if self.use_coordination:
+            elements = [ele + str(len(connections[i])) for i, ele in
+                        enumerate(elements)]
+        return set(elements)
 
     def fit(self, X, y=None):
         results = self.map(self._para_fit, X)
@@ -60,6 +69,7 @@ class Shell(BaseFeature):
         vectors = []
         for atom in xrange(len(data.elements)):
             limits = self._loop_depth(atom, data.connections)
-            tallies = self._tally_chains(limits, data.elements)
+            tallies = self._tally_chains(limits, data.elements,
+                                         data.connections)
             vectors.append([tallies.get(x, 0) for x in self._elements])
         return vectors

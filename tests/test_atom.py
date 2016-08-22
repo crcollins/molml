@@ -55,10 +55,33 @@ class ShellTest(unittest.TestCase):
         self.assertEqual(a._elements,
                          set(['N', 'C', 'O', 'H']))
 
+    def test_fit_use_coordination(self):
+        a = Shell(depth=1, use_coordination=True)
+        a.fit(ALL_DATA)
+        self.assertEqual(a._elements,
+                         set(['H0', 'H1', 'O2', 'C4', 'N1', 'C3', 'C2', 'N2',
+                              'N3', 'C1', 'O1', 'O0']))
+
     def test_transform(self):
         a = Shell()
         a.fit(ALL_DATA)
         self.assertTrue((a.transform(ALL_DATA) == BASE_SHELL).all())
+
+    def test_transform_use_coordination(self):
+        a = Shell(depth=1, use_coordination=True)
+        a.fit([MID])
+        expected_results = numpy.array([
+            [[0, 0, 0, 1, 0, 0],
+             [1, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 1, 0],
+             [0, 0, 0, 0, 0, 1],
+             [0, 0, 0, 0, 1, 0],
+             [0, 0, 0, 0, 1, 0],
+             [0, 1, 0, 0, 0, 0],
+             [0, 0, 1, 0, 0, 0],
+             [0, 0, 1, 0, 0, 0]]
+        ])
+        self.assertTrue((a.transform([MID]) == expected_results).all())
 
     def test_transform_depth2(self):
         a = Shell(depth=2)
