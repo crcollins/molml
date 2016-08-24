@@ -68,6 +68,11 @@ SMOOTHING_FUNCTIONS = {
     "expit_pdf": scipy.stats.logistic.pdf,
     "spike": lambda x: (numpy.abs(x) < 1.).astype(float)
 }
+SPACING_FUNCTIONS = {
+    "log": lambda x: numpy.log(x),
+    "inverse": lambda x: 1 / x,
+    "linear": lambda x: x,
+}
 
 
 def get_bond_type(element1, element2, dist):

@@ -6,7 +6,7 @@ from scipy.spatial.distance import cdist
 from pathos.multiprocessing import ProcessingPool as Pool
 
 from utils import get_depth_threshold_mask_connections
-from utils import ELE_TO_NUM, SMOOTHING_FUNCTIONS
+from utils import ELE_TO_NUM, SMOOTHING_FUNCTIONS, SPACING_FUNCTIONS
 from utils import LazyValues, read_file_data
 
 
@@ -703,13 +703,8 @@ class EncodedBond(BaseFeature):
 
         vector = numpy.zeros((len(self._element_pairs), self.segments))
 
-        thetas = {
-            "log": lambda x: numpy.log(x),
-            "inverse": lambda x: 1 / x,
-            "linear": lambda x: x,
-        }
         try:
-            theta_func = thetas[self.spacing]
+            theta_func = SPACING_FUNCTIONS[self.spacing]
         except KeyError:
             msg = "The value '%s' is not a valid spacing type."
             raise KeyError(msg % self.spacing)

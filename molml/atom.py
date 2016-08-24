@@ -2,7 +2,8 @@ import numpy
 from scipy.spatial.distance import cdist
 
 from features import BaseFeature
-from utils import get_depth_threshold_mask_connections, SMOOTHING_FUNCTIONS
+from utils import get_depth_threshold_mask_connections
+from utils import SPACING_FUNCTIONS, SMOOTHING_FUNCTIONS
 
 
 class Shell(BaseFeature):
@@ -337,13 +338,8 @@ class LocalEncodedBond(BaseFeature):
         vector = numpy.zeros((len(data.elements), len(self._elements),
                               self.segments))
 
-        thetas = {
-            "log": lambda x: numpy.log(x),
-            "inverse": lambda x: 1 / x,
-            "linear": lambda x: x,
-        }
         try:
-            theta_func = thetas[self.spacing]
+            theta_func = SPACING_FUNCTIONS[self.spacing]
         except KeyError:
             msg = "The value '%s' is not a valid spacing type."
             raise KeyError(msg % self.spacing)
