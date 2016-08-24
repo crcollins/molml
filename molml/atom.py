@@ -38,7 +38,7 @@ class Shell(BaseFeature):
 
     Attributes
     ----------
-    _elements : set, tuples
+    _elements : set
         All the elements/types that are in the fit molecules.
     '''
     def __init__(self, input_type='list', n_jobs=1, depth=1,
@@ -130,7 +130,7 @@ class Shell(BaseFeature):
 
         Returns
         -------
-        value : list
+        value : set
             All the elements in the molecule
         '''
         data = self.convert_input(X)
@@ -175,7 +175,7 @@ class Shell(BaseFeature):
 
         Returns
         -------
-        value : list
+        value : list, shape=(n_atoms, len(self._elements))
             The features extracted from the molecule
         '''
         if self._elements is None:
@@ -200,7 +200,8 @@ class LocalEncodedBond(BaseFeature):
     This is a method to generallize the idea of bond counting. Instead of
     seeing bonds as a discrete count that is thresholded at a given length,
     they are seen as general distance histograms. This is supplemented with
-    smoothing functions.
+    smoothing functions. This is a slight modification of the EncodedBond
+    to use with atoms.
 
     Parameters
     ----------
@@ -278,7 +279,7 @@ class LocalEncodedBond(BaseFeature):
 
         Returns
         -------
-        value : list
+        value : set
             All the element pairs in the molecule
         '''
         data = self.convert_input(X)
@@ -318,7 +319,7 @@ class LocalEncodedBond(BaseFeature):
 
         Returns
         -------
-        value : list
+        value : list, shape=(n_atoms, len(self._elements) * self.segments)
             The features extracted from the molecule
         '''
         if self._elements is None:
