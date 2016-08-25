@@ -409,14 +409,14 @@ class LocalCoulombMatrix(BaseFeature):
         M_{ii} = 0.5 Z_{p_i} ** 2.4
     '''
     def __init__(self, input_type='list', n_jobs=1, max_occupancy=4, r_cut=10.,
-                 alpha=6, reduced=False, decay=False):
+                 alpha=6, use_reduced=False, use_decay=False):
         super(LocalCoulombMatrix, self).__init__(input_type=input_type,
                                                  n_jobs=n_jobs)
         self.max_occupancy = max_occupancy
         self.r_cut = r_cut
         self.alpha = alpha
-        self.decay = decay
-        self.reduced = reduced
+        self.use_reduced = use_reduced
+        self.use_decay = use_decay
 
     def fit(self, X, y=None):
         '''
@@ -456,14 +456,14 @@ class LocalCoulombMatrix(BaseFeature):
             mat = get_coulomb_matrix(numbers[local_atoms],
                                      coords[local_atoms],
                                      alpha=self.alpha,
-                                     use_decay=self.decay)
+                                     use_decay=self.use_decay)
             # Take away 1 for the start value
             n = len(local_atoms) - self.max_occupancy - 1
             mat = numpy.pad(mat, ((0, n), (0, n)), "constant")
             norm_vals = numpy.linalg.norm(mat, axis=0)
             norm_vals[0] = numpy.inf
             sorting = numpy.argsort(norm_vals)[::-1]
-            if self.reduced:
+            if self.use_reduced:
                 # skip the first value in the diag because it is already in
                 # the first row
                 vectors.append(mat[sorting[0]].tolist() + numpy.diag(mat)[1:])
