@@ -728,8 +728,8 @@ class EncodedBond(BaseFeature):
         return vector.flatten().tolist()
 
 
-def get_coulomb_matrix(numbers, coords):
-    """
+def get_coulomb_matrix(numbers, coords, alpha=1, use_decay=False):
+    '''
     Return the coulomb matrix for the given coords and numbers
 
     C_ij = Z_i Z_j / | r_i - r_j |
@@ -743,13 +743,27 @@ def get_coulomb_matrix(numbers, coords):
     coords : array-like, shape=(n_atoms, 3)
         The xyz coordinates of all the atoms (in angstroms)
 
+    alpha : number, default=6
+        Some value to exponentiate the distance in the coulomb matrix.
+
+    use_decay : bool, default=False
+        This setting defines an extra decay for the values as they get futher
+        away from the "central atom". This is to alleviate issues the arise as
+        atoms enter or leave the cutoff radius.
+
     Returns
     -------
     top : array, shape=(n_atoms, n_atoms)
         The coulomb matrix
-    """
+    '''
     top = numpy.outer(numbers, numbers).astype(numpy.float64)
     r = cdist(coords, coords)
+    if use_decay:
+        other = cdist([coords[0]], coords).reshape(-1)
+        r += numpy.add.outer(other, other)
+
+    r **= alpha
+
     with numpy.errstate(divide='ignore', invalid='ignore'):
         numpy.divide(top, r, top)
     numpy.fill_diagonal(top, 0.5 * numpy.array(numbers) ** 2.4)
