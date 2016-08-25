@@ -1,7 +1,7 @@
 import numpy
 from scipy.spatial.distance import cdist
 
-from features import BaseFeature
+from features import BaseFeature, get_coulomb_matrix
 from utils import get_depth_threshold_mask_connections
 from utils import SPACING_FUNCTIONS, SMOOTHING_FUNCTIONS
 
@@ -360,3 +360,113 @@ class LocalEncodedBond(BaseFeature):
                 value = smoothing_func(self.slope * diff)
                 vector[i, pair_idxs[ele2]] += value
         return vector.reshape(len(data.elements), -1)
+
+
+class LocalCoulombMatrix(BaseFeature):
+    '''
+    An implementation of the Coulomb Matrix where only the local atom
+    environment is used by using a cutoff radius.
+
+    References
+    ----------
+    Barker, J.; Bulin, J.;  Hamaekers, J. LC-GAP: Localized Coulomb Descriptors
+    for the Gaussian Approximation Potential. 2016
+
+    Parameters
+    ----------
+    input_type : string, default='list'
+        Specifies the format the input values will be (must be one of 'list'
+        or 'filename').
+
+    n_jobs : int, default=1
+        Specifies the number of processes to create when generating the
+        features. Positive numbers specify a specifc amount, and numbers less
+        than 1 will use the number of cores the computer has.
+
+    max_occupancy : int, default=4
+        The maximum number of atoms to be included the in local environment.
+
+    r_cut : float, default=6
+        The maximum distance allowed for atoms to be considered local to the
+        "central atom".
+
+    alpha : number, default=6
+        Some value to exponentiate the distance in the coulomb matrix.
+
+    use_reduced : bool, default=False
+        This setting uses only the first row of the local coulomb matrix and
+        the diagonal. This reduces the feature from scaling as
+        O(max_occupancy ** 2) to just O(max_occupancy).
+
+    use_decay : bool, default=False
+        This setting defines an extra decay for the values as they get futher
+        away from the "central atom". This is to alleviate issues the arise as
+        atoms enter or leave the cutoff radius.
+
+        M_{ij} = Z_{p_i} Z_{p_j} / (  ||  R_{p_1} - R_{p_i} ||_2
+                                    + ||  R_{p_1} - R_{p_j} ||_2
+                                    + ||  R_{p_i} - R_{p_j} ||_2 ) ** \alpha
+        M_{ii} = 0.5 Z_{p_i} ** 2.4
+    '''
+    def __init__(self, input_type='list', n_jobs=1, max_occupancy=4, r_cut=10.,
+                 alpha=6, reduced=False, decay=False):
+        super(LocalCoulombMatrix, self).__init__(input_type=input_type,
+                                                 n_jobs=n_jobs)
+        self.max_occupancy = max_occupancy
+        self.r_cut = r_cut
+        self.alpha = alpha
+        self.decay = decay
+        self.reduced = reduced
+
+    def fit(self, X, y=None):
+        '''
+        No fitting is needed because it is all defined by the parameters?
+        '''
+        pass
+
+    def _para_transform(self, X):
+        '''
+        A single instance of the transform procedure
+
+        This is formulated in a way that the transformations can be done
+        completely parallel with map.
+
+        Parameters
+        ----------
+        X : object
+            An object to use for the transform
+
+        Returns
+        -------
+        value : array
+            The features extracted from the molecule
+        '''
+        data = self.convert_input(X)
+        dist = cdist(data.coords, data.coords)
+
+        numbers = numpy.array(data.numbers)
+        coords = numpy.array(data.coords)
+
+        vectors = []
+        for i in xrange(len(numbers)):
+            nearest = numpy.where(dist[i, :] < self.r_cut)
+            ordering = numpy.argsort(dist[i, :][nearest])
+            # Add 1 to offset for the start value
+            local_atoms = ordering[:self.max_occupancy + 1]
+            mat = get_coulomb_matrix(numbers[local_atoms],
+                                     coords[local_atoms],
+                                     alpha=self.alpha,
+                                     decay=self.decay)
+            # Take away 1 for the start value
+            n = len(local_atoms) - self.max_occupancy - 1
+            mat = numpy.pad(mat, ((0, n), (0, n)), "constant")
+            norm_vals = numpy.linalg.norm(mat, axis=0)
+            norm_vals[0] = numpy.inf
+            sorting = numpy.argsort(norm_vals)[::-1]
+            if self.reduced:
+                # skip the first value in the diag because it is already in
+                # the first row
+                vectors.append(mat[sorting[0]].tolist() + numpy.diag(mat)[1:])
+            else:
+                vectors.append(mat[sorting].flatten())
+        return numpy.array(vectors)
