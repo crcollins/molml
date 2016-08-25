@@ -458,7 +458,7 @@ class LocalCoulombMatrix(BaseFeature):
                                      alpha=self.alpha,
                                      use_decay=self.use_decay)
             # Take away 1 for the start value
-            n = len(local_atoms) - self.max_occupancy - 1
+            n = self.max_occupancy - (len(local_atoms) - 1)
             mat = numpy.pad(mat, ((0, n), (0, n)), "constant")
             norm_vals = numpy.linalg.norm(mat, axis=0)
             norm_vals[0] = numpy.inf
