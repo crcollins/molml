@@ -456,7 +456,7 @@ class LocalCoulombMatrix(BaseFeature):
             mat = get_coulomb_matrix(numbers[local_atoms],
                                      coords[local_atoms],
                                      alpha=self.alpha,
-                                     decay=self.decay)
+                                     use_decay=self.decay)
             # Take away 1 for the start value
             n = len(local_atoms) - self.max_occupancy - 1
             mat = numpy.pad(mat, ((0, n), (0, n)), "constant")
