@@ -248,7 +248,7 @@ class LocalEncodedBond(BaseFeature):
 
     Attributes
     ----------
-    _element_pairs : list
+    _element : list
         A list of all the element pairs in the fit molecules.
     '''
     def __init__(self, input_type='list', n_jobs=1, segments=100,
