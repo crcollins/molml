@@ -3,7 +3,7 @@ import unittest
 
 import numpy
 
-from molml.atom import Shell, LocalCoulombMatrix
+from molml.atom import Shell, LocalEncodedBond, LocalCoulombMatrix
 from molml.utils import read_file_data
 
 
@@ -190,6 +190,51 @@ class ShellTest(unittest.TestCase):
     def test_fit_transform(self):
         a = Shell()
         self.assertTrue((a.fit_transform(ALL_DATA) == BASE_SHELL).all())
+
+
+class LocalEncodedBondTest(unittest.TestCase):
+
+    def test_fit(self):
+        a = LocalEncodedBond()
+        a.fit(ALL_DATA)
+        self.assertEqual(a._elements,
+                         set(['N', 'C', 'O', 'H']))
+
+    def test_transform(self):
+        a = LocalEncodedBond()
+        a.fit(ALL_DATA)
+        # import pdb; pdb.set_trace()
+        m = a.transform(ALL_DATA)
+        expected_results = numpy.array([17.068978019300587,
+                                        54.629902544876572,
+                                        1006.4744899075993])
+        mm = numpy.array([x.sum() for x in m])
+        self.assertTrue((numpy.allclose(mm, expected_results)))
+
+    def test_transform_max_depth1(self):
+        a = LocalEncodedBond(max_depth=1)
+        a.fit(ALL_DATA)
+        m = a.transform(ALL_DATA)
+        expected_results = numpy.array([6.82758723,
+                                        6.82758018,
+                                        88.75860423])
+        mm = numpy.array([x.sum() for x in m])
+        self.assertTrue((numpy.allclose(mm, expected_results)))
+
+    def test_transform_before_fit(self):
+        a = LocalEncodedBond()
+        with self.assertRaises(ValueError):
+            a.transform(ALL_DATA)
+
+    def test_transform_invalid_smoothing(self):
+        a = LocalEncodedBond(smoothing='not real"')
+        with self.assertRaises(KeyError):
+            a.fit_transform(ALL_DATA)
+
+    def test_transform_invalid_spacing(self):
+        a = LocalEncodedBond(spacing='not real"')
+        with self.assertRaises(KeyError):
+            a.fit_transform(ALL_DATA)
 
 
 class LocalCoulombMatrixTest(unittest.TestCase):
