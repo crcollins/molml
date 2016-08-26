@@ -5,7 +5,6 @@ import numpy
 
 from molml.features import BagOfBonds, Connectivity
 from molml.features import CoulombMatrix, EncodedBond
-from molml.features import get_coulomb_matrix
 from molml.utils import read_file_data
 
 
@@ -26,50 +25,6 @@ MID_ELEMENTS, MID_NUMBERS, MID_COORDS = read_file_data(MID_PATH)
 MID = (MID_ELEMENTS, MID_COORDS)
 
 ALL_DATA = [METHANE, MID, BIG]
-
-
-class OtherTest(unittest.TestCase):
-
-    def test_get_coulomb_matrix(self):
-        res = get_coulomb_matrix([1, 1], [[0.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
-        expected_results = numpy.array([
-            [0.5, 1.0],
-            [1.0, 0.5]])
-        try:
-            numpy.testing.assert_array_almost_equal(
-                res,
-                expected_results)
-        except AssertionError as e:
-            self.fail(e)
-
-    def test_get_coulomb_matrix_alpha(self):
-        nums = [1, 1]
-        coords = [[0.0, 0.0, 0.0], [0.0, 0.0, .5]]
-        res = get_coulomb_matrix(nums, coords, alpha=2)
-        expected_results = numpy.array([
-            [0.5, 4.],
-            [4., 0.5]])
-        try:
-            numpy.testing.assert_array_almost_equal(
-                res,
-                expected_results)
-        except AssertionError as e:
-            self.fail(e)
-
-    def test_get_coulomb_matrix_use_decay(self):
-        nums = [1, 1, 1]
-        coords = [[0.0, 0.0, 0.0], [0.0, 0.0, .5], [0.0, 0.5, 0.0]]
-        res = get_coulomb_matrix(nums, coords, use_decay=True)
-        expected_results = numpy.array([
-            [0.5, 1., 1.],
-            [1., 0.5, 0.585786],
-            [1., 0.585786, 0.5]])
-        try:
-            numpy.testing.assert_array_almost_equal(
-                res,
-                expected_results)
-        except AssertionError as e:
-            self.fail(e)
 
 
 class ConnectivityTest(unittest.TestCase):

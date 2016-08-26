@@ -2,8 +2,7 @@ import numpy
 from scipy.spatial.distance import cdist
 
 from base import BaseFeature
-from features import get_coulomb_matrix
-from utils import get_depth_threshold_mask_connections
+from utils import get_depth_threshold_mask_connections, get_coulomb_matrix
 from utils import SPACING_FUNCTIONS, SMOOTHING_FUNCTIONS
 
 
