@@ -1,4 +1,5 @@
 from molml.features import CoulombMatrix
+from molml.features import LocalCoulombMatrix
 
 # Define some base data
 H2_ELES = ['H', 'H']
@@ -51,3 +52,10 @@ if __name__ == "__main__":
     H2_spec = (H2_COORDS, H2_NUMS)
     HCN_spec = (HCN_COORDS, HCN_NUMS)
     print feat.fit_transform([H2_spec, HCN_spec])
+    print
+
+    # Example of generating the Local Coulomb matrix (atom-wise
+    # representation)
+    print "Atom feature"
+    feat = LocalCoulombMatrix()
+    print feat.fit_transform([H2, HCN])
