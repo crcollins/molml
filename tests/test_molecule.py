@@ -3,8 +3,8 @@ import unittest
 
 import numpy
 
-from molml.features import BagOfBonds, Connectivity
-from molml.features import CoulombMatrix, EncodedBond
+from molml.molecule import BagOfBonds, Connectivity
+from molml.molecule import CoulombMatrix, EncodedBond
 from molml.utils import read_file_data
 
 
