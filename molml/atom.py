@@ -470,3 +470,145 @@ class LocalCoulombMatrix(BaseFeature):
             else:
                 vectors.append(mat[sorting].flatten())
         return numpy.array(vectors)
+
+
+class BehlerParrinello(BaseFeature):
+    '''
+    An implementation of the Coulomb Matrix where only the local atom
+    environment is used by using a cutoff radius.
+
+    References
+    ----------
+    Behler, J; Parrinello, M. Generalized Neural-Network Representation of
+    High-Dimensional Potential-Energy Surfaces. Phys. Rev. Lett. 98, 146401.
+
+    Parameters
+    ----------
+    input_type : string, default='list'
+        Specifies the format the input values will be (must be one of 'list'
+        or 'filename').
+
+    n_jobs : int, default=1
+        Specifies the number of processes to create when generating the
+        features. Positive numbers specify a specifc amount, and numbers less
+        than 1 will use the number of cores the computer has.
+
+    r_cut : float, default=6.
+        The maximum distance allowed for atoms to be considered local to the
+        "central atom".
+
+    r_s : float, default=1.0
+
+    eta : float, default=1.0
+
+    lambda_ : float, default=1.0
+
+    zeta : float, default=1.0
+    '''
+
+    def __init__(self, input_type='list', n_jobs=1, r_cut=6.0, r_s=1., eta=1.,
+                 lambda_=1., zeta=1.):
+        super(BehlerParrinello, self).__init__(input_type=input_type,
+                                               n_jobs=n_jobs)
+        self.r_cut = r_cut
+        self.r_s = r_s
+        self.eta = eta
+        self.lambda_ = lambda_
+        self.zeta = zeta
+        self._elements = None
+
+    def _para_fit(self, X):
+        '''
+        A single instance of the fit procedure
+
+        This is formulated in a way that the fits can be done completely
+        parallel in a map/reduce fashion.
+
+        Parameters
+        ----------
+        X : object
+            An object to use for the fit
+
+        Returns
+        -------
+        value : set
+            All the element pairs in the molecule
+        '''
+        data = self.convert_input(X)
+        # This is just a cheap way to approximate the actual value
+        return set(data.elements)
+
+    def fit(self, X, y=None):
+        '''
+        Fit the model
+
+        Parameters
+        ----------
+        X : list, shape=(n_samples, )
+            A list of objects to use to fit.
+
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        '''
+        pairs = self.map(self._para_fit, X)
+        self._elements = set(self.reduce(lambda x, y: set(x) | set(y),
+                                         pairs))
+        return self
+
+    def f_c(self, R):
+        values = 0.5 * (numpy.cos(numpy.pi * R / self.r_cut) + 1)
+        values[R > self.r_cut] = 0
+        return values
+
+    def g_1(self, R):
+        values = numpy.exp(-self.eta * (R - self.r_s) ** 2) * self.f_c(R)
+        diag = numpy.diag(values).sum()
+        total = values.sum(1) - diag
+        return total
+
+    def g_2(self, Theta, R):
+        F_c_R = self.f_c(R)
+
+        R2 = self.eta * R ** 2
+        new_Theta = (1 - self.lambda_ * numpy.cos(Theta)) ** self.zeta
+        n = R.shape[0]
+        values = numpy.zeros(n)
+        for i in xrange(n):
+            for j in xrange(n):
+                for k in xrange(n):
+                    if k == i:
+                        continue
+                    exp_term = numpy.exp(-(R2[i, j] + R2[i, k] + R2[j, k]))
+                    angular_term = new_Theta[i, j, k]
+                    radial_cuts = F_c_R[i, j] * F_c_R[i, k] * F_c_R[j, k]
+                    values[i] += angular_term * exp_term * radial_cuts
+        return 2 ** (1 - self.zeta) * values
+
+    def calculate_Theta(self, R_vecs):
+        n = R_vecs.shape[0]
+        Theta = numpy.zeros((n, n, n))
+        for i, Ri in enumerate(R_vecs):
+            for j, Rj in enumerate(R_vecs):
+                if i == j:
+                    continue
+                Rij = Ri - Rj
+                normRij = numpy.linalg.norm(Rij)
+                for k, Rk in enumerate(R_vecs):
+                    if i == k or j == k:
+                        continue
+                    Rik = Ri - Rk
+                    normRik = numpy.linalg.norm(Rik)
+                    Theta[i, j, k] = numpy.dot(Rij, Rik) / (normRij * normRik)
+        return Theta
+
+    def _para_transform(self, X):
+        data = self.convert_input(X)
+
+        coords = numpy.array(data.coords)
+        R = cdist(coords, coords)
+        g1 = self.g_1(R)
+        Theta = self.calculate_Theta(coords)
+        g2 = self.g_2(Theta, R)
+        return numpy.vstack([g1, g2]).T
