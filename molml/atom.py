@@ -474,8 +474,9 @@ class LocalCoulombMatrix(BaseFeature):
 
 class BehlerParrinello(BaseFeature):
     '''
-    An implementation of the Coulomb Matrix where only the local atom
-    environment is used by using a cutoff radius.
+    An implementation of the descriptors used in Behler-Parrinello Neural
+    Networks.
+
 
     References
     ----------
@@ -558,17 +559,66 @@ class BehlerParrinello(BaseFeature):
         return self
 
     def f_c(self, R):
+        '''
+        Compute all the cutoff distances
+
+        The cutoff is defined as
+
+        0.5 * ( cos( \pi R_ij / R_c ) + 1, if R_ij <= R_c
+        0, otherwise
+
+
+        Parameters
+        ----------
+        R : array, shape=(N_atoms, N_atoms)
+            A distance matrix for all the atoms (scipy.spatial.cdist)
+
+        Returns
+        -------
+        values : array, shape=(N_atoms, N_atoms)
+            The new distance matrix with the cutoff function applied
+        '''
         values = 0.5 * (numpy.cos(numpy.pi * R / self.r_cut) + 1)
         values[R > self.r_cut] = 0
         return values
 
     def g_1(self, R):
+        '''
+        A radial symmetry function.
+
+        G^1_i = \sum_{j \neq i} \exp(- \eta (R_ij-R_s)^2) f_c(R_ij)
+
+        Parameters
+        ----------
+        R : array, shape=(N_atoms, N_atoms)
+            A distance matrix for all the atoms (scipy.spatial.cdist)
+
+        Returns
+        -------
+        total : array, shape=(N_atoms)
+            The atom-wise g_1 evaluations.
+        '''
         values = numpy.exp(-self.eta * (R - self.r_s) ** 2) * self.f_c(R)
         diag = numpy.diag(values).sum()
         total = values.sum(1) - diag
         return total
 
     def g_2(self, Theta, R):
+        '''
+        An angular symmetry function.
+
+        This function needs to be optimized.
+
+        Parameters
+        ----------
+        R : array, shape=(N_atoms, N_atoms)
+            A distance matrix for all the atoms (scipy.spatial.cdist)
+
+        Returns
+        -------
+        total : array, shape=(N_atoms)
+            The atom-wise g_1 evaluations.
+        '''
         F_c_R = self.f_c(R)
 
         R2 = self.eta * R ** 2
@@ -587,6 +637,24 @@ class BehlerParrinello(BaseFeature):
         return 2 ** (1 - self.zeta) * values
 
     def calculate_Theta(self, R_vecs):
+        '''
+        Compute the angular term for all triples of atoms.
+
+        Theta_ijk = (R_ij . R_ik) / (|R_ij| |R_ik|)
+
+        Right now this is a fairly naive implementation so this could be
+        optimized quite a bit.
+
+        Parameters
+        ----------
+        R_vecs : array, shape=(N_atoms, 3)
+            An array of the Cartesian coordinates of all the atoms
+
+        Returns
+        -------
+        Theta : array, shape=(N_atoms, N_atoms, N_atoms)
+            The angular term for all the atoms given.
+        '''
         n = R_vecs.shape[0]
         Theta = numpy.zeros((n, n, n))
         for i, Ri in enumerate(R_vecs):
