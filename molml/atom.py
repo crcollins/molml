@@ -319,7 +319,7 @@ class LocalEncodedBond(BaseFeature):
 
         Returns
         -------
-        value : list, shape=(n_atoms, len(self._elements) * self.segments)
+        value : array, shape=(n_atoms, len(self._elements) * self.segments)
             The features extracted from the molecule
         '''
         if self._elements is None:
