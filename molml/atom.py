@@ -582,7 +582,7 @@ class BehlerParrinello(BaseFeature):
         values[R > self.r_cut] = 0
         return values
 
-    def g_1(self, R):
+    def g_1(self, R, elements):
         '''
         A radial symmetry function.
 
@@ -595,15 +595,22 @@ class BehlerParrinello(BaseFeature):
 
         Returns
         -------
-        total : array, shape=(N_atoms)
+        total : array, shape=(N_atoms, N_elements)
             The atom-wise g_1 evaluations.
         '''
         values = numpy.exp(-self.eta * (R - self.r_s) ** 2) * self.f_c(R)
-        diag = numpy.diag(values).sum()
-        total = values.sum(1) - diag
-        return total
+        numpy.fill_diagonal(values, 0)
 
-    def g_2(self, Theta, R):
+        elements = numpy.array(elements)
+
+        totals = []
+        for ele in self._elements:
+            idxs = numpy.where(elements == ele)[0]
+            total = values[:, idxs].sum(1)
+            totals.append(total)
+        return numpy.array(totals).T
+
+    def g_2(self, Theta, R, elements):
         '''
         An angular symmetry function.
 
@@ -621,25 +628,36 @@ class BehlerParrinello(BaseFeature):
 
         Returns
         -------
-        total : array, shape=(N_atoms)
+        total : array, shape=(N_atoms, len(self._elements) ** 2)
             The atom-wise g_1 evaluations.
         '''
         F_c_R = self.f_c(R)
 
         R2 = self.eta * R ** 2
         new_Theta = (1 - self.lambda_ * numpy.cos(Theta)) ** self.zeta
+
+        ele_map = {ele: i for i, ele in enumerate(self._elements)}
+
         n = R.shape[0]
-        values = numpy.zeros(n)
+        m = len(self._elements)
+        values = numpy.zeros((n, m, m))
         for i in xrange(n):
             for j in xrange(n):
+                ele1 = elements[j]
+                ele1_idx = ele_map[ele1]
                 for k in xrange(n):
                     if k == i:
                         continue
+                    ele2 = elements[k]
+                    ele2_idx = ele_map[ele2]
+
                     exp_term = numpy.exp(-(R2[i, j] + R2[i, k] + R2[j, k]))
                     angular_term = new_Theta[i, j, k]
                     radial_cuts = F_c_R[i, j] * F_c_R[i, k] * F_c_R[j, k]
-                    values[i] += angular_term * exp_term * radial_cuts
-        return 2 ** (1 - self.zeta) * values
+                    temp = angular_term * exp_term * radial_cuts
+                    values[i, ele1_idx, ele2_idx] += temp
+        temp = 2 ** (1 - self.zeta) * values
+        return temp.reshape(n, m * m)
 
     def calculate_Theta(self, R_vecs):
         '''
@@ -677,11 +695,28 @@ class BehlerParrinello(BaseFeature):
         return Theta
 
     def _para_transform(self, X):
+        '''
+        A single instance of the transform procedure
+
+        This is formulated in a way that the transformations can be done
+        completely parallel with map.
+
+        Parameters
+        ----------
+        X : object
+            An object to use for the transform
+
+        Returns
+        -------
+        value : array
+            The features extracted from the molecule
+        '''
         data = self.convert_input(X)
 
         coords = numpy.array(data.coords)
         R = cdist(coords, coords)
-        g1 = self.g_1(R)
         Theta = self.calculate_Theta(coords)
-        g2 = self.g_2(Theta, R)
-        return numpy.vstack([g1, g2]).T
+
+        g1 = self.g_1(R, data.elements)
+        g2 = self.g_2(Theta, R, data.elements)
+        return numpy.hstack([g1, g2])
