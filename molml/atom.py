@@ -607,6 +607,11 @@ class BehlerParrinello(BaseFeature):
         '''
         An angular symmetry function.
 
+        G^2_i = 2^{1-\zeta} \sum_{i,k \neq i}
+                    (1 - \lambda cos(\Theta_ijk))^\zeta
+                    \times \exp(-eta (R_ij^2 + R_ik^2 + R_jk^2))
+                    \times f_c(R_ij) f_c(R_ik) f_c(R_jk)
+
         This function needs to be optimized.
 
         Parameters
