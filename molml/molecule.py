@@ -4,6 +4,7 @@ from scipy.spatial.distance import cdist
 from base import BaseFeature
 from utils import get_depth_threshold_mask_connections, get_coulomb_matrix
 from utils import ELE_TO_NUM, SMOOTHING_FUNCTIONS, SPACING_FUNCTIONS
+from utils import get_element_pairs
 
 
 class Connectivity(BaseFeature):
@@ -393,25 +394,7 @@ class EncodedBond(BaseFeature):
             All the element pairs in the molecule
         '''
         data = self.convert_input(X)
-
-        counts = {}
-        for ele in data.elements:
-            if ele not in counts:
-                counts[ele] = 0
-            counts[ele] += 1
-
-        pairs = {}
-        for i, x in enumerate(counts):
-            for j, y in enumerate(counts):
-                if i > j:
-                    continue
-                if x == y and counts[x] == 1:
-                    continue
-                if x > y:
-                    pairs[y, x] = 1
-                else:
-                    pairs[x, y] = 1
-        return pairs.keys()
+        return get_element_pairs(data.elements)
 
     def fit(self, X, y=None):
         '''

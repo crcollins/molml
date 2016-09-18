@@ -292,3 +292,37 @@ def get_coulomb_matrix(numbers, coords, alpha=1, use_decay=False):
     top[top == numpy.Infinity] = 0
     top[numpy.isnan(top)] = 0
     return top
+
+
+def get_element_pairs(elements):
+    '''
+    Extract all the element pairs in a molecule
+
+    Parameters
+    ----------
+    elements : list
+        All the elements in the molecule
+
+    Returns
+    -------
+    value : list
+        All the element pairs in the molecule
+    '''
+    counts = {}
+    for ele in elements:
+        if ele not in counts:
+            counts[ele] = 0
+        counts[ele] += 1
+
+    pairs = {}
+    for i, x in enumerate(counts):
+        for j, y in enumerate(counts):
+            if i > j:
+                continue
+            if x == y and counts[x] == 1:
+                continue
+            if x > y:
+                pairs[y, x] = 1
+            else:
+                pairs[x, y] = 1
+    return pairs.keys()
