@@ -3,7 +3,7 @@ import unittest
 import numpy
 
 from molml.utils import LazyValues, SMOOTHING_FUNCTIONS
-from molml.utils import get_coulomb_matrix
+from molml.utils import get_coulomb_matrix, get_element_pairs
 
 
 ELEMENTS = ['C', 'H', 'H', 'H', 'H']
@@ -90,6 +90,10 @@ class UtilsTest(unittest.TestCase):
                 expected_results)
         except AssertionError as e:
             self.fail(e)
+
+    def test_get_element_pairs(self):
+        res = get_element_pairs(ELEMENTS)
+        self.assertEqual(set(res), set([('C', 'H'), ('H', 'H')]))
 
 
 class LazyValuesTest(unittest.TestCase):
