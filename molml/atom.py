@@ -4,6 +4,7 @@ from scipy.spatial.distance import cdist
 from base import BaseFeature
 from utils import get_depth_threshold_mask_connections, get_coulomb_matrix
 from utils import SPACING_FUNCTIONS, SMOOTHING_FUNCTIONS
+from utils import get_element_pairs
 
 
 class Shell(BaseFeature):
@@ -517,6 +518,7 @@ class BehlerParrinello(BaseFeature):
         self.lambda_ = lambda_
         self.zeta = zeta
         self._elements = None
+        self._element_pairs = None
 
     def _para_fit(self, X):
         '''
@@ -537,7 +539,9 @@ class BehlerParrinello(BaseFeature):
         '''
         data = self.convert_input(X)
         # This is just a cheap way to approximate the actual value
-        return set(data.elements)
+        unique_elements = set(data.elements)
+        pairs = get_element_pairs(data.elements)
+        return unique_elements, pairs
 
     def fit(self, X, y=None):
         '''
@@ -553,9 +557,12 @@ class BehlerParrinello(BaseFeature):
         self : object
             Returns the instance itself.
         '''
-        pairs = self.map(self._para_fit, X)
+        results = self.map(self._para_fit, X)
+        elements, pairs = zip(*results)
         self._elements = set(self.reduce(lambda x, y: set(x) | set(y),
-                                         pairs))
+                                         elements))
+        self._element_pairs = set(self.reduce(lambda x, y: set(x) | set(y),
+                                              pairs))
         return self
 
     def f_c(self, R):
@@ -636,28 +643,30 @@ class BehlerParrinello(BaseFeature):
         R2 = self.eta * R ** 2
         new_Theta = (1 - self.lambda_ * numpy.cos(Theta)) ** self.zeta
 
-        ele_map = {ele: i for i, ele in enumerate(self._elements)}
+        pair_map = {pair: i for i, pair in enumerate(self._element_pairs)}
 
         n = R.shape[0]
-        m = len(self._elements)
-        values = numpy.zeros((n, m, m))
+        values = numpy.zeros((n, len(pair_map)))
         for i in xrange(n):
             for j in xrange(n):
                 ele1 = elements[j]
-                ele1_idx = ele_map[ele1]
+
                 for k in xrange(n):
-                    if k == i:
+                    if k == i or j == i:
                         continue
                     ele2 = elements[k]
-                    ele2_idx = ele_map[ele2]
+
+                    if ele1 < ele2:
+                        pair_idx = pair_map[ele1, ele2]
+                    else:
+                        pair_idx = pair_map[ele2, ele1]
 
                     exp_term = numpy.exp(-(R2[i, j] + R2[i, k] + R2[j, k]))
                     angular_term = new_Theta[i, j, k]
                     radial_cuts = F_c_R[i, j] * F_c_R[i, k] * F_c_R[j, k]
                     temp = angular_term * exp_term * radial_cuts
-                    values[i, ele1_idx, ele2_idx] += temp
-        temp = 2 ** (1 - self.zeta) * values
-        return temp.reshape(n, m * m)
+                    values[i, pair_idx] += temp
+        return 2 ** (1 - self.zeta) * values
 
     def calculate_Theta(self, R_vecs):
         '''
