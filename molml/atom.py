@@ -720,6 +720,10 @@ class BehlerParrinello(BaseFeature):
         value : array
             The features extracted from the molecule
         '''
+        if self._elements is None or self._element_pairs is None:
+            msg = "This %s instance is not fitted yet. Call 'fit' first."
+            raise ValueError(msg % type(self).__name__)
+
         data = self.convert_input(X)
 
         coords = numpy.array(data.coords)
