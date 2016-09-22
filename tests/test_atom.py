@@ -4,6 +4,7 @@ import unittest
 import numpy
 
 from molml.atom import Shell, LocalEncodedBond, LocalCoulombMatrix
+from molml.atom import BehlerParrinello
 from molml.utils import read_file_data
 
 
@@ -348,6 +349,25 @@ class LocalCoulombMatrixTest(unittest.TestCase):
                 [0.0, 0.0])
         except AssertionError as e:
             self.fail(e)
+
+
+class BehlerParrinelloTest(unittest.TestCase):
+
+    def test_fit(self):
+        a = BehlerParrinello()
+        a.fit(ALL_DATA)
+        eles = set(['H', 'C', 'O', 'N'])
+        pairs = set([('H', 'O'), ('C', 'H'), ('H', 'N'), ('C', 'C'),
+                     ('H', 'H'), ('O', 'O'), ('C', 'N'), ('N', 'O'),
+                     ('C', 'O'), ('N', 'N')])
+        self.assertEqual(a._elements, eles)
+        self.assertEqual(a._element_pairs, pairs)
+
+    def test_transform_before_fit(self):
+        a = BehlerParrinello()
+        with self.assertRaises(ValueError):
+            a.transform(ALL_DATA)
+
 
 if __name__ == '__main__':
     unittest.main()
