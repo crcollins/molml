@@ -652,7 +652,7 @@ class BehlerParrinello(BaseFeature):
                 ele1 = elements[j]
 
                 for k in xrange(n):
-                    if k == i or j == i:
+                    if k == i or j == i or j == k:
                         continue
                     ele2 = elements[k]
 
