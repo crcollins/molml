@@ -11,7 +11,7 @@ with open('README.md', 'r') as f:
 
 setup(
     name='molml',
-    version='0.3.0',
+    version='0.3.1',
     description='An interface between molecules and machine learning',
     long_description=LONG_DESCRIPTION,
     author='Chris Collins',
