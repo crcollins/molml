@@ -141,6 +141,14 @@ class ConnectivityTest(unittest.TestCase):
                                         [5, 25,  4, 15]])
         self.assertTrue((a.fit_transform(ALL_DATA) == expected_results).all())
 
+    def test_unknown(self):
+        a = Connectivity(add_unknown=True)
+        expected_results = numpy.array([[1,  4, 0],
+                                        [2,  3, 4],
+                                        [25, 15, 9]])
+        a.fit([METHANE])
+        self.assertTrue((a.transform(ALL_DATA) == expected_results).all())
+
 
 class EncodedBondTest(unittest.TestCase):
 

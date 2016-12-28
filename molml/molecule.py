@@ -33,18 +33,24 @@ class Connectivity(BaseFeature):
         Specifies whether or not to use the coordination number of the atoms
         (C1 vs C2 vs C3 vs C4).
 
+    add_unknown : boolean, default=False
+        Specifies whether or not to include an extra UNKNOWN count in the
+        feature vector.
+
     Attributes
     ----------
     _base_chains : set, tuples
         All the chains that are in the fit molecules.
     '''
     def __init__(self, input_type='list', n_jobs=1, depth=1,
-                 use_bond_order=False, use_coordination=False):
+                 use_bond_order=False, use_coordination=False,
+                 add_unknown=False):
         super(Connectivity, self).__init__(input_type=input_type,
                                            n_jobs=n_jobs)
         self.depth = depth
         self.use_bond_order = use_bond_order
         self.use_coordination = use_coordination
+        self.add_unknown = add_unknown
         self._base_chains = None
 
     def _loop_depth(self, connections):
@@ -302,7 +308,14 @@ class Connectivity(BaseFeature):
         chains = self._loop_depth(data.connections)
         tallies = self._tally_chains(chains, data.elements, data.connections)
 
-        return [tallies.get(x, 0) for x in self._base_chains]
+        vector = [tallies.get(x, 0) for x in self._base_chains]
+        if self.add_unknown:
+            unknown = 0
+            for key, value in tallies.items():
+                if key not in self._base_chains:
+                    unknown += value
+            vector.append(unknown)
+        return vector
 
 
 class EncodedBond(BaseFeature):

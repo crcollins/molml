@@ -192,6 +192,18 @@ class ShellTest(unittest.TestCase):
         a = Shell()
         self.assertTrue((a.fit_transform(ALL_DATA) == BASE_SHELL).all())
 
+    def test_add_unknown(self):
+        a = Shell(add_unknown=True)
+        a.fit([METHANE])
+        temp = []
+        for mol in BASE_SHELL:
+            inner = []
+            for atom in mol:
+                inner.append(atom[:2] + [atom[2] + atom[3]])
+            temp.append(inner)
+        expected = numpy.array(temp)
+        self.assertTrue((a.transform(ALL_DATA) == expected).all())
+
 
 class LocalEncodedBondTest(unittest.TestCase):
 

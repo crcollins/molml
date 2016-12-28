@@ -37,16 +37,21 @@ class Shell(BaseFeature):
         Specifies whether or not to use the coordination number of the atoms
         (C1 vs C2 vs C3 vs C4).
 
+    add_unknown : boolean, default=False
+        Specifies whether or not to include an extra UNKNOWN count in the
+        feature vector.
+
     Attributes
     ----------
     _elements : set
         All the elements/types that are in the fit molecules.
     '''
     def __init__(self, input_type='list', n_jobs=1, depth=1,
-                 use_coordination=False):
+                 use_coordination=False, add_unknown=False):
         super(Shell, self).__init__(input_type=input_type, n_jobs=n_jobs)
         self.depth = depth
         self.use_coordination = use_coordination
+        self.add_unknown = add_unknown
         self._elements = None
 
     def _loop_depth(self, start, connections):
@@ -190,7 +195,14 @@ class Shell(BaseFeature):
             limits = self._loop_depth(atom, data.connections)
             tallies = self._tally_limits(limits, data.elements,
                                          data.connections)
-            vectors.append([tallies.get(x, 0) for x in self._elements])
+            vec = [tallies.get(x, 0) for x in self._elements]
+            if self.add_unknown:
+                unknown = 0
+                for key, value in tallies.items():
+                    if key not in self._elements:
+                        unknown += value
+                vec.append(unknown)
+            vectors.append(vec)
         return vectors
 
 
