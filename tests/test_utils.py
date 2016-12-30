@@ -1,11 +1,14 @@
 import unittest
+import os
 
 import numpy
 
 from molml.utils import LazyValues, SMOOTHING_FUNCTIONS
 from molml.utils import get_coulomb_matrix, get_element_pairs
+from molml.utils import read_file_data, read_xyz_data
 
 
+DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
 ELEMENTS = ['C', 'H', 'H', 'H', 'H']
 NUMBERS = [6, 1, 1, 1, 1]
 COORDS = [
@@ -94,6 +97,30 @@ class UtilsTest(unittest.TestCase):
     def test_get_element_pairs(self):
         res = get_element_pairs(ELEMENTS)
         self.assertEqual(set(res), set([('C', 'H'), ('H', 'H')]))
+
+    def test_read_file_data(self):
+        path = os.path.join(DATA_PATH, "methane.out")
+        elements, numbers, coords = read_file_data(path)
+        self.assertEqual(elements, ELEMENTS)
+        try:
+            numpy.testing.assert_array_almost_equal(
+                coords,
+                COORDS)
+        except AssertionError as e:
+            self.fail(e)
+        self.assertEqual(numbers, NUMBERS)
+
+    def test_read_xyz_data(self):
+        path = os.path.join(DATA_PATH, "methane.xyz")
+        elements, numbers, coords = read_xyz_data(path)
+        self.assertEqual(elements, ELEMENTS)
+        try:
+            numpy.testing.assert_array_almost_equal(
+                coords,
+                COORDS)
+        except AssertionError as e:
+            self.fail(e)
+        self.assertEqual(numbers, NUMBERS)
 
 
 class LazyValuesTest(unittest.TestCase):

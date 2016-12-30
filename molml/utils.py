@@ -142,6 +142,32 @@ def read_file_data(path):
     return elements, numbers, numpy.array(coords)
 
 
+def read_xyz_data(path):
+    """
+    Reads an xyz file and extracts the molecule's geometry
+
+    The file should be in the format
+    num_atoms
+    comment
+    ele0 x0 y0 z0
+    ele1 x1 y1 z1
+    ...
+    """
+    elements = []
+    numbers = []
+    coords = []
+    with open(path, 'r') as f:
+        for i, line in enumerate(f):
+            if i < 2:
+                continue
+            ele, x, y, z = line.strip().split()
+            point = (float(x), float(y), float(z))
+            elements.append(ele)
+            numbers.append(ELE_TO_NUM[ele])
+            coords.append(point)
+    return elements, numbers, numpy.array(coords)
+
+
 def get_depth_threshold_mask_connections(connections, max_depth=1):
     mat = numpy.zeros((len(connections), len(connections)))
     for key, values in connections.items():
