@@ -122,7 +122,7 @@ def get_connections(elements, coords):
 
 def read_file_data(path):
     """
-    Reads a file and extracts the molecules geometry
+    Reads a file and extracts the molecule's geometry
 
     The file should be in the format
     ele0 x0 y0 z0
