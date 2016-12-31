@@ -135,7 +135,7 @@ class BaseFeature(object):
         else:
             n_jobs = self.n_jobs
 
-        pool = Pool(processes=n_jobs)
+        pool = Pool(n_jobs)
         results = pool.map(f, seq)
         return results
 
