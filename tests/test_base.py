@@ -3,7 +3,8 @@ import unittest
 
 import numpy
 
-from molml.base import BaseFeature, _func_star
+from molml.features import Connectivity
+from molml.base import BaseFeature, _func_star, MultiFeature
 from molml.utils import read_file_data
 
 
@@ -13,6 +14,7 @@ METHANE_PATH = os.path.join(DATA_PATH, "methane.out")
 METHANE_ELEMENTS, METHANE_NUMBERS, METHANE_COORDS = read_file_data(
     METHANE_PATH)
 METHANE = (METHANE_ELEMENTS, METHANE_COORDS)
+METHANE_ATOMS = numpy.array([[1, 4]])
 
 
 class OtherTest(unittest.TestCase):
@@ -124,3 +126,38 @@ class BaseFeatureTest(unittest.TestCase):
         a = BaseFeature(input_type="error")
         with self.assertRaises(ValueError):
             a.convert_input("bad data")
+
+
+class MultiFeatureTest(unittest.TestCase):
+
+    def test_fit(self):
+        feats = [Connectivity(), Connectivity()]
+        a = MultiFeature(feats)
+        a.fit([METHANE, METHANE])
+        self.assertIsNotNone(a.features[0]._base_chains)
+        self.assertIsNotNone(a.features[1]._base_chains)
+
+    def test_transform(self):
+        feats = [Connectivity(), Connectivity()]
+        a = MultiFeature(feats)
+        a.fit([METHANE, METHANE])
+        res = a.transform([METHANE, METHANE])
+        expected = numpy.tile(METHANE_ATOMS, (2, 2))
+        self.assertTrue((res == expected).all())
+
+    def test_transform_before_fit(self):
+        feats = [Connectivity(), Connectivity()]
+        a = MultiFeature(feats)
+        with self.assertRaises(ValueError):
+            a.transform([METHANE, METHANE])
+
+    def test_fit_transform(self):
+        feats = [Connectivity(), Connectivity()]
+        a = MultiFeature(feats)
+        res = a.fit_transform([METHANE, METHANE])
+        expected = numpy.tile(METHANE_ATOMS, (2, 2))
+        self.assertTrue((res == expected).all())
+
+
+if __name__ == '__main__':
+    unittest.main()
