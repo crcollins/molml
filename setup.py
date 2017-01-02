@@ -23,6 +23,7 @@ setup(
     tests_require=['nose'],
     install_requires=[
         'pathos',
+        'future',
     ],
     classifiers=[
                     "Intended Audience :: Developers",
@@ -31,6 +32,9 @@ setup(
                     "Operating System :: POSIX",
                     "Programming Language :: Python :: 2",
                     "Programming Language :: Python :: 2.7",
+                    "Programming Language :: Python :: 3",
+                    "Programming Language :: Python :: 3.4",
+                    "Programming Language :: Python :: 3.5",
                     "Topic :: Scientific/Engineering",
                     "Topic :: Scientific/Engineering :: Bio-Informatics",
                     "Topic :: Scientific/Engineering :: Chemistry",
