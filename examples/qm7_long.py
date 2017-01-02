@@ -26,9 +26,9 @@ if __name__ == "__main__":
         KernelRidge(alpha=1e-9, gamma=1e-5, kernel="rbf"),
     ]
     for clf in clfs:
-        print clf
+        print(clf)
         clf.fit(X_train, y_train)
         train_error = MAE(clf.predict(X_train), y_train)
         test_error = MAE(clf.predict(X_test), y_test)
-        print "Train MAE: %.4f Test MAE: %.4f" % (train_error, test_error)
-        print
+        print("Train MAE: %.4f Test MAE: %.4f" % (train_error, test_error))
+        print()

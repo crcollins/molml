@@ -1,5 +1,10 @@
+from __future__ import print_function
 import os
-import urllib2
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib2 import urlopen
+from builtins import range
 
 import numpy
 import scipy.io
@@ -16,12 +21,12 @@ def download_data():
     Download the QM7 data set
     '''
     url = "http://quantum-machine.org/data/qm7.mat"
-    print "Downloading data"
-    response = urllib2.urlopen(url)
-    print "Writing data"
-    with open("qm7.mat", "w") as f:
+    print("Downloading data")
+    response = urlopen(url)
+    print("Writing data")
+    with open("qm7.mat", "wb") as f:
         f.write(response.read())
-    print "Data written"
+    print("Data written")
 
 
 def convert_input(Xin):
@@ -39,7 +44,7 @@ def convert_input(Xin):
 
 
 def get_fold_idxs(P, fold=0):
-    train_folds = [x for x in xrange(5) if x != fold]
+    train_folds = [x for x in range(5) if x != fold]
     train_idxs = numpy.ravel(P[train_folds])
     test_idxs = numpy.ravel(P[fold])
     return train_idxs, test_idxs
@@ -53,11 +58,11 @@ def get_data_train_test(data, fold=0):
 
     R_train = data['R'][train_idxs]
     Z_train = data['Z'][train_idxs]
-    Xin_train = zip(Z_train, R_train)
+    Xin_train = list(zip(Z_train, R_train))
 
     R_test = data['R'][test_idxs]
     Z_test = data['Z'][test_idxs]
-    Xin_test = zip(Z_test, R_test)
+    Xin_test = list(zip(Z_test, R_test))
     return Xin_train, Xin_test, y_train, y_test
 
 

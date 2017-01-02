@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_absolute_error as MAE
 
@@ -26,7 +28,7 @@ if __name__ == "__main__":
     ]
 
     for tf in tfs:
-        print tf
+        print(tf)
         X_train = tf.fit_transform(Xin_train)
         X_test = tf.transform(Xin_test)
 
@@ -35,5 +37,5 @@ if __name__ == "__main__":
         clf.fit(X_train, y_train)
         train_error = MAE(clf.predict(X_train), y_train)
         test_error = MAE(clf.predict(X_test), y_test)
-        print "Train MAE: %.4f Test MAE: %.4f" % (train_error, test_error)
-        print
+        print("Train MAE: %.4f Test MAE: %.4f" % (train_error, test_error))
+        print()

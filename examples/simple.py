@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from molml.features import CoulombMatrix
 from molml.features import LocalCoulombMatrix
 
@@ -32,30 +34,30 @@ if __name__ == "__main__":
     H2 = (H2_ELES, H2_COORDS)
     HCN = (HCN_ELES, HCN_COORDS)
     feat.fit([H2, HCN])
-    print "Transformed H2"
-    print feat.transform([H2])
-    print "H2 and HCN transformed"
-    print feat.transform([H2, HCN])
-    print
+    print("Transformed H2")
+    print(feat.transform([H2]))
+    print("H2 and HCN transformed")
+    print(feat.transform([H2, HCN]))
+    print()
 
     # Example of generating the Coulomb matrix with elements, coords, and
     # connections.
     feat = CoulombMatrix()
     H2_conn = (H2_ELES, H2_COORDS, H2_CONNS)
     HCN_conn = (HCN_ELES, HCN_COORDS, HCN_CONNS)
-    print feat.fit_transform([H2_conn, HCN_conn])
-    print
+    print(feat.fit_transform([H2_conn, HCN_conn]))
+    print()
 
     # Example of generating the Coulomb matrix using a specified input_type
-    print "User specified input_type"
+    print("User specified input_type")
     feat = CoulombMatrix(input_type=("coords", "numbers"))
     H2_spec = (H2_COORDS, H2_NUMS)
     HCN_spec = (HCN_COORDS, HCN_NUMS)
-    print feat.fit_transform([H2_spec, HCN_spec])
-    print
+    print(feat.fit_transform([H2_spec, HCN_spec]))
+    print()
 
     # Example of generating the Local Coulomb matrix (atom-wise
     # representation)
-    print "Atom feature"
+    print("Atom feature")
     feat = LocalCoulombMatrix()
-    print feat.fit_transform([H2, HCN])
+    print(feat.fit_transform([H2, HCN]))
