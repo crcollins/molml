@@ -193,11 +193,12 @@ class Shell(BaseFeature):
         data = self.convert_input(X)
 
         vectors = []
+        order = sorted(self._elements)
         for atom in range(len(data.elements)):
             limits = self._loop_depth(atom, data.connections)
             tallies = self._tally_limits(limits, data.elements,
                                          data.connections)
-            vec = [tallies.get(x, 0) for x in self._elements]
+            vec = [tallies.get(x, 0) for x in order]
             if self.add_unknown:
                 unknown = 0
                 for key, value in tallies.items():
@@ -347,7 +348,7 @@ class LocalEncodedBond(BaseFeature):
             msg = "The value '%s' is not a valid spacing type."
             raise KeyError(msg % self.smoothing)
 
-        pair_idxs = {key: i for i, key in enumerate(self._elements)}
+        pair_idxs = {key: i for i, key in enumerate(sorted(self._elements))}
 
         data = self.convert_input(X)
 
@@ -625,7 +626,7 @@ class BehlerParrinello(BaseFeature):
         elements = numpy.array(elements)
 
         totals = []
-        for ele in self._elements:
+        for ele in sorted(self._elements):
             idxs = numpy.where(elements == ele)[0]
             total = values[:, idxs].sum(1)
             totals.append(total)
@@ -657,7 +658,8 @@ class BehlerParrinello(BaseFeature):
         R2 = self.eta * R ** 2
         new_Theta = (1 - self.lambda_ * numpy.cos(Theta)) ** self.zeta
 
-        pair_map = {pair: i for i, pair in enumerate(self._element_pairs)}
+        order = sorted(self._element_pairs)
+        pair_map = {pair: i for i, pair in enumerate(order)}
 
         n = R.shape[0]
         values = numpy.zeros((n, len(pair_map)))

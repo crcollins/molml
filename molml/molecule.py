@@ -310,7 +310,7 @@ class Connectivity(BaseFeature):
         chains = self._loop_depth(data.connections)
         tallies = self._tally_chains(chains, data.elements, data.connections)
 
-        vector = [tallies.get(x, 0) for x in self._base_chains]
+        vector = [tallies.get(x, 0) for x in sorted(self._base_chains)]
         if self.add_unknown:
             unknown = 0
             for key, value in tallies.items():
@@ -457,7 +457,8 @@ class EncodedBond(BaseFeature):
             msg = "The value '%s' is not a valid spacing type."
             raise KeyError(msg % self.smoothing)
 
-        pair_idxs = {key: i for i, key in enumerate(self._element_pairs)}
+        pairs = sorted(self._element_pairs)
+        pair_idxs = {key: i for i, key in enumerate(pairs)}
 
         data = self.convert_input(X)
 
@@ -767,4 +768,5 @@ class BagOfBonds(BaseFeature):
                 raise ValueError(msg % ((ele1, ele2), ))
 
             bags[ele1, ele2][:len(values)] = values
-        return sum(bags.values(), [])
+        order = sorted(bags)
+        return sum((bags[key] for key in order), [])
