@@ -353,4 +353,4 @@ def get_element_pairs(elements):
                 pairs[y, x] = 1
             else:
                 pairs[x, y] = 1
-    return pairs.keys()
+    return list(pairs.keys())

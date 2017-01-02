@@ -264,7 +264,7 @@ class Connectivity(BaseFeature):
         chains = self._loop_depth(data.connections)
         all_counts = self._tally_chains(chains, data.elements,
                                         data.connections)
-        return all_counts.keys()
+        return list(all_counts.keys())
 
     def fit(self, X, y=None):
         '''
