@@ -1,10 +1,12 @@
+from builtins import range
+
 import numpy
 from scipy.spatial.distance import cdist
 
-from base import BaseFeature
-from utils import get_depth_threshold_mask_connections, get_coulomb_matrix
-from utils import SPACING_FUNCTIONS, SMOOTHING_FUNCTIONS
-from utils import get_element_pairs
+from .base import BaseFeature
+from .utils import get_depth_threshold_mask_connections, get_coulomb_matrix
+from .utils import SPACING_FUNCTIONS, SMOOTHING_FUNCTIONS
+from .utils import get_element_pairs
 
 
 class Shell(BaseFeature):
@@ -191,7 +193,7 @@ class Shell(BaseFeature):
         data = self.convert_input(X)
 
         vectors = []
-        for atom in xrange(len(data.elements)):
+        for atom in range(len(data.elements)):
             limits = self._loop_depth(atom, data.connections)
             tallies = self._tally_limits(limits, data.elements,
                                          data.connections)
@@ -461,7 +463,7 @@ class LocalCoulombMatrix(BaseFeature):
         coords = numpy.array(data.coords)
 
         vectors = []
-        for i in xrange(len(numbers)):
+        for i in range(len(numbers)):
             nearest = numpy.where(dist[i, :] < self.r_cut)
             ordering = numpy.argsort(dist[i, :][nearest])
             # Add 1 to offset for the start value
@@ -659,11 +661,11 @@ class BehlerParrinello(BaseFeature):
 
         n = R.shape[0]
         values = numpy.zeros((n, len(pair_map)))
-        for i in xrange(n):
-            for j in xrange(n):
+        for i in range(n):
+            for j in range(n):
                 ele1 = elements[j]
 
-                for k in xrange(n):
+                for k in range(n):
                     if k == i or j == i or j == k:
                         continue
                     ele2 = elements[k]

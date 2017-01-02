@@ -1,10 +1,11 @@
 import inspect
 import multiprocessing
+from functools import reduce
 
 import numpy
 from pathos.multiprocessing import ProcessingPool as Pool
 
-from utils import LazyValues, read_file_data
+from .utils import LazyValues, read_file_data
 
 
 def _func_star(args):
@@ -131,12 +132,12 @@ class BaseFeature(object):
         if self.n_jobs < 1:
             n_jobs = multiprocessing.cpu_count()
         elif self.n_jobs == 1:
-            return map(f, seq)
+            return list(map(f, seq))
         else:
             n_jobs = self.n_jobs
 
         pool = Pool(n_jobs)
-        results = pool.map(f, seq)
+        results = list(pool.map(f, seq))
         return results
 
     def reduce(self, f, seq):

@@ -29,32 +29,32 @@ class BaseFeatureTest(unittest.TestCase):
     def test_map_n_jobs_negative(self):
         a = BaseFeature(n_jobs=-1)
         res = a.map(lambda x: x ** 2, range(10))
-        self.assertEqual(res, [x ** 2 for x in xrange(10)])
+        self.assertEqual(res, [x ** 2 for x in range(10)])
 
     def test_map_n_jobs_one(self):
         a = BaseFeature(n_jobs=1)
         res = a.map(lambda x: x ** 2, range(10))
-        self.assertEqual(res, [x ** 2 for x in xrange(10)])
+        self.assertEqual(res, [x ** 2 for x in range(10)])
 
     def test_map_n_jobs_greater(self):
         a = BaseFeature(n_jobs=2)
         res = a.map(lambda x: x ** 2, range(10))
-        self.assertEqual(res, [x ** 2 for x in xrange(10)])
+        self.assertEqual(res, [x ** 2 for x in range(10)])
 
     def test_reduce_n_jobs_negative(self):
         a = BaseFeature(n_jobs=-1)
         res = a.reduce(lambda x, y: x + y, range(10))
-        self.assertEqual(res, sum(xrange(10)))
+        self.assertEqual(res, sum(range(10)))
 
     def test_reduce_n_jobs_one(self):
         a = BaseFeature(n_jobs=1)
         res = a.reduce(lambda x, y: x + y, range(10))
-        self.assertEqual(res, sum(xrange(10)))
+        self.assertEqual(res, sum(range(10)))
 
     def test_reduce_n_jobs_greater(self):
         a = BaseFeature(n_jobs=2)
         res = a.reduce(lambda x, y: x + y, range(10))
-        self.assertEqual(res, sum(xrange(10)))
+        self.assertEqual(res, sum(range(10)))
 
     def test_convert_input_list(self):
         a = BaseFeature(input_type="list")

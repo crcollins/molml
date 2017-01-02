@@ -1,3 +1,5 @@
+from builtins import range
+
 import numpy
 from scipy.spatial.distance import cdist
 from scipy.special import expit
@@ -104,7 +106,7 @@ def get_connections(elements, coords):
     '''
     dist_mat = cdist(coords, coords)
 
-    connections = {i: {} for i in xrange(len(elements))}
+    connections = {i: {} for i in range(len(elements))}
     for i, element1 in enumerate(elements):
         for j, element2 in enumerate(elements[i+1:]):
             j += i + 1
@@ -191,7 +193,7 @@ def get_depth_threshold_mask(mat, max_depth=1):
     mask = mat.copy().astype(bool)
     d = numpy.matrix(mat).astype(int)
     acc = d.copy()
-    for i in xrange(2, max_depth + 1):
+    for i in range(2, max_depth + 1):
         acc *= d
         mask |= (acc == 1)
     return numpy.array(mask)

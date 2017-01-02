@@ -1,10 +1,12 @@
+from builtins import range
+
 import numpy
 from scipy.spatial.distance import cdist
 
-from base import BaseFeature
-from utils import get_depth_threshold_mask_connections, get_coulomb_matrix
-from utils import ELE_TO_NUM, SMOOTHING_FUNCTIONS, SPACING_FUNCTIONS
-from utils import get_element_pairs
+from .base import BaseFeature
+from .utils import get_depth_threshold_mask_connections, get_coulomb_matrix
+from .utils import ELE_TO_NUM, SMOOTHING_FUNCTIONS, SPACING_FUNCTIONS
+from .utils import get_element_pairs
 
 
 class Connectivity(BaseFeature):
@@ -67,8 +69,8 @@ class Connectivity(BaseFeature):
         chains : list
             A list of key tuples of all the chains in the molecule
         '''
-        chains = [(x, ) for x in connections.keys()]
-        for i in xrange(self.depth - 1):
+        chains = [(x, ) for x in connections]
+        for i in range(self.depth - 1):
             chains = self._expand_chains(chains, connections)
         return chains
 
@@ -108,7 +110,7 @@ class Connectivity(BaseFeature):
                     new = new[::-1]
                 if new not in results:
                     results[new] = 1
-        return results.keys()
+        return list(results.keys())
 
     def _get_ordering_idxs(self, x):
         '''
@@ -671,7 +673,7 @@ class BagOfBonds(BaseFeature):
                     # Minus 1 is to remove the diagonal
                     num = local[ele1] - 1
                     # Using Gauss summation trick
-                    new_value = num * (num + 1) / 2
+                    new_value = num * (num + 1) // 2
                 else:
                     new_value = local[ele1] * local[ele2]
 
@@ -693,7 +695,7 @@ class BagOfBonds(BaseFeature):
         -------
         dict : dict, key->number
         '''
-        all_keys = x.keys() + y.keys()
+        all_keys = tuple(x.keys()) + tuple(y.keys())
         return {key: max(x.get(key, 0), y.get(key, 0)) for key in all_keys}
 
     def fit(self, X, y=None):
@@ -740,7 +742,7 @@ class BagOfBonds(BaseFeature):
         temp = sorted(zip(data.elements, data.coords), key=lambda x: x[0])
         elements, coords = zip(*temp)
 
-        bags = {key: [0 for i in xrange(value)]
+        bags = {key: [0 for i in range(value)]
                 for key, value in self._bag_sizes.items()}
         numbers = [ELE_TO_NUM[x] for x in elements]
         coulomb_matrix = get_coulomb_matrix(numbers, coords)
