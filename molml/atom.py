@@ -665,10 +665,12 @@ class BehlerParrinello(BaseFeature):
         values = numpy.zeros((n, len(pair_map)))
         for i in range(n):
             for j in range(n):
+                if i == j:
+                    continue
                 ele1 = elements[j]
 
                 for k in range(n):
-                    if k == i or j == i or j == k:
+                    if k == i or j == k:
                         continue
                     ele2 = elements[k]
 
