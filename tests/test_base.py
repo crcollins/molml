@@ -127,6 +127,17 @@ class BaseFeatureTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             a.convert_input("bad data")
 
+    def test_slugify(self):
+        a = Connectivity()
+        expected = [
+                    'Connectivity',
+                    'depth=1',
+                    'use_bond_order=False',
+                    'use_coordination=False',
+                    'add_unknown=False'
+                    ]
+        self.assertEqual(a.slugify(), '__'.join(expected))
+
 
 class MultiFeatureTest(unittest.TestCase):
 

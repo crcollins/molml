@@ -43,13 +43,36 @@ class BaseFeature(object):
         self.input_type = input_type
         self.n_jobs = n_jobs
 
-    def __repr__(self):
+    def _get_param_strings(self):
         argspec = inspect.getargspec(type(self).__init__)
         # Delete the only non-keyword argument
         args = [x for x in argspec.args if x != "self"]
         values = [getattr(self, x) for x in args]
-        params = ["%s=%r" % (x, y) for x, y in zip(args, values)]
-        return "%s(%s)" % (type(self).__name__, ', '.join(params))
+        return ["%s=%r" % (x, y) for x, y in zip(args, values)]
+
+    def __repr__(self):
+        name = type(self).__name__
+        params = self._get_param_strings()
+        return "%s(%s)" % (name, ', '.join(params))
+
+    def slugify(self):
+        '''
+        Converts an instance to a simple string.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        string : str
+            The slug string
+
+        '''
+        name = type(self).__name__
+        # Skip the first two parameters
+        params = self._get_param_strings()[2:]
+        string = '__'.join([name] + params).replace("'", '')
+        return string
 
     def convert_input(self, X):
         '''
