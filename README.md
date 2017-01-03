@@ -49,7 +49,7 @@ For more examples, look in the [examples](https://github.com/crcollins/molml/tre
 Dependencies
 ============
 
-MolML requires python 2.7, numpy, scipy, and pathos. The specific versions that have been tested are numpy 1.9.1, scipy 0.15.1, and pathos 0.2.0, but newer versions should work. 
+MolML works with both Python 2 and Python 3 and depends on numpy, scipy, and pathos (and future for Python 2). The specific versions that have been tested are Python 2.7/3.4/3.5, numpy 1.9.1, scipy 0.15.1, and pathos 0.2.0, but newer versions should work. 
 
 NOTE: Due to an issue with multiprocess (a pathos dependency), the minimum version of python that will work is 2.7.4. For full details see [this link](https://github.com/uqfoundation/multiprocess/issues/11). Without this, the parallel computation of features will fail.
 
