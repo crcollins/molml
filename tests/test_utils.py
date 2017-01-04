@@ -5,7 +5,7 @@ import numpy
 
 from molml.utils import LazyValues, SMOOTHING_FUNCTIONS
 from molml.utils import get_coulomb_matrix, get_element_pairs
-from molml.utils import read_file_data, read_xyz_data
+from molml.utils import read_file_data, read_out_data, read_xyz_data
 
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
@@ -99,8 +99,24 @@ class UtilsTest(unittest.TestCase):
         self.assertEqual(set(res), set([('C', 'H'), ('H', 'H')]))
 
     def test_read_file_data(self):
+        base_path = os.path.join(DATA_PATH, "methane")
+        data = (('.out', read_out_data), ('.xyz', read_xyz_data))
+        for ending, func in data:
+            path = base_path + ending
+            e1, n1, c1 = func(path)
+            e2, n2, c2 = read_file_data(path)
+            self.assertEqual(e1, e2)
+            self.assertEqual(n1, n2)
+            self.assertTrue((c1 == c2).all())
+
+    def test_read_file_data_error(self):
+        path = "garbage.nope"
+        with self.assertRaises(ValueError):
+            read_file_data(path)
+
+    def test_read_out_data(self):
         path = os.path.join(DATA_PATH, "methane.out")
-        elements, numbers, coords = read_file_data(path)
+        elements, numbers, coords = read_out_data(path)
         self.assertEqual(elements, ELEMENTS)
         try:
             numpy.testing.assert_array_almost_equal(

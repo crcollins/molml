@@ -124,6 +124,20 @@ def get_connections(elements, coords):
 
 def read_file_data(path):
     """
+    Determines the file type and call the correct parser
+
+    The accepted file types are .out and .xyz files.
+    """
+    if path.endswith('.out'):
+        return read_out_data(path)
+    elif path.endswith('.xyz'):
+        return read_xyz_data(path)
+    else:
+        raise ValueError("Unknown file type")
+
+
+def read_out_data(path):
+    """
     Reads a file and extracts the molecule's geometry
 
     The file should be in the format
