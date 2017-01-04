@@ -6,6 +6,7 @@ import numpy
 from molml.utils import LazyValues, SMOOTHING_FUNCTIONS
 from molml.utils import get_coulomb_matrix, get_element_pairs
 from molml.utils import read_file_data, read_out_data, read_xyz_data
+from molml.utils import deslugify
 
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
@@ -137,6 +138,15 @@ class UtilsTest(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
         self.assertEqual(numbers, NUMBERS)
+
+    def test_deslugify(self):
+        string = 'Class__int=1__float=1.__str=string'
+        expected = ('Class', {'int': 1, 'float': 1., 'str': 'string'})
+        self.assertEqual(deslugify(string), expected)
+
+        string = 'ClassM__none=None__true=True__false=False'
+        expected = ('ClassM', {'none': None, 'true': True, 'false': False})
+        self.assertEqual(deslugify(string), expected)
 
 
 class LazyValuesTest(unittest.TestCase):

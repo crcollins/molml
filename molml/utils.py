@@ -368,3 +368,44 @@ def get_element_pairs(elements):
             else:
                 pairs[x, y] = 1
     return list(pairs.keys())
+
+
+def deslugify(string):
+    '''
+    Converts a string to a feature name and its parameters
+
+    Parameters
+    ----------
+        string : str
+            The slug string to extract values from.
+
+    Returns
+    -------
+        name : str
+            The name of the class corresponding to the string.
+
+        final_params : dict
+            A dictonary of the feature parameters.
+    '''
+    parts = string.split('__')
+    name = parts[0]
+    params = parts[1:]
+    swap = {
+        'None': None,
+        'True': True,
+        'False': False,
+    }
+    final_params = dict()
+    for param in params:
+        arg, value = param.split('=')
+        try:
+            value = int(value)
+        except ValueError:
+            try:
+                value = float(value)
+            except ValueError:
+                pass
+        if value in swap:
+            value = swap[value]
+        final_params[arg] = value
+    return name, final_params
