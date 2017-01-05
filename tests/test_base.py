@@ -140,6 +140,24 @@ class BaseFeatureTest(unittest.TestCase):
                     ]
         self.assertEqual(a.slugify(), '__'.join(expected))
 
+    def test_get_params(self):
+        a = BaseFeature(n_jobs=10)
+        expected = {"input_type": "list", "n_jobs": 10}
+        self.assertEqual(a.get_params(), expected)
+
+    def test_set_params(self):
+        a = BaseFeature(n_jobs=10)
+        new = {
+                "input_type": "coords",
+                "n_jobs": 100,
+                "fake": None,
+        }
+        a.set_params(**new)
+        self.assertEqual(a.input_type, "coords")
+        self.assertEqual(a.n_jobs, 100)
+        with self.assertRaises(AttributeError):
+            a.fake
+
 
 class MultiFeatureTest(unittest.TestCase):
 

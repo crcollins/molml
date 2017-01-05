@@ -55,12 +55,41 @@ class BaseFeature(object):
         params = self._get_param_strings()
         return "%s(%s)" % (name, ', '.join(params))
 
-    def slugify(self):
+    def set_params(self, **kwargs):
         '''
-        Converts an instance to a simple string.
+        Set the feature parameter values
 
         Parameters
         ----------
+            kwargs : kwargs
+                Key value pairs to set for the feature parameters. Keys that
+                are not valid parameters will be ignored.
+        '''
+        for key, value in kwargs.items():
+            try:
+                getattr(self, key)
+                setattr(self, key, value)
+            except AttributeError:
+                continue
+
+    def get_params(self):
+        '''
+        Get a dictonary of all the feature parameters
+
+        Returns
+        -------
+            params : dict
+                A dictonary of all the feature parameters.
+        '''
+        argspec = inspect.getargspec(type(self).__init__)
+        # Delete the only non-keyword argument
+        args = [x for x in argspec.args if x != "self"]
+        values = [getattr(self, x) for x in args]
+        return {key: value for key, value in zip(args, values)}
+
+    def slugify(self):
+        '''
+        Converts an instance to a simple string.
 
         Returns
         -------
