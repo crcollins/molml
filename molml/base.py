@@ -139,6 +139,7 @@ class BaseFeature(object):
             each of the arguments passed in via a tuple. For example,
             input_type="list" can be reproduced with ["elements", "coords"]
             or ["elements", "coords", "connections"].
+
         Returns
         -------
         values : Object
@@ -305,7 +306,7 @@ class MultiFeature(BaseFeature):
         This is a list of initialized feature objects to use. All of these
         features should have the standard fit/transform methods implemented.
     '''
-    def __init__(self, features=None, ):
+    def __init__(self, features=None):
         self.features = features
 
     def fit(self, X, y=None):
