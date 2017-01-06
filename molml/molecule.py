@@ -320,6 +320,218 @@ class Connectivity(BaseFeature):
         return vector
 
 
+class EncodedAngle(BaseFeature):
+    '''
+    Parameters
+    ----------
+    input_type : string, default='list'
+        Specifies the format the input values will be (must be one of 'list'
+        or 'filename').
+
+    n_jobs : int, default=1
+        Specifies the number of processes to create when generating the
+        features. Positive numbers specify a specifc amount, and numbers less
+        than 1 will use the number of cores the computer has.
+
+    segments : int, default=100
+        The number of bins/segments to use when generating the histogram.
+        Empirically, it has been found that values beyond 50-100 have little
+        benefit.
+
+    smoothing : string or callable, default='norm'
+        A string or callable to use to smooth the histogram values. If a
+        callable is given, it must take just a single argument that is a float.
+        For a list of supported default functions look at SMOOTHING_FUNCTIONS.
+
+    slope : float, default=20.
+        A parameter to tune the smoothing values. This is applied as a
+        multiplication before calling the smoothing function.
+
+    max_depth : int, default=0
+        A parameter to set the maximum geodesic distance to include in the
+        interactions. A value of 0 signifies that all interactions are
+        included.
+
+    spacing : string, default="linear"
+        The histogram interval spacing type. Must be one of ("linear",
+        "inverse", or "log"). Linear spacing is normal spacing. Inverse takes
+        and evaluates the distances as 1/r and the start and end points are
+        1/x. For log spacing, the distances are evaluated as numpy.log(r)
+        and the start and end points are numpy.log(x).
+
+    form : string, default="pair"
+        The histogram splitting style to use. Must be one of ("pair",
+        "element", or "single"). The "pair" option is the standard encoded
+        bond. The "element" option will group elements of the same type
+        together. "single" will only create one histogram. These options
+        change the scaling of this method to be O(E^2), O(E), or O(1) for
+        "pair", "element", and "single" respectively (where E is the number
+        of elements).
+
+    Attributes
+    ----------
+    _elements : list
+        A list of all the elements in the fit molecules.
+    '''
+    def __init__(self, input_type='list', n_jobs=1, segments=100,
+                 smoothing="norm", slope=20., max_depth=0,
+                 r_cut=6., spacing="linear"):
+        super(EncodedAngle, self).__init__(input_type=input_type,
+                                           n_jobs=n_jobs)
+        self._groups = None
+        self.segments = segments
+        self.smoothing = smoothing
+        self.slope = slope
+        self.max_depth = max_depth
+        self.spacing = spacing
+        self.r_cut = r_cut
+
+    def _para_fit(self, X):
+        '''
+        A single instance of the fit procedure
+
+        This is formulated in a way that the fits can be done completely
+        parallel in a map/reduce fashion.
+
+        Parameters
+        ----------
+        X : object
+            An object to use for the fit
+
+        Returns
+        -------
+        value : list
+            All the elements in the molecule
+        '''
+        data = self.convert_input(X)
+        pairs = get_element_pairs(data.elements)
+        res = []
+        for pair1 in pairs:
+            for pair2 in pairs:
+                if pair1[0] == pair2[1]:
+                    res.append(pair2 + (pair1[1], ))
+                if pair1[1] == pair2[1]:
+                    res.append(pair2 + (pair1[0], ))
+
+                if pair1[0] == pair2[0]:
+                    res.append((pair1[1], ) + pair2)
+                if pair1[1] == pair2[0]:
+                    res.append((pair1[0], ) + pair2)
+        return set([x if x[0] < x[2] else x[::-1] for x in res])
+
+    def fit(self, X, y=None):
+        '''
+        Fit the model
+
+        Parameters
+        ----------
+        X : list, shape=(n_samples, )
+            A list of objects to use to fit.
+
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        '''
+        eles = self.map(self._para_fit, X)
+        self._groups = set(self.reduce(lambda x, y: x | y, eles))
+        return self
+
+    def f_c(self, R):
+        '''
+        Compute all the cutoff distances
+
+        The cutoff is defined as
+
+        0.5 * ( cos( \pi R_ij / R_c ) + 1, if R_ij <= R_c
+        0, otherwise
+
+
+        Parameters
+        ----------
+        R : array, shape=(N_atoms, N_atoms)
+            A distance matrix for all the atoms (scipy.spatial.cdist)
+
+        Returns
+        -------
+        values : array, shape=(N_atoms, N_atoms)
+            The new distance matrix with the cutoff function applied
+        '''
+        values = 0.5 * (numpy.cos(numpy.pi * R / self.r_cut) + 1)
+        values[R > self.r_cut] = 0
+        return values
+
+    def _para_transform(self, X, y=None):
+        '''
+        A single instance of the transform procedure
+
+        This is formulated in a way that the transformations can be done
+        completely parallel with map.
+
+        Parameters
+        ----------
+        X : object
+            An object to use for the transform
+
+        Returns
+        -------
+        value : list
+            The features extracted from the molecule
+        '''
+        if self._groups is None:
+            msg = "This %s instance is not fitted yet. Call 'fit' first."
+            raise ValueError(msg % type(self).__name__)
+
+        try:
+            smoothing_func = SMOOTHING_FUNCTIONS[self.smoothing]
+        except KeyError:
+            msg = "The value '%s' is not a valid smoothing type."
+            raise KeyError(msg % self.smoothing)
+
+        try:
+            theta_func = SPACING_FUNCTIONS[self.spacing]
+        except KeyError:
+            msg = "The value '%s' is not a valid spacing type."
+            raise KeyError(msg % self.spacing)
+
+        data = self.convert_input(X)
+
+        ele_idx = {group: i for i, group in enumerate(self._groups)}
+        length = len(ele_idx)
+        vector = numpy.zeros((length, self.segments))
+
+        theta = numpy.linspace(theta_func(0.), theta_func(numpy.pi),
+                               self.segments)
+        mat = get_depth_threshold_mask_connections(data.connections,
+                                                   max_depth=self.max_depth)
+
+        distances = cdist(data.coords, data.coords)
+        f_c = self.f_c(distances)
+        diffs = data.coords - data.coords[:, None]
+        lengths = numpy.linalg.norm(diffs, axis=2)
+        unit = diffs / lengths[:, :, None]
+        inner = numpy.einsum('ijk,jmk->ijm', unit, unit)
+        angles = numpy.arccos(numpy.clip(inner, -1., 1.))
+        for i, ele1 in enumerate(data.elements):
+            for j, ele2 in enumerate(data.elements):
+                if i == j or not mat[i, j]:
+                    continue
+                for k, ele3 in enumerate(data.elements):
+                    if j == k or not mat[j, k]:
+                        continue
+                    if i > k:
+                        continue
+                    F = f_c[i, j] * f_c[j, k] * f_c[i, k]
+                    diff = theta - theta_func(angles[i, j, k])
+                    value = smoothing_func(self.slope * diff)
+                    if ele1 < ele3:
+                        eles = ele1, ele2, ele3
+                    else:
+                        eles = ele3, ele2, ele1
+                    vector[ele_idx[eles]] += value * F
+        return vector.flatten().tolist()
+
+
 class EncodedBond(BaseFeature):
     '''
     A smoothed histogram of atomic distances.
