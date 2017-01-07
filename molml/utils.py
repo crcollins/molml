@@ -438,3 +438,48 @@ def cosine_decay(R, r_cut=6.):
     values = 0.5 * (numpy.cos(numpy.pi * R / r_cut) + 1)
     values[R > r_cut] = 0
     return values
+
+
+def needs_reversal(chain):
+    '''
+    Determine if the chain needs to be reversed
+
+    This is to set the chains such that they are in a canonical ordering
+
+    Parameters
+    ----------
+    chain : tuple
+        A tuple of elements to treat as a chain
+
+    Returns
+    -------
+    needs_flip : bool
+        Whether or not the chain needs to be reversed
+    '''
+    x = len(chain)
+    if x == 1:
+        first = 0
+        second = 0
+    else:
+        q, r = divmod(x, 2)
+        first = q - 1
+        second = q + r
+
+    while first >= 0 and second < len(chain):
+        if chain[first] > chain[second]:
+            # Case where order reversal is needed
+            return True
+        elif chain[first] == chain[second]:
+            # Indeterminate case
+            first -= 1
+            second += 1
+        else:
+            # Case already in the correct order
+            return False
+    return False
+
+
+def sort_chain(chain):
+    if needs_reversal(chain):
+        return chain[::-1]
+    return chain

@@ -6,7 +6,7 @@ from scipy.spatial.distance import cdist
 from .base import BaseFeature
 from .utils import get_depth_threshold_mask_connections, get_coulomb_matrix
 from .utils import ELE_TO_NUM, SMOOTHING_FUNCTIONS, SPACING_FUNCTIONS
-from .utils import get_element_pairs, cosine_decay
+from .utils import get_element_pairs, cosine_decay, needs_reversal
 
 
 class Connectivity(BaseFeature):
@@ -112,68 +112,6 @@ class Connectivity(BaseFeature):
                     results[new] = 1
         return list(results.keys())
 
-    def _get_ordering_idxs(self, x):
-        '''
-        This is used to select the two indicies that define the sorting order
-        for the chains. The two returned values correspond to the lower and
-        the higher values.
-
-        Parameters
-        ----------
-        x : int
-            An integer length of the chain
-
-        Returns
-        -------
-        lower : int
-            The lower index value when sorting
-
-        upper : int
-            The upper index value when sorting
-        '''
-        if x == 1:
-            return 0, 0
-        q, r = divmod(x, 2)
-        return q - 1, q + r
-
-    def _sort_chain(self, chain, labelled):
-        '''
-        Reorder chain
-
-        Sort the chains such that they are in a canonical ordering
-
-        Parameters
-        ----------
-        chain : tuple
-            The atom index values in the chain
-
-        labelled : tuple
-            Elements corresponding to the chain indices
-
-        Returns
-        -------
-        chain : tuple
-            Atom index values for the sorted chain
-
-        labelled : tuple
-            Elements corresponding to the sorted chain indices
-        '''
-        first, second = self._get_ordering_idxs(len(labelled))
-        while first >= 0 and second < len(labelled):
-            if labelled[first] > labelled[second]:
-                # Case where order reversal is needed
-                labelled = labelled[::-1]
-                chain = chain[::-1]
-                break
-            elif labelled[first] == labelled[second]:
-                # Indeterminate case
-                first -= 1
-                second += 1
-            else:
-                # Case already in the correct order
-                break
-        return chain, labelled
-
     def _convert_to_bond_order(self, chain, labelled, connections):
         '''
         Converts a chain based on just elements into one that includes bond
@@ -233,7 +171,10 @@ class Connectivity(BaseFeature):
             if self.use_coordination:
                 extra = tuple(str(len(connections[x])) for x in chain)
                 labelled = tuple(x + y for x, y in zip(labelled, extra))
-            chain, labelled = self._sort_chain(chain, labelled)
+
+            if needs_reversal(labelled):
+                labelled = labelled[::-1]
+                chain = chain[::-1]
             labelled = self._convert_to_bond_order(chain, labelled,
                                                    connections)
 
