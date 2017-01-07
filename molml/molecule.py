@@ -6,7 +6,7 @@ from scipy.spatial.distance import cdist
 from .base import BaseFeature
 from .utils import get_depth_threshold_mask_connections, get_coulomb_matrix
 from .utils import ELE_TO_NUM, SMOOTHING_FUNCTIONS, SPACING_FUNCTIONS
-from .utils import get_element_pairs
+from .utils import get_element_pairs, cosine_decay
 
 
 class Connectivity(BaseFeature):
@@ -438,28 +438,7 @@ class EncodedAngle(BaseFeature):
         return self
 
     def f_c(self, R):
-        '''
-        Compute all the cutoff distances
-
-        The cutoff is defined as
-
-        0.5 * ( cos( \pi R_ij / R_c ) + 1, if R_ij <= R_c
-        0, otherwise
-
-
-        Parameters
-        ----------
-        R : array, shape=(N_atoms, N_atoms)
-            A distance matrix for all the atoms (scipy.spatial.cdist)
-
-        Returns
-        -------
-        values : array, shape=(N_atoms, N_atoms)
-            The new distance matrix with the cutoff function applied
-        '''
-        values = 0.5 * (numpy.cos(numpy.pi * R / self.r_cut) + 1)
-        values[R > self.r_cut] = 0
-        return values
+        return cosine_decay(R, r_cut=self.r_cut)
 
     def _para_transform(self, X, y=None):
         '''

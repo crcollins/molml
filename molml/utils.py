@@ -409,3 +409,32 @@ def deslugify(string):
             value = swap[value]
         final_params[arg] = value
     return name, final_params
+
+
+def cosine_decay(R, r_cut=6.):
+    '''
+    Compute all the cutoff distances
+
+    The cutoff is defined as
+
+    0.5 * ( cos( \pi R_ij / R_c ) + 1, if R_ij <= R_c
+    0, otherwise
+
+
+    Parameters
+    ----------
+    R : array, shape=(N_atoms, N_atoms)
+        A distance matrix for all the atoms (scipy.spatial.cdist)
+
+    r_cut : float, default=6.
+        The maximum distance allowed for atoms to be considered local to the
+        "central atom".
+
+    Returns
+    -------
+    values : array, shape=(N_atoms, N_atoms)
+        The new distance matrix with the cutoff function applied
+    '''
+    values = 0.5 * (numpy.cos(numpy.pi * R / r_cut) + 1)
+    values[R > r_cut] = 0
+    return values
