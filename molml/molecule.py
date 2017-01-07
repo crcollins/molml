@@ -408,15 +408,16 @@ class EncodedAngle(BaseFeature):
         res = []
         for pair1 in pairs:
             for pair2 in pairs:
-                if pair1[0] == pair2[1]:
-                    res.append(pair2 + (pair1[1], ))
-                if pair1[1] == pair2[1]:
-                    res.append(pair2 + (pair1[0], ))
 
-                if pair1[0] == pair2[0]:
-                    res.append((pair1[1], ) + pair2)
-                if pair1[1] == pair2[0]:
-                    res.append((pair1[0], ) + pair2)
+                for i in (0, 1):
+                    # select the other index to use
+                    inv_i = int(not i)
+                    for j in (0, 1):
+                        if pair1[i] != pair2[j]:
+                            continue
+                        inv_j = int(not j)
+                        temp = (pair2[inv_j], pair1[i], pair1[inv_i])
+                        res.append(temp)
         return set([x if x[0] < x[2] else x[::-1] for x in res])
 
     def fit(self, X, y=None):
