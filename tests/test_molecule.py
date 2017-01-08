@@ -324,7 +324,7 @@ class EncodedBondTest(unittest.TestCase):
             a.fit_transform([METHANE])
 
     def test_form_element(self):
-        a = EncodedBond(form="element")
+        a = EncodedBond(form=1)
 
         # This is a cheap test to prevent needing all the values here
         expected_results = numpy.array([
@@ -340,8 +340,8 @@ class EncodedBondTest(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
-    def test_form_single(self):
-        a = EncodedBond(form="single")
+    def test_form_0(self):
+        a = EncodedBond(form=0)
 
         # This is a cheap test to prevent needing all the values here
         expected_results = numpy.array([
@@ -356,12 +356,6 @@ class EncodedBondTest(unittest.TestCase):
             assert_close_statistics(m, expected_results)
         except AssertionError as e:
             self.fail(e)
-
-    def test_form_invalid(self):
-        a = EncodedBond(form="not valid")
-
-        with self.assertRaises(ValueError):
-            a.fit_transform([METHANE])
 
 
 class CoulombMatrixTest(unittest.TestCase):

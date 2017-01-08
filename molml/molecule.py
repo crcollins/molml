@@ -7,6 +7,7 @@ from .base import BaseFeature
 from .utils import get_depth_threshold_mask_connections, get_coulomb_matrix
 from .utils import ELE_TO_NUM, SMOOTHING_FUNCTIONS, SPACING_FUNCTIONS
 from .utils import get_element_pairs, cosine_decay, needs_reversal
+from .utils import get_index_mapping
 
 
 class Connectivity(BaseFeature):
@@ -505,14 +506,10 @@ class EncodedBond(BaseFeature):
         1/x. For log spacing, the distances are evaluated as numpy.log(r)
         and the start and end points are numpy.log(x).
 
-    form : string, default="pair"
-        The histogram splitting style to use. Must be one of ("pair",
-        "element", or "single"). The "pair" option is the standard encoded
-        bond. The "element" option will group elements of the same type
-        together. "single" will only create one histogram. These options
+    form : int, default=2
+        The histogram splitting style to use. This value hese options
         change the scaling of this method to be O(E^2), O(E), or O(1) for
-        "pair", "element", and "single" respectively (where E is the number
-        of elements).
+        2, 1, or 0 respectively (where E is the number of elements).
 
     Attributes
     ----------
@@ -521,7 +518,7 @@ class EncodedBond(BaseFeature):
     '''
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing="norm", start=0.2, end=6.0, slope=20., max_depth=0,
-                 spacing="linear", form="pair"):
+                 spacing="linear", form=2):
         super(EncodedBond, self).__init__(input_type=input_type,
                                           n_jobs=n_jobs)
         self._element_pairs = None
@@ -573,26 +570,6 @@ class EncodedBond(BaseFeature):
                                               pairs))
         return self
 
-    def _get_index_mapping(self):
-        funcs = {
-            "pair": lambda key: pair_idxs[tuple(sorted(key))],
-            "element": lambda key: element_idxs[key[0]],
-            "single": lambda _: 0,
-        }
-        if self.form == 'pair':
-            pairs = sorted(self._element_pairs)
-            length = len(pairs)
-            pair_idxs = {key: i for i, key in enumerate(pairs)}
-        elif self.form == 'element':
-            elements = sorted(set(sum(self._element_pairs, tuple())))
-            length = len(elements)
-            element_idxs = {key: i for i, key in enumerate(elements)}
-        elif self.form == 'single':
-            length = 1
-        else:
-            raise ValueError("'%s' is not a valid form type" % self.form)
-        return funcs[self.form], length
-
     def _para_transform(self, X, y=None):
         '''
         A single instance of the transform procedure
@@ -626,7 +603,8 @@ class EncodedBond(BaseFeature):
             msg = "The value '%s' is not a valid spacing type."
             raise KeyError(msg % self.spacing)
 
-        get_index, length = self._get_index_mapping()
+        get_index, length, both = get_index_mapping(self._element_pairs,
+                                                    self.form)
         data = self.convert_input(X)
 
         vector = numpy.zeros((length, self.segments))
@@ -639,7 +617,7 @@ class EncodedBond(BaseFeature):
         distances = cdist(data.coords, data.coords)
         for i, ele1 in enumerate(data.elements):
             for j, ele2 in enumerate(data.elements):
-                if i > j and self.form != 'element':
+                if i > j and not both:
                     continue
                 if i == j or not mat[i, j]:
                     continue

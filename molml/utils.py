@@ -440,6 +440,53 @@ def cosine_decay(R, r_cut=6.):
     return values
 
 
+def _get_form_indices(values, depth):
+    '''
+    '''
+    if depth < 1:
+        return [], False
+
+    # get the first value
+    for val in values:
+        break
+    value_length = len(val)
+    if depth >= value_length:
+        return list(range(value_length)), False
+
+    middle_idx = value_length // 2
+    even = not (value_length % 2)
+    both = even and depth % 2
+    half_depth = depth // 2
+    start = middle_idx - half_depth - both
+    end = middle_idx + half_depth + (not even)
+    res = list(range(start, end))
+    if not even and not (depth % 2):
+        res.remove(middle_idx)
+    return res, bool(both)
+
+
+def get_index_mapping(values, depth):
+    if depth < 1:
+        # Just a constant value
+        return (lambda _: 0), 1, False
+    idxs, both = _get_form_indices(values, depth)
+    new_values = [tuple(x[i] for i in idxs) for x in values]
+    if both:
+        other_idxs = [i + 1 for i in idxs]
+        temp = [tuple(x[i] for i in other_idxs) for x in values]
+        new_values.extend(temp)
+    new_values = set(sort_chain(x) for x in new_values)
+
+    mapping = {key: i for i, key in enumerate(new_values)}
+    def map_func(key):
+        key = tuple(key[i] for i in idxs)
+        if both:
+            return mapping[key]
+        else:
+            return mapping[sort_chain(key)]
+    return map_func, len(mapping), both
+
+
 def needs_reversal(chain):
     '''
     Determine if the chain needs to be reversed
