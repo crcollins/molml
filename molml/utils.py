@@ -449,6 +449,9 @@ def _get_form_indices(values, depth):
     # get the first value
     for val in values:
         break
+    else:
+        raise ValueError("No values to use.")
+
     value_length = len(val)
     if depth >= value_length:
         return list(range(value_length)), False

@@ -198,6 +198,10 @@ class UtilsTest(unittest.TestCase):
                 vals = _get_form_indices(values, depth)
                 self.assertEqual(vals, expected)
 
+    def test__get_form_indicies_invalid(self):
+        with self.assertRaises(ValueError):
+            vals = _get_form_indices([], 1)
+
     def test_get_index_mapping(self):
         values = [('H', 'H'), ('H', 'C'), ('C', 'C')]
         expected = (
