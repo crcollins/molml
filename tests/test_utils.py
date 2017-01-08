@@ -7,6 +7,7 @@ from molml.utils import LazyValues, SMOOTHING_FUNCTIONS
 from molml.utils import get_coulomb_matrix, get_element_pairs
 from molml.utils import read_file_data, read_out_data, read_xyz_data
 from molml.utils import deslugify, _get_form_indices, get_index_mapping
+from molml.utils import sort_chain, needs_reversal
 
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
@@ -210,6 +211,28 @@ class UtilsTest(unittest.TestCase):
             self.assertEqual(length, expected_length)
             self.assertEqual(both, expected_both)
             self.assertEqual(tuple(f(x) for x in values), idxs)
+
+    def test_sort_chain(self):
+        needs_flip = ("O", "H", "C")
+        expected = ("C", "H", "O")
+        self.assertEqual(sort_chain(needs_flip), expected)
+
+        needs_flip = ("O", "H", "H", "C")
+        expected = ("C", "H", "H", "O")
+        self.assertEqual(sort_chain(needs_flip), expected)
+
+    def test_needs_reversal(self):
+        needs_flip = ("O", "H", "C")
+        self.assertTrue(needs_reversal(needs_flip))
+
+        needs_flip = ("O", "H", "H", "C")
+        self.assertTrue(needs_reversal(needs_flip))
+
+        no_flip = ("O", "H", "H", "O")
+        self.assertFalse(needs_reversal(no_flip))
+
+        no_flip = ("O", "C", "H", "O")
+        self.assertFalse(needs_reversal(no_flip))
 
 
 class LazyValuesTest(unittest.TestCase):
