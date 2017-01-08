@@ -301,14 +301,14 @@ class EncodedAngle(BaseFeature):
         1/x. For log spacing, the distances are evaluated as numpy.log(r)
         and the start and end points are numpy.log(x).
 
-    form : string, default="pair"
-        The histogram splitting style to use. Must be one of ("pair",
-        "element", or "single"). The "pair" option is the standard encoded
-        bond. The "element" option will group elements of the same type
-        together. "single" will only create one histogram. These options
-        change the scaling of this method to be O(E^2), O(E), or O(1) for
-        "pair", "element", and "single" respectively (where E is the number
-        of elements).
+    form : int, default=3
+        The histogram splitting style to use. This changes the scaling of
+        this method to be O(E^3), O(E^2), O(E), or O(1) for 3, 2, 1, or 0
+        respectively (where E is the number of elements).
+
+    r_cut : float, default=6.
+        The maximum distance allowed for atoms to be considered local to the
+        "central atom".
 
     Attributes
     ----------
@@ -317,7 +317,7 @@ class EncodedAngle(BaseFeature):
     '''
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing="norm", slope=20., max_depth=0,
-                 r_cut=6., spacing="linear"):
+                 spacing="linear", form=3, r_cut=6.):
         super(EncodedAngle, self).__init__(input_type=input_type,
                                            n_jobs=n_jobs)
         self._groups = None
@@ -326,6 +326,7 @@ class EncodedAngle(BaseFeature):
         self.slope = slope
         self.max_depth = max_depth
         self.spacing = spacing
+        self.form = form
         self.r_cut = r_cut
 
     def _para_fit(self, X):
@@ -417,9 +418,7 @@ class EncodedAngle(BaseFeature):
             raise KeyError(msg % self.spacing)
 
         data = self.convert_input(X)
-
-        ele_idx = {group: i for i, group in enumerate(self._groups)}
-        length = len(ele_idx)
+        get_index, length, both = get_index_mapping(self._groups, self.form)
         vector = numpy.zeros((length, self.segments))
 
         theta = numpy.linspace(theta_func(0.), theta_func(numpy.pi),
@@ -441,16 +440,13 @@ class EncodedAngle(BaseFeature):
                 for k, ele3 in enumerate(data.elements):
                     if j == k or not mat[j, k]:
                         continue
-                    if i > k:
+                    if i > k and not both:
                         continue
                     F = f_c[i, j] * f_c[j, k] * f_c[i, k]
                     diff = theta - theta_func(angles[i, j, k])
                     value = smoothing_func(self.slope * diff)
-                    if ele1 < ele3:
-                        eles = ele1, ele2, ele3
-                    else:
-                        eles = ele3, ele2, ele1
-                    vector[ele_idx[eles]] += value * F
+                    eles = ele1, ele2, ele3
+                    vector[get_index(eles)] += value * F
         return vector.flatten().tolist()
 
 
