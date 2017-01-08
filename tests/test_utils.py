@@ -6,7 +6,7 @@ import numpy
 from molml.utils import LazyValues, SMOOTHING_FUNCTIONS
 from molml.utils import get_coulomb_matrix, get_element_pairs
 from molml.utils import read_file_data, read_out_data, read_xyz_data
-from molml.utils import deslugify
+from molml.utils import deslugify, _get_form_indices, get_index_mapping
 
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
@@ -147,6 +147,69 @@ class UtilsTest(unittest.TestCase):
         string = 'ClassM__none=None__true=True__false=False'
         expected = ('ClassM', {'none': None, 'true': True, 'false': False})
         self.assertEqual(deslugify(string), expected)
+
+    def test__get_form_indicies(self):
+        data = (
+            ( # 1
+                (0, ([], False)),
+                (1, ([0], False)),
+                (2, ([0], False)),
+            ),
+            ( # 2
+                (0, ([], False)),
+                (1, ([0], True)),
+                (2, ([0, 1], False)),
+            ),
+            ( # 3
+                (0, ([], False)),
+                (1, ([1], False)),
+                (2, ([0, 2], False)),
+                (3, ([0, 1, 2], False)),
+            ),
+            ( # 4
+                (0, ([], False)),
+                (1, ([1], True)),
+                (2, ([1, 2], False)),
+                (3, ([0, 1, 2], True)),
+                (4, ([0, 1, 2, 3], False)),
+            ),
+            ( # 5
+                (0, ([], False)),
+                (1, ([2], False)),
+                (2, ([1, 3], False)),
+                (3, ([1, 2, 3], False)),
+                (4, ([0, 1, 3, 4], False)),
+                (5, ([0, 1, 2, 3, 4], False)),
+            ),
+            ( # 6
+                (0, ([], False)),
+                (1, ([2], True)),
+                (2, ([2, 3], False)),
+                (3, ([1, 2, 3], True)),
+                (4, ([1, 2, 3, 4], False)),
+                (5, ([0, 1, 2, 3, 4], True)),
+                (6, ([0, 1, 2, 3, 4, 5], False)),
+            )
+        )
+        for i, group in enumerate(data):
+            values = [list(range(i + 1))]
+            for depth, expected in group:
+                vals = _get_form_indices(values, depth)
+                self.assertEqual(vals, expected)
+
+    def test_get_index_mapping(self):
+        values = [('H', 'H'), ('H', 'C'), ('C', 'C')]
+        expected = (
+            (0, 1, False, (0, 0, 0)),
+            (1, 2, True, (1, 1, 0)),
+            (2, 3, False, (2, 1, 0)),
+            (3, 3, False, (2, 1, 0)),
+        )
+        for depth, expected_length, expected_both, idxs in expected:
+            f, length, both = get_index_mapping(values, depth)
+            self.assertEqual(length, expected_length)
+            self.assertEqual(both, expected_both)
+            self.assertEqual(tuple(f(x) for x in values), idxs)
 
 
 class LazyValuesTest(unittest.TestCase):
