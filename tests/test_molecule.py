@@ -4,7 +4,7 @@ import unittest
 import numpy
 
 from molml.molecule import BagOfBonds, Connectivity
-from molml.molecule import CoulombMatrix, EncodedBond
+from molml.molecule import CoulombMatrix, EncodedBond, EncodedAngle
 from molml.utils import read_file_data
 
 
@@ -356,6 +356,144 @@ class EncodedBondTest(unittest.TestCase):
             assert_close_statistics(m, expected_results)
         except AssertionError as e:
             self.fail(e)
+
+
+class EncodedAngleTest(unittest.TestCase):
+
+    def test_fit(self):
+        a = EncodedAngle()
+        a.fit(ALL_DATA)
+        expected = set([('C', 'N', 'C'), ('C', 'C', 'C'), ('H', 'H', 'H'),
+                        ('H', 'O', 'O'), ('O', 'N', 'O'), ('H', 'N', 'N'),
+                        ('C', 'H', 'H'), ('C', 'O', 'H'), ('C', 'H', 'C'),
+                        ('N', 'C', 'N'), ('O', 'O', 'O'), ('H', 'O', 'N'),
+                        ('H', 'N', 'O'), ('O', 'H', 'O'), ('H', 'H', 'N'),
+                        ('C', 'C', 'N'), ('H', 'N', 'H'), ('C', 'H', 'N'),
+                        ('H', 'C', 'O'), ('N', 'O', 'O'), ('N', 'N', 'N'),
+                        ('C', 'C', 'H'), ('C', 'O', 'O'), ('C', 'N', 'N'),
+                        ('H', 'O', 'H'), ('H', 'H', 'O'), ('C', 'C', 'O'),
+                        ('N', 'H', 'N'), ('C', 'H', 'O'), ('O', 'C', 'O'),
+                        ('H', 'C', 'N'), ('C', 'O', 'C'), ('N', 'O', 'N'),
+                        ('N', 'N', 'O'), ('C', 'N', 'O'), ('C', 'O', 'N'),
+                        ('H', 'C', 'H'), ('C', 'N', 'H'), ('N', 'H', 'O'),
+                        ('N', 'C', 'O')])
+        self.assertEqual(a._groups, expected)
+
+    def test_transform(self):
+        a = EncodedAngle()
+        a.fit([METHANE])
+        # This is a cheap test to prevent needing all the values here
+        expected_results = numpy.array([
+            0.107422,  # mean
+            0.426748,  # std
+            0.,  # min
+            3.133735,  # max
+        ])
+        try:
+            m = a.fit_transform([METHANE])
+            assert_close_statistics(m, expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_large_to_small_transform(self):
+        a = EncodedAngle()
+        a.fit([MID])
+        # This is a cheap test to prevent needing all the values here
+        expected_results = numpy.array([
+            0.107422,  # mean
+            0.426748,  # std
+            0.,  # min
+            3.133735,  # max
+        ])
+        try:
+            m = a.fit_transform([METHANE])
+            assert_close_statistics(m, expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_fit_transform(self):
+        a = EncodedAngle()
+        # This is a cheap test to prevent needing all the values here
+        expected_results = numpy.array([
+            0.107422,  # mean
+            0.426748,  # std
+            0.,  # min
+            3.133735,  # max
+        ])
+        try:
+            m = a.fit_transform([METHANE])
+            assert_close_statistics(m, expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_transform_before_fit(self):
+        a = EncodedAngle()
+        with self.assertRaises(ValueError):
+            a.transform(ALL_DATA)
+
+    def test_smoothing_function(self):
+        a = EncodedAngle(smoothing="norm_cdf")
+
+        # This is a cheap test to prevent needing all the values here
+        expected_results = numpy.array([
+            1.560282,  # mean
+            2.549493,  # std
+            0.,  # min
+            9.898244,  # max
+        ])
+        try:
+            m = a.fit_transform([METHANE])
+            assert_close_statistics(m, expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_smoothing_function_error(self):
+        a = EncodedAngle(smoothing="not valid")
+
+        with self.assertRaises(KeyError):
+            a.fit_transform([METHANE])
+
+    def test_max_depth(self):
+        a = EncodedAngle(max_depth=3)
+        # This is a cheap test to prevent needing all the values here
+        data = (
+            #       mean                std      min      max
+            (-1, [0.31265666449, 1.0742506437, 0., 33.0844650028]), 
+            (1, [0.036564, 0.366865, 0., 14.170237]),
+            (3, [0.20318, 0.869599, 0., 29.749494]),
+
+        )
+        for max_depth, expected in data:
+            a = EncodedAngle(max_depth=max_depth)
+            expected_results = numpy.array(expected)
+            try:
+                m = a.fit_transform([BIG])
+                assert_close_statistics(m, expected_results)
+            except AssertionError as e:
+                self.fail(e)
+
+    def test_spacing_invalid(self):
+        a = EncodedAngle(spacing="not valid")
+
+        with self.assertRaises(KeyError):
+            a.fit_transform([METHANE])
+
+    def test_form(self):
+        data = (
+            #    mean         std   min     max
+            (2, [0.143229, 0.53825, 0., 4.395692], 300),
+            (1, [0.214844, 0.647444, 0., 4.395692], 200),
+            (0, [4.296878e-001, 9.856206e-001, 0., 5.747656e+000], 100),
+        )
+        for form, expected, size in data:
+            a = EncodedAngle(form=form)
+            expected_results = numpy.array(expected)
+            try:
+                m = a.fit_transform([METHANE])
+                self.assertEqual(m.shape, (1, size))
+                assert_close_statistics(m, expected_results)
+            except AssertionError as e:
+                self.fail(e)
 
 
 class CoulombMatrixTest(unittest.TestCase):
