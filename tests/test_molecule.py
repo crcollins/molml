@@ -458,7 +458,7 @@ class EncodedAngleTest(unittest.TestCase):
         # This is a cheap test to prevent needing all the values here
         data = (
             #       mean                std      min      max
-            (-1, [0.31265666449, 1.0742506437, 0., 33.0844650028]), 
+            (-1, [0.31265666449, 1.0742506437, 0., 33.0844650028]),
             (1, [0.036564, 0.366865, 0., 14.170237]),
             (3, [0.20318, 0.869599, 0., 29.749494]),
 

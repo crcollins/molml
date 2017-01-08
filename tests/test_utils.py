@@ -151,30 +151,30 @@ class UtilsTest(unittest.TestCase):
 
     def test__get_form_indicies(self):
         data = (
-            ( # 1
+            (  # 1
                 (0, ([], False)),
                 (1, ([0], False)),
                 (2, ([0], False)),
             ),
-            ( # 2
+            (  # 2
                 (0, ([], False)),
                 (1, ([0], True)),
                 (2, ([0, 1], False)),
             ),
-            ( # 3
+            (  # 3
                 (0, ([], False)),
                 (1, ([1], False)),
                 (2, ([0, 2], False)),
                 (3, ([0, 1, 2], False)),
             ),
-            ( # 4
+            (  # 4
                 (0, ([], False)),
                 (1, ([1], True)),
                 (2, ([1, 2], False)),
                 (3, ([0, 1, 2], True)),
                 (4, ([0, 1, 2, 3], False)),
             ),
-            ( # 5
+            (  # 5
                 (0, ([], False)),
                 (1, ([2], False)),
                 (2, ([1, 3], False)),
@@ -182,7 +182,7 @@ class UtilsTest(unittest.TestCase):
                 (4, ([0, 1, 3, 4], False)),
                 (5, ([0, 1, 2, 3, 4], False)),
             ),
-            ( # 6
+            (  # 6
                 (0, ([], False)),
                 (1, ([2], True)),
                 (2, ([2, 3], False)),
@@ -200,7 +200,7 @@ class UtilsTest(unittest.TestCase):
 
     def test__get_form_indicies_invalid(self):
         with self.assertRaises(ValueError):
-            vals = _get_form_indices([], 1)
+            _get_form_indices([], 1)
 
     def test_get_index_mapping(self):
         values = [('H', 'H'), ('H', 'C'), ('C', 'C')]
