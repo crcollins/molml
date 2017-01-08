@@ -472,12 +472,6 @@ class EncodedAngleTest(unittest.TestCase):
             except AssertionError as e:
                 self.fail(e)
 
-    def test_spacing_invalid(self):
-        a = EncodedAngle(spacing="not valid")
-
-        with self.assertRaises(KeyError):
-            a.fit_transform([METHANE])
-
     def test_form(self):
         data = (
             #    mean         std   min     max

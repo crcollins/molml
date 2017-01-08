@@ -294,13 +294,6 @@ class EncodedAngle(BaseFeature):
         interactions. A value of 0 signifies that all interactions are
         included.
 
-    spacing : string, default="linear"
-        The histogram interval spacing type. Must be one of ("linear",
-        "inverse", or "log"). Linear spacing is normal spacing. Inverse takes
-        and evaluates the distances as 1/r and the start and end points are
-        1/x. For log spacing, the distances are evaluated as numpy.log(r)
-        and the start and end points are numpy.log(x).
-
     form : int, default=3
         The histogram splitting style to use. This changes the scaling of
         this method to be O(E^3), O(E^2), O(E), or O(1) for 3, 2, 1, or 0
@@ -317,7 +310,7 @@ class EncodedAngle(BaseFeature):
     '''
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing="norm", slope=20., max_depth=0,
-                 spacing="linear", form=3, r_cut=6.):
+                 form=3, r_cut=6.):
         super(EncodedAngle, self).__init__(input_type=input_type,
                                            n_jobs=n_jobs)
         self._groups = None
@@ -325,7 +318,6 @@ class EncodedAngle(BaseFeature):
         self.smoothing = smoothing
         self.slope = slope
         self.max_depth = max_depth
-        self.spacing = spacing
         self.form = form
         self.r_cut = r_cut
 
@@ -411,18 +403,11 @@ class EncodedAngle(BaseFeature):
             msg = "The value '%s' is not a valid smoothing type."
             raise KeyError(msg % self.smoothing)
 
-        try:
-            theta_func = SPACING_FUNCTIONS[self.spacing]
-        except KeyError:
-            msg = "The value '%s' is not a valid spacing type."
-            raise KeyError(msg % self.spacing)
-
         data = self.convert_input(X)
         get_index, length, both = get_index_mapping(self._groups, self.form)
         vector = numpy.zeros((length, self.segments))
 
-        theta = numpy.linspace(theta_func(0.), theta_func(numpy.pi),
-                               self.segments)
+        theta = numpy.linspace(0., numpy.pi, self.segments)
         mat = get_depth_threshold_mask_connections(data.connections,
                                                    max_depth=self.max_depth)
 
@@ -444,7 +429,7 @@ class EncodedAngle(BaseFeature):
                     if i > k and not both:
                         continue
                     F = f_c[i, j] * f_c[j, k] * f_c[i, k]
-                    diff = theta - theta_func(angles[i, j, k])
+                    diff = theta - angles[i, j, k]
                     value = smoothing_func(self.slope * diff)
                     eles = ele1, ele2, ele3
                     vector[get_index(eles)] += value * F
