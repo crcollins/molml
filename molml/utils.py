@@ -477,7 +477,8 @@ def get_index_mapping(values, depth):
         new_values.extend(temp)
     new_values = set(sort_chain(x) for x in new_values)
 
-    mapping = {key: i for i, key in enumerate(new_values)}
+    mapping = {key: i for i, key in enumerate(sorted(new_values))}
+
     def map_func(key):
         key = tuple(key[i] for i in idxs)
         if both:
