@@ -430,7 +430,8 @@ class EncodedAngle(BaseFeature):
         f_c = self.f_c(distances)
         diffs = data.coords - data.coords[:, None]
         lengths = numpy.linalg.norm(diffs, axis=2)
-        unit = diffs / lengths[:, :, None]
+        with numpy.errstate(divide='ignore', invalid='ignore'):
+            unit = diffs / lengths[:, :, None]
         inner = numpy.einsum('ijk,jmk->ijm', unit, unit)
         angles = numpy.arccos(numpy.clip(inner, -1., 1.))
         for i, ele1 in enumerate(data.elements):
