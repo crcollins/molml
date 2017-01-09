@@ -585,6 +585,22 @@ class CoulombMatrixTest(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
+    def test_eigen(self):
+        a = CoulombMatrix(eigen=True)
+
+        expected_results = numpy.array([
+                                        40.04619974,
+                                        -1.00605888,
+                                        -0.06059994,
+                                        -0.06071616,
+                                        -0.06071957])
+        try:
+            numpy.testing.assert_array_almost_equal(
+                a.fit_transform([METHANE])[0],
+                expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
 
 class BagOfBondsTest(unittest.TestCase):
 

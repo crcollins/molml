@@ -644,8 +644,13 @@ class CoulombMatrix(BaseFeature):
         than 1 will use the number of cores the computer has.
 
     sort : bool, default=False
-        Specfifies whether or not to sort the coulomb matrix based on the
+        Specifies whether or not to sort the coulomb matrix based on the
         sum of the rows (same as L1 norm).
+
+    eigen : bool, default=False
+        Specifies whether or not to use the eigen spectrum of the coulomb
+        matrix rather than the matrix itself. This changes the scaling to be
+        linear in the number of atoms.
 
     Attributes
     ----------
@@ -653,11 +658,12 @@ class CoulombMatrix(BaseFeature):
         The size of the largest molecule in the fit molecules by number of
         atoms.
     '''
-    def __init__(self, input_type='list', n_jobs=1, sort=False):
+    def __init__(self, input_type='list', n_jobs=1, sort=False, eigen=False):
         super(CoulombMatrix, self).__init__(input_type=input_type,
                                             n_jobs=n_jobs)
         self._max_size = None
         self.sort = sort
+        self.eigen = eigen
 
     def _para_fit(self, X):
         '''
@@ -724,14 +730,18 @@ class CoulombMatrix(BaseFeature):
             raise ValueError(msg % (self._max_size, len(data.numbers)))
 
         padding_difference = self._max_size - len(data.numbers)
-        coulomb_matrix = get_coulomb_matrix(data.numbers, data.coords)
+        values = get_coulomb_matrix(data.numbers, data.coords)
         if self.sort:
-            order = numpy.argsort(coulomb_matrix.sum(0))[::-1]
-            coulomb_matrix = coulomb_matrix[order, :][:, order]
-        new_coulomb_matrix = numpy.pad(coulomb_matrix,
-                                       (0, padding_difference),
-                                       mode="constant")
-        return new_coulomb_matrix.reshape(-1)
+            order = numpy.argsort(values.sum(0))[::-1]
+            values = values[order, :][:, order]
+
+        if self.eigen:
+            values = numpy.linalg.eig(values)[0]
+
+        values = numpy.pad(values,
+                           (0, padding_difference),
+                           mode="constant")
+        return values.reshape(-1)
 
 
 class BagOfBonds(BaseFeature):
