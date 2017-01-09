@@ -567,6 +567,24 @@ class CoulombMatrixTest(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
+    def test_sort(self):
+        a = CoulombMatrix(sort=True)
+        b = CoulombMatrix()
+
+        res_a = a.fit_transform([MID])
+        res_b = b.fit_transform([MID])
+        self.assertFalse(numpy.allclose(res_a, res_b))
+        expected_results = numpy.array([73.51669472, 45.84796673, 20.4393443,
+                                        18.51709592, 34.38200956, 19.92342035,
+                                        1.71317156, 1.39374152, 1.20676731])
+
+        try:
+            numpy.testing.assert_array_almost_equal(
+                res_a[0, :9],
+                expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
 
 class BagOfBondsTest(unittest.TestCase):
 

@@ -643,16 +643,21 @@ class CoulombMatrix(BaseFeature):
         features. Positive numbers specify a specifc amount, and numbers less
         than 1 will use the number of cores the computer has.
 
+    sort : bool, default=False
+        Specfifies whether or not to sort the coulomb matrix based on the
+        sum of the rows (same as L1 norm).
+
     Attributes
     ----------
     _max_size : int
         The size of the largest molecule in the fit molecules by number of
         atoms.
     '''
-    def __init__(self, input_type='list', n_jobs=1):
+    def __init__(self, input_type='list', n_jobs=1, sort=False):
         super(CoulombMatrix, self).__init__(input_type=input_type,
                                             n_jobs=n_jobs)
         self._max_size = None
+        self.sort = sort
 
     def _para_fit(self, X):
         '''
@@ -720,6 +725,9 @@ class CoulombMatrix(BaseFeature):
 
         padding_difference = self._max_size - len(data.numbers)
         coulomb_matrix = get_coulomb_matrix(data.numbers, data.coords)
+        if self.sort:
+            order = numpy.argsort(coulomb_matrix.sum(0))[::-1]
+            coulomb_matrix = coulomb_matrix[order, :][:, order]
         new_coulomb_matrix = numpy.pad(coulomb_matrix,
                                        (0, padding_difference),
                                        mode="constant")
