@@ -264,8 +264,8 @@ class LocalEncodedBond(BaseFeature):
 
     Attributes
     ----------
-    _element : list
-        A list of all the element pairs in the fit molecules.
+    _elements : list
+        A list of all the elements in the fit molecules.
     '''
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing="norm", start=0.2, end=6.0, slope=20., max_depth=0,
@@ -316,9 +316,9 @@ class LocalEncodedBond(BaseFeature):
         self : object
             Returns the instance itself.
         '''
-        pairs = self.map(self._para_fit, X)
+        elements = self.map(self._para_fit, X)
         self._elements = set(self.reduce(lambda x, y: set(x) | set(y),
-                                         pairs))
+                                         elements))
         return self
 
     def _para_transform(self, X, y=None):
@@ -348,18 +348,18 @@ class LocalEncodedBond(BaseFeature):
             msg = "The value '%s' is not a valid spacing type."
             raise KeyError(msg % self.smoothing)
 
+        try:
+            theta_func = SPACING_FUNCTIONS[self.spacing]
+        except KeyError:
+            msg = "The value '%s' is not a valid spacing type."
+            raise KeyError(msg % self.spacing)
+
         pair_idxs = {key: i for i, key in enumerate(sorted(self._elements))}
 
         data = self.convert_input(X)
 
         vector = numpy.zeros((len(data.elements), len(self._elements),
                               self.segments))
-
-        try:
-            theta_func = SPACING_FUNCTIONS[self.spacing]
-        except KeyError:
-            msg = "The value '%s' is not a valid spacing type."
-            raise KeyError(msg % self.spacing)
 
         theta = numpy.linspace(theta_func(self.start), theta_func(self.end),
                                self.segments)
