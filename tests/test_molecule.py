@@ -175,7 +175,7 @@ class EncodedBondTest(unittest.TestCase):
             2.392207,  # max
         ])
         try:
-            m = a.fit_transform([METHANE])
+            m = a.transform([METHANE])
             assert_close_statistics(m, expected_results)
         except AssertionError as e:
             self.fail(e)
@@ -185,13 +185,13 @@ class EncodedBondTest(unittest.TestCase):
         a.fit([MID])
         # This is a cheap test to prevent needing all the values here
         expected_results = numpy.array([
-            0.042672,  # mean
-            0.246663,  # std
+            0.014224,  # mean
+            0.143824,  # std
             0.,  # min
             2.392207,  # max
         ])
         try:
-            m = a.fit_transform([METHANE])
+            m = a.transform([METHANE])
             assert_close_statistics(m, expected_results)
         except AssertionError as e:
             self.fail(e)
@@ -416,13 +416,13 @@ class EncodedAngleTest(unittest.TestCase):
         a.fit([MID])
         # This is a cheap test to prevent needing all the values here
         expected_results = numpy.array([
-            0.107422,  # mean
-            0.426748,  # std
+            0.023872,  # mean
+            0.206068,  # std
             0.,  # min
             3.133735,  # max
         ])
         try:
-            m = a.fit_transform([METHANE])
+            m = a.transform([METHANE])
             assert_close_statistics(m, expected_results)
         except AssertionError as e:
             self.fail(e)

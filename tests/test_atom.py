@@ -399,7 +399,6 @@ class BehlerParrinelloTest(unittest.TestCase):
 
     def test_fit_transform(self):
         a = BehlerParrinello()
-        a.fit(ALL_DATA)
         m = a.fit_transform(ALL_DATA)
         expected = numpy.array([
             [0.7301223510043411, 1.7658165303958306, 0.0, 0.0, 0.0,
