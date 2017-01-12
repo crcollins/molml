@@ -7,7 +7,7 @@ from .base import BaseFeature
 from .utils import get_depth_threshold_mask_connections, get_coulomb_matrix
 from .utils import ELE_TO_NUM, SMOOTHING_FUNCTIONS, SPACING_FUNCTIONS
 from .utils import get_element_pairs, cosine_decay, needs_reversal
-from .utils import get_index_mapping
+from .utils import get_index_mapping, get_angles
 
 
 class Connectivity(BaseFeature):
@@ -420,12 +420,7 @@ class EncodedAngle(BaseFeature):
 
         distances = cdist(data.coords, data.coords)
         f_c = self.f_c(distances)
-        diffs = data.coords - data.coords[:, None]
-        lengths = numpy.linalg.norm(diffs, axis=2)
-        with numpy.errstate(divide='ignore', invalid='ignore'):
-            unit = diffs / lengths[:, :, None]
-        inner = numpy.einsum('ijk,jmk->ijm', unit, unit)
-        angles = numpy.arccos(numpy.clip(inner, -1., 1.))
+        angles = get_angles(data.coords)
         for i, ele1 in enumerate(data.elements):
             for j, ele2 in enumerate(data.elements):
                 if i == j or not mat[i, j]:

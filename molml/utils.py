@@ -534,3 +534,29 @@ def sort_chain(chain):
     if needs_reversal(chain):
         return chain[::-1]
     return chain
+
+
+def get_angles(coords):
+    '''
+    Get the angles between all triples of coords
+
+    The resulting values are [0, \pi] and all invalid values are nans.
+
+    Parameters
+    ----------
+        coords : numpy.array, shape=(n_atoms, n_dim)
+            An array of all the coordinates.
+
+    Returns
+    -------
+        res : numpy.array, shape=(n_atoms, n_atoms, n_atoms)
+            An array the angles of all triples.
+    '''
+    diffs = coords - coords[:, None]
+    lengths = numpy.linalg.norm(diffs, axis=2)
+    with numpy.errstate(divide='ignore', invalid='ignore'):
+        unit = diffs / lengths[:, :, None]
+    res = numpy.einsum('ijk,jmk->ijm', unit, unit)
+    numpy.clip(res, -1., 1., res)
+    numpy.arccos(res, res)
+    return res
