@@ -376,8 +376,8 @@ class EncodedAngle(BaseFeature):
         self : object
             Returns the instance itself.
         '''
-        eles = self.map(self._para_fit, X)
-        self._groups = set(self.reduce(lambda x, y: x | y, eles))
+        groups = self.map(self._para_fit, X)
+        self._groups = set(self.reduce(lambda x, y: x | y, groups))
         return self
 
     def f_c(self, R):
@@ -735,10 +735,11 @@ class CoulombMatrix(BaseFeature):
         value : array
             The features extracted from the molecule
         '''
-        data = self.convert_input(X)
         if self._max_size is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)
+
+        data = self.convert_input(X)
         if len(data.numbers) > self._max_size:
             msg = "The fit molecules (%d) were not as large as the ones that"
             msg += " are being transformed (%d)."
@@ -889,11 +890,11 @@ class BagOfBonds(BaseFeature):
         value : array
             The features extracted from the molecule
         '''
-        data = self.convert_input(X)
         if self._bag_sizes is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)
 
+        data = self.convert_input(X)
         # Sort the elements and coords based on the element
         temp = sorted(zip(data.elements, data.coords), key=lambda x: x[0])
         elements, coords = zip(*temp)
