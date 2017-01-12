@@ -312,8 +312,8 @@ class EncodedAngle(BaseFeature):
 
     Attributes
     ----------
-    _elements : list
-        A list of all the elements in the fit molecules.
+    _groups : set, tuples
+        A list of all the groups (element chains) in the fit molecules.
     '''
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing="norm", slope=20., max_depth=0,
@@ -506,7 +506,7 @@ class EncodedBond(BaseFeature):
 
     Attributes
     ----------
-    _element_pairs : list
+    _element_pairs : set, tuples
         A list of all the element pairs in the fit molecules.
     '''
     def __init__(self, input_type='list', n_jobs=1, segments=100,
