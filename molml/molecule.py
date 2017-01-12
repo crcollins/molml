@@ -264,6 +264,13 @@ class Connectivity(BaseFeature):
 
 class EncodedAngle(BaseFeature):
     '''
+    A smoothed histogram of atomic angles.
+
+    This method is similar to EncodedBond but for angles in molecules. This is
+    done by enumerating all triplets of atoms and computing the angle between
+    them. The bins are then smoothed with smoothing functions. Note: The
+    angles used are 0 to \pi.
+
     Parameters
     ----------
     input_type : string, default='list'
