@@ -439,7 +439,11 @@ class EncodedAngle(BaseFeature):
                     diff = theta - angles[i, j, k]
                     value = smoothing_func(self.slope * diff)
                     eles = ele1, ele2, ele3
-                    vector[get_index(eles)] += value * F
+                    try:
+                        vector[get_index(eles)] += value * F
+                    except KeyError:
+                        # TODO Add option
+                        continue
         return vector.flatten().tolist()
 
 
@@ -614,7 +618,11 @@ class EncodedBond(BaseFeature):
                 diff = theta - theta_func(distances[i, j])
                 value = smoothing_func(self.slope * diff)
                 eles = (ele1, ele2)
-                vector[get_index(eles)] += value
+                try:
+                    vector[get_index(eles)] += value
+                except KeyError:
+                    # TODO Add option
+                    continue
         return vector.flatten().tolist()
 
 

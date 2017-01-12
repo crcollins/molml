@@ -196,6 +196,22 @@ class EncodedBondTest(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
+    def test_small_to_large_transform(self):
+        a = EncodedBond()
+        a.fit([METHANE])
+        # This is a cheap test to prevent needing all the values here
+        expected_results = numpy.array([
+            9.207308e-001,  # mean
+            1.062388e+000,  # std
+            0.,  # min
+            5.023670e+000,  # max
+        ])
+        try:
+            m = a.transform([BIG])
+            assert_close_statistics(m, expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
     def test_fit_transform(self):
         a = EncodedBond()
         # This is a cheap test to prevent needing all the values here
@@ -407,6 +423,22 @@ class EncodedAngleTest(unittest.TestCase):
         ])
         try:
             m = a.fit_transform([METHANE])
+            assert_close_statistics(m, expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_small_to_large_transform(self):
+        a = EncodedAngle()
+        a.fit([METHANE])
+        # This is a cheap test to prevent needing all the values here
+        expected_results = numpy.array([
+            0.015827,  # mean
+            0.110666,  # std
+            0.,  # min
+            1.568823,  # max
+        ])
+        try:
+            m = a.transform([MID])
             assert_close_statistics(m, expected_results)
         except AssertionError as e:
             self.fail(e)
