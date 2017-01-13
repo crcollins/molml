@@ -7,6 +7,7 @@ from .base import BaseFeature
 from .utils import get_depth_threshold_mask_connections, get_coulomb_matrix
 from .utils import SPACING_FUNCTIONS, SMOOTHING_FUNCTIONS
 from .utils import get_element_pairs, cosine_decay
+from .utils import get_index_mapping
 
 
 class Shell(BaseFeature):
@@ -262,6 +263,15 @@ class LocalEncodedBond(BaseFeature):
         1/x. For log spacing, the distances are evaluated as numpy.log(r)
         and the start and end points are numpy.log(x).
 
+    form : int, default=1
+        The histogram splitting style to use. This value hese options change
+        the scaling of this method to be O(E) or O(1) for 1 or 0 respectively
+        (where E is the number of elements).
+
+    add_unknown : boolean, default=False
+        Specifies whether or not to include an extra UNKNOWN count in the
+        feature vector.
+
     Attributes
     ----------
     _elements : list
@@ -269,7 +279,7 @@ class LocalEncodedBond(BaseFeature):
     '''
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing="norm", start=0.2, end=6.0, slope=20., max_depth=0,
-                 spacing="linear"):
+                 spacing="linear", form=1, add_unknown=False):
         super(LocalEncodedBond, self).__init__(input_type=input_type,
                                                n_jobs=n_jobs)
         self._elements = None
@@ -280,6 +290,8 @@ class LocalEncodedBond(BaseFeature):
         self.slope = slope
         self.max_depth = max_depth
         self.spacing = spacing
+        self.form = form
+        self.add_unknown = add_unknown
 
     def _para_fit(self, X):
         '''
@@ -354,12 +366,12 @@ class LocalEncodedBond(BaseFeature):
             msg = "The value '%s' is not a valid spacing type."
             raise KeyError(msg % self.spacing)
 
-        pair_idxs = {key: i for i, key in enumerate(sorted(self._elements))}
+        get_index, length, _ = get_index_mapping(self._elements, self.form,
+                                                 self.add_unknown)
 
         data = self.convert_input(X)
 
-        vector = numpy.zeros((len(data.elements), len(self._elements),
-                              self.segments))
+        vector = numpy.zeros((len(data.elements), length, self.segments))
 
         theta = numpy.linspace(theta_func(self.start), theta_func(self.end),
                                self.segments)
@@ -374,7 +386,10 @@ class LocalEncodedBond(BaseFeature):
 
                 diff = theta - theta_func(distances[i, j])
                 value = smoothing_func(self.slope * diff)
-                vector[i, pair_idxs[ele2]] += value
+                try:
+                    vector[i, get_index(ele2)] += value
+                except KeyError:
+                    pass
         return vector.reshape(len(data.elements), -1)
 
 

@@ -206,13 +206,37 @@ class LocalEncodedBondTest(unittest.TestCase):
     def test_transform(self):
         a = LocalEncodedBond()
         a.fit(ALL_DATA)
-        # import pdb; pdb.set_trace()
         m = a.transform(ALL_DATA)
         expected_results = numpy.array([17.068978019300587,
                                         54.629902544876572,
                                         1006.4744899075993])
         mm = numpy.array([x.sum() for x in m])
         self.assertTrue((numpy.allclose(mm, expected_results)))
+
+    def test_small_to_large(self):
+        a = LocalEncodedBond()
+        a.fit([METHANE])
+
+        # This is a cheap test to prevent needing all the values here
+        expected_results = numpy.array([
+            0.016125813269,  # mean
+            0.065471987297,  # std
+            0.,              # min
+            0.398807098298,  # max
+            29.02646388512,  # sum
+        ])
+        try:
+            m = a.transform([MID])
+            val = numpy.array([
+                m.mean(),
+                m.std(),
+                m.min(),
+                m.max(),
+                m.sum(),
+            ])
+            numpy.testing.assert_allclose(val, expected_results)
+        except AssertionError as e:
+            self.fail(e)
 
     def test_transform_max_depth1(self):
         a = LocalEncodedBond(max_depth=1)
@@ -222,7 +246,10 @@ class LocalEncodedBondTest(unittest.TestCase):
                                         6.82758018,
                                         88.75860423])
         mm = numpy.array([x.sum() for x in m])
-        self.assertTrue((numpy.allclose(mm, expected_results)))
+        try:
+            numpy.testing.assert_allclose(mm, expected_results)
+        except AssertionError as e:
+            self.fail(e)
 
     def test_transform_before_fit(self):
         a = LocalEncodedBond()
@@ -238,6 +265,17 @@ class LocalEncodedBondTest(unittest.TestCase):
         a = LocalEncodedBond(spacing='not real"')
         with self.assertRaises(KeyError):
             a.fit_transform(ALL_DATA)
+
+    def test_add_unknown(self):
+        a = LocalEncodedBond(add_unknown=True)
+        a.fit([METHANE])
+        m = a.transform([MID])
+        self.assertEqual(m.shape, (1, 9, 300))
+
+    def test_form(self):
+        a = LocalEncodedBond(form=0)
+        m = a.fit_transform([METHANE])
+        self.assertEqual(m.shape, (1, 5, 100))
 
 
 class LocalCoulombMatrixTest(unittest.TestCase):
