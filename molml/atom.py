@@ -357,7 +357,7 @@ class LocalEncodedBond(BaseFeature):
         try:
             smoothing_func = SMOOTHING_FUNCTIONS[self.smoothing]
         except KeyError:
-            msg = "The value '%s' is not a valid spacing type."
+            msg = "The value '%s' is not a valid smoothing type."
             raise KeyError(msg % self.smoothing)
 
         try:
