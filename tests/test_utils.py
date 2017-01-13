@@ -211,10 +211,30 @@ class UtilsTest(unittest.TestCase):
             (3, 3, False, (2, 1, 0)),
         )
         for depth, expected_length, expected_both, idxs in expected:
-            f, length, both = get_index_mapping(values, depth)
+            f, length, both = get_index_mapping(values, depth, False)
             self.assertEqual(length, expected_length)
             self.assertEqual(both, expected_both)
             self.assertEqual(tuple(f(x) for x in values), idxs)
+
+    def test_get_index_mapping_add_unknown(self):
+        values = [('H', 'H'), ('H', 'C'), ('C', 'C')]
+        expected = (
+            (0, 1, False, (0, 0, 0)),
+            (1, 3, True, (1, 1, 0)),
+            (2, 4, False, (2, 1, 0)),
+            (3, 4, False, (2, 1, 0)),
+            (1, 3, True, (1, 1, 0)),
+            (2, 4, False, (2, 1, 0)),
+        )
+        for depth, expected_length, expected_both, idxs in expected:
+            f, length, both = get_index_mapping(values, depth, True)
+            self.assertEqual(length, expected_length)
+            self.assertEqual(both, expected_both)
+            self.assertEqual(tuple(f(x) for x in values), idxs)
+            if not depth:
+                self.assertEqual(f("NEW"), 0)
+            else:
+                self.assertEqual(f("NEW"), -1)
 
     def test_sort_chain(self):
         needs_flip = ("O", "H", "C")

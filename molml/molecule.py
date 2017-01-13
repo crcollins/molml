@@ -310,6 +310,10 @@ class EncodedAngle(BaseFeature):
         The maximum distance allowed for atoms to be considered local to the
         "central atom".
 
+    add_unknown : boolean, default=False
+        Specifies whether or not to include an extra UNKNOWN count in the
+        feature vector.
+
     Attributes
     ----------
     _groups : set, tuples
@@ -317,7 +321,7 @@ class EncodedAngle(BaseFeature):
     '''
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing="norm", slope=20., max_depth=0,
-                 form=3, r_cut=6.):
+                 form=3, r_cut=6., add_unknown=False):
         super(EncodedAngle, self).__init__(input_type=input_type,
                                            n_jobs=n_jobs)
         self._groups = None
@@ -327,6 +331,7 @@ class EncodedAngle(BaseFeature):
         self.max_depth = max_depth
         self.form = form
         self.r_cut = r_cut
+        self.add_unknown = add_unknown
 
     def _para_fit(self, X):
         '''
@@ -411,7 +416,9 @@ class EncodedAngle(BaseFeature):
             raise KeyError(msg % self.smoothing)
 
         data = self.convert_input(X)
-        get_index, length, both = get_index_mapping(self._groups, self.form)
+        get_index, length, both = get_index_mapping(self._groups,
+                                                    self.form,
+                                                    self.add_unknown)
         vector = numpy.zeros((length, self.segments))
 
         theta = numpy.linspace(0., numpy.pi, self.segments)
@@ -437,8 +444,7 @@ class EncodedAngle(BaseFeature):
                     try:
                         vector[get_index(eles)] += value * F
                     except KeyError:
-                        # TODO Add option
-                        continue
+                        pass
         return vector.flatten().tolist()
 
 
@@ -499,6 +505,10 @@ class EncodedBond(BaseFeature):
         change the scaling of this method to be O(E^2), O(E), or O(1) for
         2, 1, or 0 respectively (where E is the number of elements).
 
+    add_unknown : boolean, default=False
+        Specifies whether or not to include an extra UNKNOWN count in the
+        feature vector.
+
     Attributes
     ----------
     _element_pairs : set, tuples
@@ -506,7 +516,7 @@ class EncodedBond(BaseFeature):
     '''
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing="norm", start=0.2, end=6.0, slope=20., max_depth=0,
-                 spacing="linear", form=2):
+                 spacing="linear", form=2, add_unknown=False):
         super(EncodedBond, self).__init__(input_type=input_type,
                                           n_jobs=n_jobs)
         self._element_pairs = None
@@ -518,6 +528,7 @@ class EncodedBond(BaseFeature):
         self.max_depth = max_depth
         self.spacing = spacing
         self.form = form
+        self.add_unknown = add_unknown
 
     def _para_fit(self, X):
         '''
@@ -592,7 +603,8 @@ class EncodedBond(BaseFeature):
             raise KeyError(msg % self.spacing)
 
         get_index, length, both = get_index_mapping(self._element_pairs,
-                                                    self.form)
+                                                    self.form,
+                                                    self.add_unknown)
         data = self.convert_input(X)
 
         vector = numpy.zeros((length, self.segments))
@@ -616,8 +628,7 @@ class EncodedBond(BaseFeature):
                 try:
                     vector[get_index(eles)] += value
                 except KeyError:
-                    # TODO Add option
-                    continue
+                    pass
         return vector.flatten().tolist()
 
 

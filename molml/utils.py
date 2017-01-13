@@ -468,10 +468,11 @@ def _get_form_indices(values, depth):
     return res, bool(both)
 
 
-def get_index_mapping(values, depth):
+def get_index_mapping(values, depth, add_unknown):
     if depth < 1:
         # Just a constant value
         return (lambda _: 0), 1, False
+    extra = bool(add_unknown)
     idxs, both = _get_form_indices(values, depth)
     new_values = [tuple(x[i] for i in idxs) for x in values]
     if both:
@@ -484,11 +485,12 @@ def get_index_mapping(values, depth):
 
     def map_func(key):
         key = tuple(key[i] for i in idxs)
-        if both:
-            return mapping[key]
-        else:
-            return mapping[sort_chain(key)]
-    return map_func, len(mapping), both
+        if not both:
+            key = sort_chain(key)
+        if key not in mapping and add_unknown:
+            return -1
+        return mapping[key]
+    return map_func, len(mapping) + extra, both
 
 
 def needs_reversal(chain):

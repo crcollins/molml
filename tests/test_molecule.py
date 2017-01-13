@@ -373,6 +373,24 @@ class EncodedBondTest(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
+    def test_add_unknown(self):
+        a = EncodedBond(add_unknown=True)
+        a.fit([METHANE])
+
+        # This is a cheap test to prevent needing all the values here
+        expected_results = numpy.array([
+            0.09105,  # mean
+            0.231761,  # std
+            0.,  # min
+            1.869012,  # max
+        ])
+        try:
+            m = a.transform([MID])
+            self.assertEqual(m.shape, (1, 300))
+            assert_close_statistics(m, expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
 
 class EncodedAngleTest(unittest.TestCase):
 
@@ -520,6 +538,24 @@ class EncodedAngleTest(unittest.TestCase):
                 assert_close_statistics(m, expected_results)
             except AssertionError as e:
                 self.fail(e)
+
+    def test_add_unknown(self):
+        a = EncodedAngle(add_unknown=True)
+        a.fit([METHANE])
+
+        # This is a cheap test to prevent needing all the values here
+        expected_results = numpy.array([
+            0.106569,  # mean
+            0.443479,  # std
+            0.,  # min
+            6.343512,  # max
+        ])
+        try:
+            m = a.transform([MID])
+            self.assertEqual(m.shape, (1, 500))
+            assert_close_statistics(m, expected_results)
+        except AssertionError as e:
+            self.fail(e)
 
 
 class CoulombMatrixTest(unittest.TestCase):
