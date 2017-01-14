@@ -6,7 +6,7 @@ from scipy.spatial.distance import cdist
 from .base import BaseFeature
 from .utils import get_depth_threshold_mask_connections, get_coulomb_matrix
 from .utils import get_spacing_function, get_smoothing_function
-from .utils import get_element_pairs, cosine_decay
+from .utils import get_element_pairs, cosine_decay, get_angles
 from .utils import get_index_mapping
 
 
@@ -381,6 +381,178 @@ class LocalEncodedBond(BaseFeature):
                     vector[i, get_index(ele2)] += value
                 except KeyError:
                     pass
+        return vector.reshape(len(data.elements), -1)
+
+
+class LocalEncodedAngle(BaseFeature):
+    '''
+    A smoothed histogram of atomic angles.
+
+    This method is similar to EncodedBond but for angles in molecules. This is
+    done by enumerating triplets of atoms and computing the angle between
+    them. The bins are thing smoothed with smoothing functions. This is a
+    slight modification of the EncodedAngle to work with single atoms at a
+    time. This sets the vertex of the angle to be the atom being examined.
+
+    Note: The angles used are 0 to \pi.
+
+    Parameters
+    ----------
+    input_type : string, default='list'
+        Specifies the format the input values will be (must be one of 'list'
+        or 'filename').
+
+    n_jobs : int, default=1
+        Specifies the number of processes to create when generating the
+        features. Positive numbers specify a specifc amount, and numbers less
+        than 1 will use the number of cores the computer has.
+
+    segments : int, default=100
+        The number of bins/segments to use when generating the histogram.
+        Empirically, it has been found that values beyond 50-100 have little
+        benefit.
+
+    smoothing : string or callable, default='norm'
+        A string or callable to use to smooth the histogram values. If a
+        callable is given, it must take just a single argument that is a float.
+        For a list of supported default functions look at SMOOTHING_FUNCTIONS.
+
+    slope : float, default=20.
+        A parameter to tune the smoothing values. This is applied as a
+        multiplication before calling the smoothing function.
+
+    max_depth : int, default=0
+        A parameter to set the maximum geodesic distance to include in the
+        interactions. A value of 0 signifies that all interactions are
+        included.
+
+    form : int, default=2
+        The histogram splitting style to use. This value hese options change
+        the scaling of this method to be O(E^2), O(E), or O(1) for 2, 1 or
+        0 respectively (where E is the number of elements).
+
+    add_unknown : boolean, default=False
+        Specifies whether or not to include an extra UNKNOWN count in the
+        feature vector.
+
+    Attributes
+    ----------
+    _pairs : list
+        A list of all the element pairs in the fit molecules.
+    '''
+    def __init__(self, input_type='list', n_jobs=1, segments=100,
+                 smoothing="norm", slope=20., max_depth=0, r_cut=6.,
+                 form=2, add_unknown=False):
+        super(LocalEncodedAngle, self).__init__(input_type=input_type,
+                                                n_jobs=n_jobs)
+        self._pairs = None
+        self.segments = segments
+        self.smoothing = smoothing
+        self.slope = slope
+        self.max_depth = max_depth
+        self.r_cut = r_cut
+        self.form = form
+        self.add_unknown = add_unknown
+
+    def f_c(self, R):
+        return cosine_decay(R, r_cut=self.r_cut)
+
+    def _para_fit(self, X):
+        '''
+        A single instance of the fit procedure
+
+        This is formulated in a way that the fits can be done completely
+        parallel in a map/reduce fashion.
+
+        Parameters
+        ----------
+        X : object
+            An object to use for the fit
+
+        Returns
+        -------
+        value : set
+            All the element pairs in the molecule
+        '''
+        data = self.convert_input(X)
+        # This is just a cheap way to approximate the actual value
+        return get_element_pairs(data.elements)
+
+    def fit(self, X, y=None):
+        '''
+        Fit the model
+
+        Parameters
+        ----------
+        X : list, shape=(n_samples, )
+            A list of objects to use to fit.
+
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        '''
+        pairs = self.map(self._para_fit, X)
+        self._pairs = set(self.reduce(lambda x, y: set(x) | set(y),
+                                      pairs))
+        return self
+
+    def _para_transform(self, X, y=None):
+        '''
+        A single instance of the transform procedure
+
+        This is formulated in a way that the transformations can be done
+        completely parallel with map.
+
+        Parameters
+        ----------
+        X : object
+            An object to use for the transform
+
+        Returns
+        -------
+        value : array, shape=(n_atoms, len(self._pairs) * self.segments)
+            The features extracted from the molecule
+        '''
+        if self._pairs is None:
+            msg = "This %s instance is not fitted yet. Call 'fit' first."
+            raise ValueError(msg % type(self).__name__)
+
+        smoothing_func = get_smoothing_function(self.smoothing)
+
+        get_index, length, both = get_index_mapping(self._pairs, self.form,
+                                                    self.add_unknown)
+
+        data = self.convert_input(X)
+
+        vector = numpy.zeros((len(data.elements), length,
+                              self.segments))
+
+        theta = numpy.linspace(0., numpy.pi, self.segments)
+        mat = get_depth_threshold_mask_connections(data.connections,
+                                                   max_depth=self.max_depth)
+
+        distances = cdist(data.coords, data.coords)
+        f_c = self.f_c(distances)
+        angles = get_angles(data.coords)
+        for i, ele1 in enumerate(data.elements):
+            for j, ele2 in enumerate(data.elements):
+                if i == j or not mat[i, j]:
+                    continue
+                for k, ele3 in enumerate(data.elements):
+                    if j == k or not mat[j, k]:
+                        continue
+                    if i > k and not both:
+                        continue
+
+                    F = f_c[i, j] * f_c[j, k] * f_c[i, k]
+                    diff = theta - angles[i, j, k]
+                    value = smoothing_func(self.slope * diff)
+                    eles = ele1, ele3
+                    try:
+                        vector[j, get_index(eles)] += value * F
+                    except KeyError:
+                        pass
         return vector.reshape(len(data.elements), -1)
 
 
