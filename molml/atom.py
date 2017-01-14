@@ -233,8 +233,6 @@ class LocalEncodedBond(BaseFeature):
 
     segments : int, default=100
         The number of bins/segments to use when generating the histogram.
-        Empirically, it has been found that values beyond 50-100 have little
-        benefit.
 
     smoothing : string or callable, default='norm'
         A string or callable to use to smooth the histogram values. If a
@@ -409,8 +407,6 @@ class LocalEncodedAngle(BaseFeature):
 
     segments : int, default=100
         The number of bins/segments to use when generating the histogram.
-        Empirically, it has been found that values beyond 50-100 have little
-        benefit.
 
     smoothing : string or callable, default='norm'
         A string or callable to use to smooth the histogram values. If a
