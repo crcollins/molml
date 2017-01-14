@@ -5,7 +5,7 @@ from scipy.spatial.distance import cdist
 
 from .base import BaseFeature
 from .utils import get_depth_threshold_mask_connections, get_coulomb_matrix
-from .utils import ELE_TO_NUM, SMOOTHING_FUNCTIONS, SPACING_FUNCTIONS
+from .utils import ELE_TO_NUM, get_smoothing_function, get_spacing_function
 from .utils import get_element_pairs, cosine_decay, needs_reversal
 from .utils import get_index_mapping, get_angles
 
@@ -409,11 +409,7 @@ class EncodedAngle(BaseFeature):
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)
 
-        try:
-            smoothing_func = SMOOTHING_FUNCTIONS[self.smoothing]
-        except KeyError:
-            msg = "The value '%s' is not a valid smoothing type."
-            raise KeyError(msg % self.smoothing)
+        smoothing_func = get_smoothing_function(self.smoothing)
 
         data = self.convert_input(X)
         get_index, length, both = get_index_mapping(self._groups,
@@ -590,17 +586,8 @@ class EncodedBond(BaseFeature):
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)
 
-        try:
-            smoothing_func = SMOOTHING_FUNCTIONS[self.smoothing]
-        except KeyError:
-            msg = "The value '%s' is not a valid smoothing type."
-            raise KeyError(msg % self.smoothing)
-
-        try:
-            theta_func = SPACING_FUNCTIONS[self.spacing]
-        except KeyError:
-            msg = "The value '%s' is not a valid spacing type."
-            raise KeyError(msg % self.spacing)
+        smoothing_func = get_smoothing_function(self.smoothing)
+        theta_func = get_spacing_function(self.spacing)
 
         get_index, length, both = get_index_mapping(self._element_pairs,
                                                     self.form,

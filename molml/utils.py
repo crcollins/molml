@@ -77,6 +77,22 @@ SPACING_FUNCTIONS = {
 }
 
 
+def get_smoothing_function(key):
+    try:
+        return SMOOTHING_FUNCTIONS[key]
+    except KeyError:
+        msg = "The value '%s' is not a valid smoothing type."
+        raise KeyError(msg % key)
+
+
+def get_spacing_function(key):
+    try:
+        return SPACING_FUNCTIONS[key]
+    except KeyError:
+        msg = "The value '%s' is not a valid spacing type."
+        raise KeyError(msg % key)
+
+
 def get_bond_type(element1, element2, dist):
     '''
     Given a pair of elements and a distance, return the bond order between
