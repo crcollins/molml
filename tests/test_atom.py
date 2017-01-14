@@ -4,6 +4,7 @@ import unittest
 import numpy
 
 from molml.atom import Shell, LocalEncodedBond, LocalCoulombMatrix
+from molml.atom import LocalEncodedAngle
 from molml.atom import BehlerParrinello
 from molml.utils import read_file_data
 
@@ -274,6 +275,94 @@ class LocalEncodedBondTest(unittest.TestCase):
 
     def test_form(self):
         a = LocalEncodedBond(form=0)
+        m = a.fit_transform([METHANE])
+        self.assertEqual(m.shape, (1, 5, 100))
+
+
+class LocalEncodedAngleTest(unittest.TestCase):
+
+    def test_fit(self):
+        a = LocalEncodedAngle()
+        a.fit(ALL_DATA)
+        expected = set([('C', 'C'), ('C', 'H'), ('C', 'N'), ('C', 'O'),
+                        ('H', 'H'), ('H', 'N'), ('H', 'O'), ('N', 'N'),
+                        ('N', 'O'), ('O', 'O')])
+        self.assertEqual(a._pairs, expected)
+
+    def test_transform(self):
+        a = LocalEncodedAngle()
+        a.fit(ALL_DATA)
+        m = a.transform(ALL_DATA)
+        expected_results = numpy.array([42.968775,
+                                        53.28433,
+                                        1250.626658])
+        mm = numpy.array([x.sum() for x in m])
+        try:
+            numpy.testing.assert_allclose(mm, expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_small_to_large(self):
+        a = LocalEncodedAngle()
+        a.fit([METHANE])
+
+        # This is a cheap test to prevent needing all the values here
+        expected_results = numpy.array([
+            0.005350052647,  # mean
+            0.036552192752,  # std
+            0.,              # min
+            0.614984152986,  # max
+            9.630094765591,  # sum
+        ])
+        try:
+            m = a.transform([MID])
+            val = numpy.array([
+                m.mean(),
+                m.std(),
+                m.min(),
+                m.max(),
+                m.sum(),
+            ])
+            numpy.testing.assert_allclose(val, expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_transform_max_depth1(self):
+        a = LocalEncodedAngle(max_depth=1)
+        a.fit(ALL_DATA)
+        m = a.transform(ALL_DATA)
+        expected_results = numpy.array([13.078022,
+                                        7.028573,
+                                        146.255683])
+        mm = numpy.array([x.sum() for x in m])
+        try:
+            numpy.testing.assert_allclose(mm, expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_transform_before_fit(self):
+        a = LocalEncodedAngle()
+        with self.assertRaises(ValueError):
+            a.transform(ALL_DATA)
+
+    def test_transform_invalid_smoothing(self):
+        a = LocalEncodedAngle(smoothing='not real"')
+        with self.assertRaises(KeyError):
+            a.fit_transform(ALL_DATA)
+
+    def test_add_unknown(self):
+        a = LocalEncodedAngle(add_unknown=True)
+        a.fit([METHANE])
+        m = a.transform([MID])
+        self.assertEqual(m.shape, (1, 9, 300))
+
+    def test_form1(self):
+        a = LocalEncodedAngle(form=1)
+        m = a.fit_transform([METHANE])
+        self.assertEqual(m.shape, (1, 5, 200))
+
+    def test_form0(self):
+        a = LocalEncodedAngle(form=0)
         m = a.fit_transform([METHANE])
         self.assertEqual(m.shape, (1, 5, 100))
 
