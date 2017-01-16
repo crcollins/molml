@@ -418,10 +418,10 @@ class EncodedAngleTest(unittest.TestCase):
         a.fit([METHANE])
         # This is a cheap test to prevent needing all the values here
         expected_results = numpy.array([
-            0.107422,  # mean
-            0.426748,  # std
+            0.116708,  # mean
+            0.450738,  # std
             0.,  # min
-            3.133735,  # max
+            3.043729,  # max
         ])
         try:
             m = a.fit_transform([METHANE])
@@ -434,10 +434,10 @@ class EncodedAngleTest(unittest.TestCase):
         a.fit([MID])
         # This is a cheap test to prevent needing all the values here
         expected_results = numpy.array([
-            0.023872,  # mean
-            0.206068,  # std
+            0.025935,  # mean
+            0.21795,  # std
             0.,  # min
-            3.133735,  # max
+            3.043729,  # max
         ])
         try:
             m = a.transform([METHANE])
@@ -450,8 +450,8 @@ class EncodedAngleTest(unittest.TestCase):
         a.fit([METHANE])
         # This is a cheap test to prevent needing all the values here
         expected_results = numpy.array([
-            0.015827,  # mean
-            0.110666,  # std
+            0.018603,  # mean
+            0.130329,  # std
             0.,  # min
             1.568823,  # max
         ])
@@ -465,10 +465,10 @@ class EncodedAngleTest(unittest.TestCase):
         a = EncodedAngle()
         # This is a cheap test to prevent needing all the values here
         expected_results = numpy.array([
-            0.107422,  # mean
-            0.426748,  # std
+            0.116708,  # mean
+            0.450738,  # std
             0.,  # min
-            3.133735,  # max
+            3.043729,  # max
         ])
         try:
             m = a.fit_transform([METHANE])
@@ -486,10 +486,10 @@ class EncodedAngleTest(unittest.TestCase):
 
         # This is a cheap test to prevent needing all the values here
         expected_results = numpy.array([
-            1.560282,  # mean
-            2.549493,  # std
-            0.,  # min
-            9.898244,  # max
+            1.5891686,  # mean
+            2.5907034,  # std
+            0.,         # min
+            9.8982443,  # max
         ])
         try:
             m = a.fit_transform([METHANE])
@@ -507,10 +507,10 @@ class EncodedAngleTest(unittest.TestCase):
         a = EncodedAngle(max_depth=3)
         # This is a cheap test to prevent needing all the values here
         data = (
-            #       mean                std      min      max
-            (-1, [0.31265666449, 1.0742506437, 0., 33.0844650028]),
-            (1, [0.036564, 0.366865, 0., 14.170237]),
-            (3, [0.20318, 0.869599, 0., 29.749494]),
+            #       mean          std     min      max
+            (-1, [0.326294631, 1.2002184, 0.0, 33.08446500]),
+            (1, [0.042479715, 0.4281721, 0.0, 14.17023748]),
+            (3, [0.215424364, 0.9898780, 0.0, 29.74949429]),
 
         )
         for max_depth, expected in data:
@@ -525,9 +525,9 @@ class EncodedAngleTest(unittest.TestCase):
     def test_form(self):
         data = (
             #    mean         std   min     max
-            (2, [0.143229, 0.53825, 0., 4.395692], 300),
-            (1, [0.214844, 0.647444, 0., 4.395692], 200),
-            (0, [4.296878e-001, 9.856206e-001, 0., 5.747656e+000], 100),
+            (2, [0.155611, 0.581838, 0., 4.395692], 120),
+            (1, [0.233417, 0.699744, 0., 4.395692], 80),
+            (0, [4.668338e-001, 1.090704e+000, 0., 5.747656e+000], 40),
         )
         for form, expected, size in data:
             a = EncodedAngle(form=form)
@@ -545,14 +545,14 @@ class EncodedAngleTest(unittest.TestCase):
 
         # This is a cheap test to prevent needing all the values here
         expected_results = numpy.array([
-            0.106569,  # mean
-            0.443479,  # std
+            0.117057,  # mean
+            0.510819,  # std
             0.,  # min
             6.343512,  # max
         ])
         try:
             m = a.transform([MID])
-            self.assertEqual(m.shape, (1, 500))
+            self.assertEqual(m.shape, (1, 200))
             assert_close_statistics(m, expected_results)
         except AssertionError as e:
             self.fail(e)

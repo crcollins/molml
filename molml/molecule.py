@@ -282,8 +282,10 @@ class EncodedAngle(BaseFeature):
         features. Positive numbers specify a specifc amount, and numbers less
         than 1 will use the number of cores the computer has.
 
-    segments : int, default=100
+    segments : int, default=40
         The number of bins/segments to use when generating the histogram.
+        Empirically, it has been found that there is no benefit to having more
+        than 40-50 segments.
 
     smoothing : string or callable, default='norm'
         A string or callable to use to smooth the histogram values. If a
@@ -317,7 +319,7 @@ class EncodedAngle(BaseFeature):
     _groups : set, tuples
         A list of all the groups (element chains) in the fit molecules.
     '''
-    def __init__(self, input_type='list', n_jobs=1, segments=100,
+    def __init__(self, input_type='list', n_jobs=1, segments=40,
                  smoothing="norm", slope=20., max_depth=0,
                  form=3, r_cut=6., add_unknown=False):
         super(EncodedAngle, self).__init__(input_type=input_type,
