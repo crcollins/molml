@@ -73,8 +73,8 @@ class AtomKernel(BaseFeature):
                 The kernel matrix between the two sets of molecules
         '''
         kernel = numpy.zeros((len(b_feats), len(self._features)))
-        zipped = zip(self._features, self._numbers)
         for i, (x, x_nums) in enumerate(zip(b_feats, b_nums)):
+            zipped = zip(self._features, self._numbers)
             for j, (y, y_nums) in enumerate(zipped):
                 if symmetric and j > i:
                     continue
