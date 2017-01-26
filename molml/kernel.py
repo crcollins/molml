@@ -95,17 +95,25 @@ class AtomKernel(BaseFeature):
                     kernel[j, i] = kernel[i, j]
         return kernel
 
+    def _para_get_numbers(self, X):
+        data = self.convert_input(X)
+        numbers = data.numbers
+        return numbers
+
     def fit(self, X, y=None):
         if self.transformer is None:
-            self._features = X
-            self._numbers = None
+            self._features, self._numbers = zip(*X)
         else:
             self._features = self.transformer.fit_transform(X, y)
-            self._numbers = None
+            self._numbers = self.map(self._para_get_numbers, X)
 
-    def transform(self, X):
-        nums = None
-        return self.compute_kernel(X, nums)
+    def transform(self, X, y=None):
+        if self.transformer is None:
+            features, numbers = zip(*X)
+        else:
+            features = self.transformer.transform(X, y)
+            numbers = self.map(self._para_get_numbers, X)
+        return self.compute_kernel(features, numbers)
 
     def fit_transform(self, X, y=None):
         self.fit(X)
