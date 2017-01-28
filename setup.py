@@ -6,8 +6,18 @@ try:
 except ImportError:
     from distutils.core import setup
 
-with open('README.md', 'r') as f:
-    LONG_DESCRIPTION = f.read()
+try:
+    import pypandoc
+    try:
+        LONG_DESCRIPTION = pypandoc.convert('README.md', 'rst')
+    except:
+        # Catch all exceptions because FileNotFoundError is only in 3.x
+        from pypandoc.pandoc_download import download_pandoc
+        download_pandoc()
+        LONG_DESCRIPTION = pypandoc.convert('README.md', 'rst')
+except ImportError:
+    with open('README.md', 'r') as f:
+        LONG_DESCRIPTION = f.read()
 
 setup(
     name='molml',
