@@ -201,6 +201,10 @@ class AtomKernel(BaseFeature):
         kernel : array, shape=(n_samples, n_samples_fit)
             The resulting kernel matrix
         '''
+        if self._features is None:
+            msg = "This %s instance is not fitted yet. Call 'fit' first."
+            raise ValueError(msg % type(self).__name__)
+
         if self.transformer is None:
             features, numbers = zip(*X)
         else:

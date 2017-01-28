@@ -42,6 +42,11 @@ class AtomKernelTest(unittest.TestCase):
         self.assertEqual(ALL_NUMS, list(a._numbers))
         self.assertEqual(list(ALL_FEATURES), list(a._features))
 
+    def test_transform_before_fit(self):
+        a = AtomKernel()
+        with self.assertRaises(ValueError):
+            a.transform(ALL)
+
     def test_transfrom_features(self):
         trans = Shell(input_type="filename")
         feats = trans.fit_transform(ALL)
