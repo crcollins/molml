@@ -56,6 +56,12 @@ class AtomKernel(BaseFeature):
     self._numbers : numpy.array, shape=(n_mols, (n_atoms))
         A numpy array of numpy arrays (that may be different lengths) that
         stores all the atomic numbers for the training atoms.
+
+    Raises
+    ------
+    ValueError
+        If the input_type of the transformer and the input_type keyword given
+        do not match.
     '''
     def __init__(self, input_type=None, n_jobs=1, gamma=1e-7,
                  transformer=None, same_element=True):
@@ -200,6 +206,11 @@ class AtomKernel(BaseFeature):
         -------
         kernel : array, shape=(n_samples, n_samples_fit)
             The resulting kernel matrix
+
+        Raises
+        ------
+            ValueError
+                If the transformer has not been fit.
         '''
         if self._features is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."

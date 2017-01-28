@@ -190,6 +190,11 @@ class Shell(BaseFeature):
         -------
         value : list, shape=(n_atoms, len(self._elements))
             The features extracted from the molecule
+
+        Raises
+        ------
+        ValueError
+            If the transformer has not been fit.
         '''
         if self._elements is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
@@ -351,6 +356,11 @@ class LocalEncodedBond(BaseFeature):
         -------
         value : array, shape=(n_atoms, len(self._elements) * self.segments)
             The features extracted from the molecule
+
+        Raises
+        ------
+        ValueError
+            If the transformer has not been fit.
         '''
         if self._elements is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
@@ -513,6 +523,11 @@ class LocalEncodedAngle(BaseFeature):
         -------
         value : array, shape=(n_atoms, len(self._pairs) * self.segments)
             The features extracted from the molecule
+
+        Raises
+        ------
+        ValueError
+            If the transformer has not been fit.
         '''
         if self._pairs is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
@@ -894,6 +909,11 @@ class BehlerParrinello(BaseFeature):
         -------
         value : array
             The features extracted from the molecule
+
+        Raises
+        ------
+        ValueError
+            If the transformer has not been fit.
         '''
         if self._elements is None or self._element_pairs is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."

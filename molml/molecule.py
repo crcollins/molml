@@ -247,6 +247,11 @@ class Connectivity(BaseFeature):
         -------
         value : list
             The features extracted from the molecule
+
+        Raises
+        ------
+        ValueError
+            If the transformer has not been fit.
         '''
         if self._base_chains is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
@@ -408,6 +413,11 @@ class EncodedAngle(BaseFeature):
         -------
         value : list
             The features extracted from the molecule
+
+        Raises
+        ------
+        ValueError
+            If the transformer has not been fit.
         '''
         if self._groups is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
@@ -585,6 +595,11 @@ class EncodedBond(BaseFeature):
         -------
         value : list
             The features extracted from the molecule
+
+        Raises
+        ------
+        ValueError
+            If the transformer has not been fit.
         '''
         if self._element_pairs is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
@@ -731,6 +746,14 @@ class CoulombMatrix(BaseFeature):
         -------
         value : array
             The features extracted from the molecule
+
+        Raises
+        ------
+        ValueError
+            If the transformer has not been fit.
+
+        ValueError
+            If the size of the transforming molecules are larger than the fit.
         '''
         if self._max_size is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
@@ -886,6 +909,15 @@ class BagOfBonds(BaseFeature):
         -------
         value : array
             The features extracted from the molecule
+
+        Raises
+        ------
+        ValueError
+            If the transformer has not been fit.
+
+        ValueError
+            If the size of the transforming molecules have more values in at
+            least one bag than the same bag from the are larger than the fit.
         '''
         if self._bag_sizes is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."

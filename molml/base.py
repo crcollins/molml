@@ -144,6 +144,11 @@ class BaseFeature(object):
         -------
         values : Object
             An object that allows the lazy evaluation of different properties
+
+        Raises
+        ------
+        ValueError
+            If the input_type given is not allowed.
         '''
         connections = None
         if self.input_type == "list":
