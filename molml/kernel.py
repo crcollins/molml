@@ -4,6 +4,9 @@ from scipy.spatial.distance import cdist
 from .base import BaseFeature
 
 
+__all__ = ["AtomKernel"]
+
+
 class AtomKernel(BaseFeature):
     '''
     Computes a kernel between molecules using atom similarity

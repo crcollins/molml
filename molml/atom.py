@@ -10,6 +10,10 @@ from .utils import get_element_pairs, cosine_decay, get_angles
 from .utils import get_index_mapping
 
 
+__all__ = ["Shell", "LocalEncodedBond", "LocalEncodedAngle",
+           "LocalCoulombMatrix", "BehlerParrinello"]
+
+
 class Shell(BaseFeature):
     '''
     A feature that counts the number of elements in a distance shell from the
