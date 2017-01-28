@@ -149,10 +149,12 @@ class AtomKernel(BaseFeature):
             Returns the instance itself.
         '''
         if self.transformer is None:
-            self._features, self._numbers = zip(*X)
+            feats, numbers = zip(*X)
+            self._features = numpy.array(feats)
+            self._numbers = numpy.array(numbers)
         else:
             self._features = self.transformer.fit_transform(X, y)
-            self._numbers = self.map(self._para_get_numbers, X)
+            self._numbers = numpy.array(self.map(self._para_get_numbers, X))
         return self
 
     def transform(self, X, y=None):
