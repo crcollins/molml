@@ -113,17 +113,15 @@ class AtomKernel(BaseFeature):
                 if symmetric and j > i:
                     continue
 
+                block = cdist(x, y, 'sqeuclidean')
+                block *= -self.gamma
+                numpy.exp(block, block)
                 # Mask to make sure only elements of the same type are
                 # compared
                 if self.same_element:
                     mask = numpy.equal.outer(x_nums, y_nums)
-                else:
-                    mask = numpy.ones((len(x_nums), len(y_nums)))
-
-                block = cdist(x, y, 'sqeuclidean')
-                block *= -self.gamma
-                numpy.exp(block, block)
-                kernel[i, j] = (block * mask).sum()
+                    block *= mask
+                kernel[i, j] = block.sum()
 
                 if symmetric:
                     kernel[j, i] = kernel[i, j]
