@@ -57,7 +57,7 @@ NOTE: Due to an issue with multiprocess (a pathos dependency), the minimum versi
 Install
 =======
 
-Once the dependeicies are installed, the package can be installed with pip.
+Once the dependencies are installed, the package can be installed with pip.
 
     $ pip install molml
 
