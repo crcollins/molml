@@ -14,10 +14,14 @@ class AtomKernel(BaseFeature):
 
     Parameters
     ----------
-    input_type : string, default='list'
+    input_type : string, default=None
         Specifies the format the input values will be (must be one of 'list'
         or 'filename'). Note: This input type depends on the value from
-        transformer. See Below for more details.
+        transformer. See Below for more details. If this value is None, then
+        it will take the value from transformer, or if there is no transformer
+        then it will default to 'list'. If a value is given and it does not
+        match the value given for the transformer, then this will raise a
+        ValueError.
 
     n_jobs : int, default=1
         Specifies the number of processes to create when generating the
@@ -50,10 +54,27 @@ class AtomKernel(BaseFeature):
         A numpy array of numpy arrays (that may be different lengths) that
         stores all the atomic numbers for the training atoms.
     '''
-    def __init__(self, input_type='list', n_jobs=1, gamma=1e-7,
+    def __init__(self, input_type=None, n_jobs=1, gamma=1e-7,
                  transformer=None, same_element=True):
         super(AtomKernel, self).__init__(input_type=input_type, n_jobs=n_jobs)
         self.gamma = gamma
+        if self.input_type is None:
+            if transformer is not None:
+                self.input_type = transformer.input_type
+            else:
+                # Standard default
+                self.input_type = 'list'
+        else:
+            if transformer is not None:
+                if self.input_type != transformer.input_type:
+                    string = "The input_type for transformer (%r) does not "
+                    string += "match the input_type of the atom kernel (%r)"
+                    raise ValueError(string % (transformer.input_type,
+                                               self.input_type))
+            else:
+                # input_type is ignored
+                pass
+
         self.transformer = transformer
         self.same_element = same_element
         self._features = None

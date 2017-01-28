@@ -37,7 +37,7 @@ class AtomKernelTest(unittest.TestCase):
 
     def test_fit_transformer(self):
         trans = Shell(input_type="filename")
-        a = AtomKernel(input_type="filename", transformer=trans)
+        a = AtomKernel(transformer=trans)
         a.fit(ALL)
         self.assertEqual(ALL_NUMS, list(a._numbers))
         self.assertEqual(list(ALL_FEATURES), list(a._features))
@@ -56,7 +56,7 @@ class AtomKernelTest(unittest.TestCase):
 
     def test_transform_transformer(self):
         trans = Shell(input_type="filename")
-        a = AtomKernel(input_type="filename", transformer=trans)
+        a = AtomKernel(transformer=trans)
         a.fit(ALL)
         res = a.transform(ALL)
         try:
@@ -77,7 +77,7 @@ class AtomKernelTest(unittest.TestCase):
 
     def test_fit_transform_transformer(self):
         trans = Shell(input_type="filename")
-        a = AtomKernel(input_type="filename", transformer=trans)
+        a = AtomKernel(transformer=trans)
         res = a.fit_transform(ALL)
         try:
             numpy.testing.assert_array_almost_equal(KERNEL, res)
@@ -88,8 +88,7 @@ class AtomKernelTest(unittest.TestCase):
         # Set depth=2 so the comparison is not trivial
         trans = Shell(input_type="filename", depth=2)
         # Set gamma=1 to make the differences more noticeable
-        a = AtomKernel(input_type="filename", transformer=trans,
-                       same_element=False, gamma=1.)
+        a = AtomKernel(transformer=trans, same_element=False, gamma=1.)
         res = a.fit_transform(ALL)
         expected = numpy.array([[17.00000033, 14.58016505],
                                 [14.58016505, 32.76067832]])
@@ -97,6 +96,23 @@ class AtomKernelTest(unittest.TestCase):
             numpy.testing.assert_array_almost_equal(expected, res)
         except AssertionError as e:
             self.fail(e)
+
+    def test_default_input_type(self):
+        a = AtomKernel()
+        self.assertEqual("list", a.input_type)
+
+    def test_input_type_mismatch(self):
+        trans = Shell(input_type="filename")
+        with self.assertRaises(ValueError):
+            AtomKernel(input_type="list", transformer=trans)
+
+    def test_input_type_ignored(self):
+        a = AtomKernel(input_type="filename")
+        self.assertEqual("filename", a.input_type)
+
+    def test_input_type_match(self):
+        trans = Shell(input_type="filename")
+        AtomKernel(input_type="filename", transformer=trans)
 
 
 if __name__ == '__main__':
