@@ -94,10 +94,11 @@ def get_spacing_function(key):
 
 
 def get_bond_type(element1, element2, dist):
-    '''
-    Given a pair of elements and a distance, return the bond order between
-    them. If there is no bond, return None.
-    '''
+    """
+    Get the bond type between two elements based on their distance.
+
+    If there is no bond, return None.
+    """
     for key in TYPE_ORDER[::-1]:
         try:
             cutoff = BOND_LENGTHS[element1][key] + BOND_LENGTHS[element2][key]
@@ -108,8 +109,10 @@ def get_bond_type(element1, element2, dist):
 
 
 def get_connections(elements, coords):
-    '''
-    Returns a dictonary edge list. Each value is is a tuple of the index of
+    """
+    Return a dictonary edge list.
+
+    Each value is is a tuple of the index of
     the connecting atom and the bond order as a string. Where the bond order
     is one of ['1', 'Ar', '2', '3'].
 
@@ -119,7 +122,7 @@ def get_connections(elements, coords):
         1: {0: '1'},
         2: {0: '3'},
     }
-    '''
+    """
     dist_mat = cdist(coords, coords)
 
     connections = {i: {} for i in range(len(elements))}
@@ -140,7 +143,7 @@ def get_connections(elements, coords):
 
 def read_file_data(path):
     """
-    Determines the file type and call the correct parser
+    Determine the file type and call the correct parser.
 
     The accepted file types are .out and .xyz files.
     """
@@ -154,7 +157,7 @@ def read_file_data(path):
 
 def read_out_data(path):
     """
-    Reads a file and extracts the molecule's geometry
+    Read an out and extract the molecule's geometry.
 
     The file should be in the format
     ele0 x0 y0 z0
@@ -176,7 +179,7 @@ def read_out_data(path):
 
 def read_xyz_data(path):
     """
-    Reads an xyz file and extracts the molecule's geometry
+    Read an xyz file and extract the molecule's geometry.
 
     The file should be in the format
     num_atoms
@@ -209,13 +212,15 @@ def get_depth_threshold_mask_connections(connections, max_depth=1):
 
 
 def get_depth_threshold_mask(mat, max_depth=1):
-    '''
+    """
+    Compute a depth threshold mask based on an adjacency matrix.
+
     Given a connectivity matrix (either strings or ints), return a mask that is
     True at [i,j] if there exists a path from i to j that is of length
     `max_depth` or fewer.
     This is done by repeated matrix multiplication of the connectivity matrix.
     If `max_depth` is less than 1, this will return all True array.
-    '''
+    """
     if max_depth < 1:
         temp = numpy.ones(mat.shape).astype(bool)
         return numpy.array(temp)
@@ -230,7 +235,7 @@ def get_depth_threshold_mask(mat, max_depth=1):
 
 
 class LazyValues(object):
-    '''
+    """
     An object to store molecule graph properties in a lazy fashion.
 
     This object allows only needing to compute different molecule graph
@@ -269,7 +274,7 @@ class LazyValues(object):
     elements : array-like, shape=(n_atoms, )
         The element symbols of all the atoms. If the initialized value for this
         was None, then this will be computed from the numbers.
-    '''
+    """
     def __init__(self, connections=None, coords=None, numbers=None,
                  elements=None):
         self._connections = connections
@@ -309,8 +314,8 @@ class LazyValues(object):
 
 
 def get_coulomb_matrix(numbers, coords, alpha=1, use_decay=False):
-    '''
-    Return the coulomb matrix for the given coords and numbers
+    """
+    Return the coulomb matrix for the given coords and numbers.
 
     C_ij = Z_i Z_j / | r_i - r_j |
     C_ii = 0.5 Z_i ** 2.4
@@ -335,7 +340,7 @@ def get_coulomb_matrix(numbers, coords, alpha=1, use_decay=False):
     -------
     top : array, shape=(n_atoms, n_atoms)
         The coulomb matrix
-    '''
+    """
     top = numpy.outer(numbers, numbers).astype(numpy.float64)
     r = cdist(coords, coords)
     if use_decay:
@@ -353,8 +358,8 @@ def get_coulomb_matrix(numbers, coords, alpha=1, use_decay=False):
 
 
 def get_element_pairs(elements):
-    '''
-    Extract all the element pairs in a molecule
+    """
+    Extract all the element pairs in a molecule.
 
     Parameters
     ----------
@@ -365,7 +370,7 @@ def get_element_pairs(elements):
     -------
     value : list
         All the element pairs in the molecule
-    '''
+    """
     counts = {}
     for ele in elements:
         if ele not in counts:
@@ -387,8 +392,8 @@ def get_element_pairs(elements):
 
 
 def deslugify(string):
-    '''
-    Converts a string to a feature name and its parameters
+    """
+    Convert a string to a feature name and its parameters.
 
     Parameters
     ----------
@@ -402,7 +407,7 @@ def deslugify(string):
 
         final_params : dict
             A dictonary of the feature parameters.
-    '''
+    """
     parts = string.split('__')
     name = parts[0]
     params = parts[1:]
@@ -428,8 +433,8 @@ def deslugify(string):
 
 
 def cosine_decay(R, r_cut=6.):
-    '''
-    Compute all the cutoff distances
+    r"""
+    Compute all the cutoff distances.
 
     The cutoff is defined as
 
@@ -450,15 +455,15 @@ def cosine_decay(R, r_cut=6.):
     -------
     values : array, shape=(N_atoms, N_atoms)
         The new distance matrix with the cutoff function applied
-    '''
+    """
     values = 0.5 * (numpy.cos(numpy.pi * R / r_cut) + 1)
     values[R > r_cut] = 0
     return values
 
 
 def _get_form_indices(values, depth):
-    '''
-    '''
+    """
+    """
     if depth < 1:
         return [], False
 
@@ -510,8 +515,8 @@ def get_index_mapping(values, depth, add_unknown):
 
 
 def needs_reversal(chain):
-    '''
-    Determine if the chain needs to be reversed
+    """
+    Determine if the chain needs to be reversed.
 
     This is to set the chains such that they are in a canonical ordering
 
@@ -524,7 +529,7 @@ def needs_reversal(chain):
     -------
     needs_flip : bool
         Whether or not the chain needs to be reversed
-    '''
+    """
     x = len(chain)
     if x == 1:
         first = 0
@@ -555,8 +560,8 @@ def sort_chain(chain):
 
 
 def get_angles(coords):
-    '''
-    Get the angles between all triples of coords
+    r"""
+    Get the angles between all triples of coords.
 
     The resulting values are [0, \pi] and all invalid values are nans.
 
@@ -569,7 +574,7 @@ def get_angles(coords):
     -------
         res : numpy.array, shape=(n_atoms, n_atoms, n_atoms)
             An array the angles of all triples.
-    '''
+    """
     diffs = coords - coords[:, None]
     lengths = numpy.linalg.norm(diffs, axis=2)
     with numpy.errstate(divide='ignore', invalid='ignore'):

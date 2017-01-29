@@ -8,8 +8,8 @@ __all__ = ("AtomKernel", )
 
 
 class AtomKernel(BaseFeature):
-    '''
-    Computes a kernel between molecules using atom similarity
+    """
+    Computes a kernel between molecules using atom similarity.
 
     This kernel comes with the benefit that because it is atom-wise, it stays
     size consistent. So, for extensive properties this should properly scale
@@ -62,7 +62,7 @@ class AtomKernel(BaseFeature):
     ValueError
         If the input_type of the transformer and the input_type keyword given
         do not match.
-    '''
+    """
     def __init__(self, input_type=None, n_jobs=1, gamma=1e-7,
                  transformer=None, same_element=True):
         super(AtomKernel, self).__init__(input_type=input_type, n_jobs=n_jobs)
@@ -90,8 +90,8 @@ class AtomKernel(BaseFeature):
         self._numbers = None
 
     def compute_kernel(self, b_feats, b_nums, symmetric=False):
-        '''
-        Compute a Gaussian kernel between molecules based on atom features
+        """
+        Compute a Gaussian kernel between molecules based on atom features.
 
         Parameters
         ----------
@@ -111,7 +111,7 @@ class AtomKernel(BaseFeature):
         -------
             kernel : numpy.array, shape=(n_molecules_b, n_molecules_fit)
                 The kernel matrix between the two sets of molecules
-        '''
+        """
         kernel = numpy.zeros((len(b_feats), len(self._features)))
         for i, (x, x_nums) in enumerate(zip(b_feats, b_nums)):
             zipped = zip(self._features, self._numbers)
@@ -134,8 +134,8 @@ class AtomKernel(BaseFeature):
         return kernel
 
     def _para_get_numbers(self, X):
-        '''
-        Inner parallel function to collect the atomic numbers of a molecule
+        """
+        Inner parallel function to collect the atomic numbers of a molecule.
 
         This is formulated in a way that it can easily be done in a map/reduce
         fashion.
@@ -149,14 +149,14 @@ class AtomKernel(BaseFeature):
         -------
         numbers : list
             A list of the atomic numbers in the molecule.
-        '''
+        """
         data = self.convert_input(X)
         numbers = data.numbers
         return numbers
 
     def fit(self, X, y=None):
-        '''
-        Fit the model
+        """
+        Fit the model.
 
         If there is no self.transformer, then this assumes that the input is
         a list of (features, numbers) pairs where features is a numpy array of
@@ -175,7 +175,7 @@ class AtomKernel(BaseFeature):
         -------
         self : object
             Returns the instance itself.
-        '''
+        """
         if self.transformer is None:
             feats, numbers = zip(*X)
             self._features = numpy.array(feats)
@@ -186,8 +186,8 @@ class AtomKernel(BaseFeature):
         return self
 
     def transform(self, X, y=None):
-        '''
-        Transform features/molecules into a kernel matrix
+        """
+        Transform features/molecules into a kernel matrix.
 
         If there is no self.transformer, then this assumes that the input is
         a list of (features, numbers) pairs where features is a numpy array of
@@ -211,7 +211,7 @@ class AtomKernel(BaseFeature):
         ------
             ValueError
                 If the transformer has not been fit.
-        '''
+        """
         if self._features is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)
@@ -224,8 +224,8 @@ class AtomKernel(BaseFeature):
         return self.compute_kernel(features, numbers)
 
     def fit_transform(self, X, y=None):
-        '''
-        A slightly cheaper way of fitting and then transforming
+        """
+        A slightly cheaper way of fitting and then transforming.
 
         This benefit comes from the resulting kernel matrix being symmetric.
         Meaning, that only half of it has to be computed.
@@ -239,7 +239,7 @@ class AtomKernel(BaseFeature):
         -------
         kernel : array, shape=(n_samples, n_samples)
             The resulting kernel matrix
-        '''
+        """
         self.fit(X)
         return self.compute_kernel(self._features, self._numbers,
                                    symmetric=True)

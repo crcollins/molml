@@ -15,7 +15,7 @@ __all__ = ("Shell", "LocalEncodedBond", "LocalEncodedAngle",
 
 
 class Shell(BaseFeature):
-    '''
+    """
     A feature that counts the number of elements in a distance shell from the
     starting atom. This is similar to the features developed in Qu et. al.
     with the exception that it is atom-based rather than bond-based.
@@ -52,7 +52,7 @@ class Shell(BaseFeature):
     ----------
     _elements : set
         All the elements/types that are in the fit molecules.
-    '''
+    """
     def __init__(self, input_type='list', n_jobs=1, depth=1,
                  use_coordination=False, add_unknown=False):
         super(Shell, self).__init__(input_type=input_type, n_jobs=n_jobs)
@@ -62,7 +62,7 @@ class Shell(BaseFeature):
         self._elements = None
 
     def _loop_depth(self, start, connections):
-        '''
+        """
         Loop over the depth number expanding chains. Only keep the elements
         in the last shell.
 
@@ -78,7 +78,7 @@ class Shell(BaseFeature):
         -------
         limit : list
             A list of index values that are at the given depth.
-        '''
+        """
         # This is just a slightly modified breadth-first search
         visited = {start: 1}
         frontier = [start]
@@ -99,9 +99,8 @@ class Shell(BaseFeature):
         return limit
 
     def _tally_limits(self, limits, elements, connections=None):
-        '''
-        Tally all the limit values and return a dictonary with all the counts
-        of the types.
+        """
+        Tally limit values and return a dictonary with counts of the types.
 
         Parameters
         ----------
@@ -118,7 +117,7 @@ class Shell(BaseFeature):
         -------
         counts : dict, element->int
             Totals of the number of each type of element
-        '''
+        """
         counts = {}
         for x in limits:
             ele = elements[x]
@@ -130,8 +129,8 @@ class Shell(BaseFeature):
         return counts
 
     def _para_fit(self, X):
-        '''
-        A single instance of the fit procedure
+        """
+        A single instance of the fit procedure.
 
         This is formulated in a way that the fits can be done completely
         parallel in a map/reduce fashion.
@@ -145,7 +144,7 @@ class Shell(BaseFeature):
         -------
         value : set
             All the elements in the molecule
-        '''
+        """
         data = self.convert_input(X)
         # This is just a cheap way to approximate the actual value
         elements = data.elements
@@ -156,8 +155,8 @@ class Shell(BaseFeature):
         return set(elements)
 
     def fit(self, X, y=None):
-        '''
-        Fit the model
+        """
+        Fit the model.
 
         Parameters
         ----------
@@ -168,15 +167,15 @@ class Shell(BaseFeature):
         -------
         self : object
             Returns the instance itself.
-        '''
+        """
         results = self.map(self._para_fit, X)
         self._elements = set(self.reduce(lambda x, y: set(x) | set(y),
                                          results))
         return self
 
     def _para_transform(self, X):
-        '''
-        A single instance of the transform procedure
+        """
+        A single instance of the transform procedure.
 
         This is formulated in a way that the transformations can be done
         completely parallel with map.
@@ -195,7 +194,7 @@ class Shell(BaseFeature):
         ------
         ValueError
             If the transformer has not been fit.
-        '''
+        """
         if self._elements is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)
@@ -220,7 +219,7 @@ class Shell(BaseFeature):
 
 
 class LocalEncodedBond(BaseFeature):
-    '''
+    """
     A smoothed histogram of atomic distances.
 
     This is a method to generallize the idea of bond counting. Instead of
@@ -283,7 +282,7 @@ class LocalEncodedBond(BaseFeature):
     ----------
     _elements : list
         A list of all the elements in the fit molecules.
-    '''
+    """
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing="norm", start=0.2, end=6.0, slope=20., max_depth=0,
                  spacing="linear", form=1, add_unknown=False):
@@ -301,8 +300,8 @@ class LocalEncodedBond(BaseFeature):
         self.add_unknown = add_unknown
 
     def _para_fit(self, X):
-        '''
-        A single instance of the fit procedure
+        """
+        A single instance of the fit procedure.
 
         This is formulated in a way that the fits can be done completely
         parallel in a map/reduce fashion.
@@ -316,14 +315,14 @@ class LocalEncodedBond(BaseFeature):
         -------
         value : set
             All the element pairs in the molecule
-        '''
+        """
         data = self.convert_input(X)
         # This is just a cheap way to approximate the actual value
         return set(data.elements)
 
     def fit(self, X, y=None):
-        '''
-        Fit the model
+        """
+        Fit the model.
 
         Parameters
         ----------
@@ -334,15 +333,15 @@ class LocalEncodedBond(BaseFeature):
         -------
         self : object
             Returns the instance itself.
-        '''
+        """
         elements = self.map(self._para_fit, X)
         self._elements = set(self.reduce(lambda x, y: set(x) | set(y),
                                          elements))
         return self
 
     def _para_transform(self, X, y=None):
-        '''
-        A single instance of the transform procedure
+        """
+        A single instance of the transform procedure.
 
         This is formulated in a way that the transformations can be done
         completely parallel with map.
@@ -361,7 +360,7 @@ class LocalEncodedBond(BaseFeature):
         ------
         ValueError
             If the transformer has not been fit.
-        '''
+        """
         if self._elements is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)
@@ -397,7 +396,7 @@ class LocalEncodedBond(BaseFeature):
 
 
 class LocalEncodedAngle(BaseFeature):
-    '''
+    r"""
     A smoothed histogram of atomic angles.
 
     This method is similar to EncodedBond but for angles in molecules. This is
@@ -449,7 +448,7 @@ class LocalEncodedAngle(BaseFeature):
     ----------
     _pairs : list
         A list of all the element pairs in the fit molecules.
-    '''
+    """
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing="norm", slope=20., max_depth=0, r_cut=6.,
                  form=2, add_unknown=False):
@@ -468,8 +467,8 @@ class LocalEncodedAngle(BaseFeature):
         return cosine_decay(R, r_cut=self.r_cut)
 
     def _para_fit(self, X):
-        '''
-        A single instance of the fit procedure
+        """
+        A single instance of the fit procedure.
 
         This is formulated in a way that the fits can be done completely
         parallel in a map/reduce fashion.
@@ -483,14 +482,14 @@ class LocalEncodedAngle(BaseFeature):
         -------
         value : set
             All the element pairs in the molecule
-        '''
+        """
         data = self.convert_input(X)
         # This is just a cheap way to approximate the actual value
         return get_element_pairs(data.elements)
 
     def fit(self, X, y=None):
-        '''
-        Fit the model
+        """
+        Fit the model.
 
         Parameters
         ----------
@@ -501,15 +500,15 @@ class LocalEncodedAngle(BaseFeature):
         -------
         self : object
             Returns the instance itself.
-        '''
+        """
         pairs = self.map(self._para_fit, X)
         self._pairs = set(self.reduce(lambda x, y: set(x) | set(y),
                                       pairs))
         return self
 
     def _para_transform(self, X, y=None):
-        '''
-        A single instance of the transform procedure
+        """
+        A single instance of the transform procedure.
 
         This is formulated in a way that the transformations can be done
         completely parallel with map.
@@ -528,7 +527,7 @@ class LocalEncodedAngle(BaseFeature):
         ------
         ValueError
             If the transformer has not been fit.
-        '''
+        """
         if self._pairs is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)
@@ -572,7 +571,7 @@ class LocalEncodedAngle(BaseFeature):
 
 
 class LocalCoulombMatrix(BaseFeature):
-    '''
+    r"""
     An implementation of the Coulomb Matrix where only the local atom
     environment is used by using a cutoff radius.
 
@@ -616,7 +615,7 @@ class LocalCoulombMatrix(BaseFeature):
                                     + ||  R_{p_1} - R_{p_j} ||_2
                                     + ||  R_{p_i} - R_{p_j} ||_2 ) ** \alpha
         M_{ii} = 0.5 Z_{p_i} ** 2.4
-    '''
+    """
     def __init__(self, input_type='list', n_jobs=1, max_occupancy=4, r_cut=10.,
                  alpha=6, use_reduced=False, use_decay=False):
         super(LocalCoulombMatrix, self).__init__(input_type=input_type,
@@ -628,14 +627,12 @@ class LocalCoulombMatrix(BaseFeature):
         self.use_decay = use_decay
 
     def fit(self, X, y=None):
-        '''
-        No fitting is needed because it is all defined by the parameters?
-        '''
+        """No fitting is required because it is defined by the parameters."""
         pass
 
     def _para_transform(self, X):
-        '''
-        A single instance of the transform procedure
+        """
+        A single instance of the transform procedure.
 
         This is formulated in a way that the transformations can be done
         completely parallel with map.
@@ -649,7 +646,7 @@ class LocalCoulombMatrix(BaseFeature):
         -------
         value : array
             The features extracted from the molecule
-        '''
+        """
         data = self.convert_input(X)
         dist = cdist(data.coords, data.coords)
 
@@ -682,10 +679,9 @@ class LocalCoulombMatrix(BaseFeature):
 
 
 class BehlerParrinello(BaseFeature):
-    '''
+    """
     An implementation of the descriptors used in Behler-Parrinello Neural
     Networks.
-
 
     References
     ----------
@@ -714,7 +710,7 @@ class BehlerParrinello(BaseFeature):
     lambda_ : float, default=1.0
 
     zeta : float, default=1.0
-    '''
+    """
 
     def __init__(self, input_type='list', n_jobs=1, r_cut=6.0, r_s=1., eta=1.,
                  lambda_=1., zeta=1.):
@@ -729,8 +725,8 @@ class BehlerParrinello(BaseFeature):
         self._element_pairs = None
 
     def _para_fit(self, X):
-        '''
-        A single instance of the fit procedure
+        """
+        A single instance of the fit procedure.
 
         This is formulated in a way that the fits can be done completely
         parallel in a map/reduce fashion.
@@ -744,7 +740,7 @@ class BehlerParrinello(BaseFeature):
         -------
         value : set
             All the element pairs in the molecule
-        '''
+        """
         data = self.convert_input(X)
         # This is just a cheap way to approximate the actual value
         unique_elements = set(data.elements)
@@ -752,8 +748,8 @@ class BehlerParrinello(BaseFeature):
         return unique_elements, pairs
 
     def fit(self, X, y=None):
-        '''
-        Fit the model
+        """
+        Fit the model.
 
         Parameters
         ----------
@@ -764,7 +760,7 @@ class BehlerParrinello(BaseFeature):
         -------
         self : object
             Returns the instance itself.
-        '''
+        """
         results = self.map(self._para_fit, X)
         elements, pairs = zip(*results)
         self._elements = set(self.reduce(lambda x, y: set(x) | set(y),
@@ -777,7 +773,7 @@ class BehlerParrinello(BaseFeature):
         return cosine_decay(R, r_cut=self.r_cut)
 
     def g_1(self, R, elements):
-        '''
+        r"""
         A radial symmetry function.
 
         G^1_i = \sum_{j \neq i} \exp(- \eta (R_ij-R_s)^2) f_c(R_ij)
@@ -791,7 +787,7 @@ class BehlerParrinello(BaseFeature):
         -------
         total : array, shape=(N_atoms, N_elements)
             The atom-wise g_1 evaluations.
-        '''
+        """
         values = numpy.exp(-self.eta * (R - self.r_s) ** 2) * self.f_c(R)
         numpy.fill_diagonal(values, 0)
 
@@ -805,7 +801,7 @@ class BehlerParrinello(BaseFeature):
         return numpy.array(totals).T
 
     def g_2(self, Theta, R, elements):
-        '''
+        r"""
         An angular symmetry function.
 
         G^2_i = 2^{1-\zeta} \sum_{i,k \neq i}
@@ -824,7 +820,7 @@ class BehlerParrinello(BaseFeature):
         -------
         total : array, shape=(N_atoms, len(self._elements) ** 2)
             The atom-wise g_1 evaluations.
-        '''
+        """
         F_c_R = self.f_c(R)
 
         R2 = self.eta * R ** 2
@@ -859,7 +855,7 @@ class BehlerParrinello(BaseFeature):
         return 2 ** (1 - self.zeta) * values
 
     def calculate_Theta(self, R_vecs):
-        '''
+        """
         Compute the angular term for all triples of atoms.
 
         Theta_ijk = (R_ij . R_ik) / (|R_ij| |R_ik|)
@@ -876,7 +872,7 @@ class BehlerParrinello(BaseFeature):
         -------
         Theta : array, shape=(N_atoms, N_atoms, N_atoms)
             The angular term for all the atoms given.
-        '''
+        """
         n = R_vecs.shape[0]
         Theta = numpy.zeros((n, n, n))
         for i, Ri in enumerate(R_vecs):
@@ -894,8 +890,8 @@ class BehlerParrinello(BaseFeature):
         return Theta
 
     def _para_transform(self, X):
-        '''
-        A single instance of the transform procedure
+        """
+        A single instance of the transform procedure.
 
         This is formulated in a way that the transformations can be done
         completely parallel with map.
@@ -914,7 +910,7 @@ class BehlerParrinello(BaseFeature):
         ------
         ValueError
             If the transformer has not been fit.
-        '''
+        """
         if self._elements is None or self._element_pairs is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)

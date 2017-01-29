@@ -15,7 +15,7 @@ __all__ = ("Connectivity", "EncodedAngle", "EncodedBond", "CoulombMatrix",
 
 
 class Connectivity(BaseFeature):
-    '''
+    """
     A collection of feature types based on the connectivity of atoms.
 
     Parameters
@@ -48,7 +48,7 @@ class Connectivity(BaseFeature):
     ----------
     _base_chains : set, tuples
         All the chains that are in the fit molecules.
-    '''
+    """
     def __init__(self, input_type='list', n_jobs=1, depth=1,
                  use_bond_order=False, use_coordination=False,
                  add_unknown=False):
@@ -61,8 +61,8 @@ class Connectivity(BaseFeature):
         self._base_chains = None
 
     def _loop_depth(self, connections):
-        '''
-        Loop over the depth number expanding chains
+        """
+        Loop over the depth number expanding chains.
 
         Parameters
         ----------
@@ -73,16 +73,15 @@ class Connectivity(BaseFeature):
         -------
         chains : list
             A list of key tuples of all the chains in the molecule
-        '''
+        """
         chains = [(x, ) for x in connections]
         for i in range(self.depth - 1):
             chains = self._expand_chains(chains, connections)
         return chains
 
     def _expand_chains(self, initial, connections):
-        '''
-        This uses the connectivity information to add one more atom to each
-        chain.
+        """
+        Use the connectivity information to add one more atom to each chain.
 
         Parameters
         ----------
@@ -97,7 +96,7 @@ class Connectivity(BaseFeature):
         results : list
             A list of index chains that are one index longer than the inputs
             in initial.
-        '''
+        """
         if len(initial) and len(initial[0]) > 1:
             # All of the chains are duplicated and reversed.
             # This is to make the loop simpler when handling both ends of the
@@ -118,9 +117,8 @@ class Connectivity(BaseFeature):
         return list(results.keys())
 
     def _convert_to_bond_order(self, chain, labelled, connections):
-        '''
-        Converts a chain based on just elements into one that includes bond
-        order.
+        """
+        Convert a chain based on elements into one that includes bond order.
 
         Parameters
         ----------
@@ -137,7 +135,7 @@ class Connectivity(BaseFeature):
         -------
         labelled : list
             The new labelled chain if use_bond_order is set
-        '''
+        """
         if self.use_bond_order and len(labelled) > 1:
             temp = []
             for i, x in enumerate(chain[:-1]):
@@ -150,9 +148,8 @@ class Connectivity(BaseFeature):
         return labelled
 
     def _tally_chains(self, chains, nodes, connections=None):
-        '''
-        Tally all the chain types and return a dictonary with all the counts of
-        the types.
+        """
+        Tally chain types and return a dictonary with counts of the types.
 
         Parameters
         ----------
@@ -169,7 +166,7 @@ class Connectivity(BaseFeature):
         -------
         results : dict, labelled_chain->int
             Totals of the number of each type of chain
-        '''
+        """
         results = {}
         for chain in chains:
             labelled = tuple(nodes[x] for x in chain)
@@ -190,8 +187,8 @@ class Connectivity(BaseFeature):
         return results
 
     def _para_fit(self, X):
-        '''
-        A single instance of the fit procedure
+        """
+        A single instance of the fit procedure.
 
         This is formulated in a way that the fits can be done completely
         parallel in a map/reduce fashion.
@@ -205,7 +202,7 @@ class Connectivity(BaseFeature):
         -------
         value : list
             All the chains in the molecule
-        '''
+        """
         data = self.convert_input(X)
         chains = self._loop_depth(data.connections)
         all_counts = self._tally_chains(chains, data.elements,
@@ -213,8 +210,8 @@ class Connectivity(BaseFeature):
         return list(all_counts.keys())
 
     def fit(self, X, y=None):
-        '''
-        Fit the model
+        """
+        Fit the model.
 
         Parameters
         ----------
@@ -225,15 +222,15 @@ class Connectivity(BaseFeature):
         -------
         self : object
             Returns the instance itself.
-        '''
+        """
         base_chains = self.map(self._para_fit, X)
         self._base_chains = set(self.reduce(lambda x, y: set(x) | set(y),
                                             base_chains))
         return self
 
     def _para_transform(self, X, y=None):
-        '''
-        A single instance of the transform procedure
+        """
+        A single instance of the transform procedure.
 
         This is formulated in a way that the transformations can be done
         completely parallel with map.
@@ -252,7 +249,7 @@ class Connectivity(BaseFeature):
         ------
         ValueError
             If the transformer has not been fit.
-        '''
+        """
         if self._base_chains is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)
@@ -272,7 +269,7 @@ class Connectivity(BaseFeature):
 
 
 class EncodedAngle(BaseFeature):
-    '''
+    r"""
     A smoothed histogram of atomic angles.
 
     This method is similar to EncodedBond but for angles in molecules. This is
@@ -327,7 +324,7 @@ class EncodedAngle(BaseFeature):
     ----------
     _groups : set, tuples
         A list of all the groups (element chains) in the fit molecules.
-    '''
+    """
     def __init__(self, input_type='list', n_jobs=1, segments=40,
                  smoothing="norm", slope=20., max_depth=0,
                  form=3, r_cut=6., add_unknown=False):
@@ -343,8 +340,8 @@ class EncodedAngle(BaseFeature):
         self.add_unknown = add_unknown
 
     def _para_fit(self, X):
-        '''
-        A single instance of the fit procedure
+        """
+        A single instance of the fit procedure.
 
         This is formulated in a way that the fits can be done completely
         parallel in a map/reduce fashion.
@@ -358,7 +355,7 @@ class EncodedAngle(BaseFeature):
         -------
         value : list
             All the elements in the molecule
-        '''
+        """
         data = self.convert_input(X)
         pairs = get_element_pairs(data.elements)
         res = []
@@ -377,8 +374,8 @@ class EncodedAngle(BaseFeature):
         return set([x if x[0] < x[2] else x[::-1] for x in res])
 
     def fit(self, X, y=None):
-        '''
-        Fit the model
+        """
+        Fit the model.
 
         Parameters
         ----------
@@ -389,7 +386,7 @@ class EncodedAngle(BaseFeature):
         -------
         self : object
             Returns the instance itself.
-        '''
+        """
         groups = self.map(self._para_fit, X)
         self._groups = set(self.reduce(lambda x, y: x | y, groups))
         return self
@@ -398,8 +395,8 @@ class EncodedAngle(BaseFeature):
         return cosine_decay(R, r_cut=self.r_cut)
 
     def _para_transform(self, X, y=None):
-        '''
-        A single instance of the transform procedure
+        """
+        A single instance of the transform procedure.
 
         This is formulated in a way that the transformations can be done
         completely parallel with map.
@@ -418,7 +415,7 @@ class EncodedAngle(BaseFeature):
         ------
         ValueError
             If the transformer has not been fit.
-        '''
+        """
         if self._groups is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)
@@ -459,7 +456,7 @@ class EncodedAngle(BaseFeature):
 
 
 class EncodedBond(BaseFeature):
-    '''
+    """
     A smoothed histogram of atomic distances.
 
     This is a method to generallize the idea of bond counting. Instead of
@@ -523,7 +520,7 @@ class EncodedBond(BaseFeature):
     ----------
     _element_pairs : set, tuples
         A list of all the element pairs in the fit molecules.
-    '''
+    """
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing="norm", start=0.2, end=6.0, slope=20., max_depth=0,
                  spacing="linear", form=2, add_unknown=False):
@@ -541,8 +538,8 @@ class EncodedBond(BaseFeature):
         self.add_unknown = add_unknown
 
     def _para_fit(self, X):
-        '''
-        A single instance of the fit procedure
+        """
+        A single instance of the fit procedure.
 
         This is formulated in a way that the fits can be done completely
         parallel in a map/reduce fashion.
@@ -556,13 +553,13 @@ class EncodedBond(BaseFeature):
         -------
         value : list
             All the element pairs in the molecule
-        '''
+        """
         data = self.convert_input(X)
         return get_element_pairs(data.elements)
 
     def fit(self, X, y=None):
-        '''
-        Fit the model
+        """
+        Fit the model.
 
         Parameters
         ----------
@@ -573,15 +570,15 @@ class EncodedBond(BaseFeature):
         -------
         self : object
             Returns the instance itself.
-        '''
+        """
         pairs = self.map(self._para_fit, X)
         self._element_pairs = set(self.reduce(lambda x, y: set(x) | set(y),
                                               pairs))
         return self
 
     def _para_transform(self, X, y=None):
-        '''
-        A single instance of the transform procedure
+        """
+        A single instance of the transform procedure.
 
         This is formulated in a way that the transformations can be done
         completely parallel with map.
@@ -600,7 +597,7 @@ class EncodedBond(BaseFeature):
         ------
         ValueError
             If the transformer has not been fit.
-        '''
+        """
         if self._element_pairs is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)
@@ -639,7 +636,7 @@ class EncodedBond(BaseFeature):
 
 
 class CoulombMatrix(BaseFeature):
-    '''
+    """
     A molecular descriptor based on Coulomb interactions.
 
     This is a feature that uses a Coulomb-like interaction between all atoms
@@ -684,7 +681,7 @@ class CoulombMatrix(BaseFeature):
     _max_size : int
         The size of the largest molecule in the fit molecules by number of
         atoms.
-    '''
+    """
     def __init__(self, input_type='list', n_jobs=1, sort=False, eigen=False):
         super(CoulombMatrix, self).__init__(input_type=input_type,
                                             n_jobs=n_jobs)
@@ -693,8 +690,8 @@ class CoulombMatrix(BaseFeature):
         self.eigen = eigen
 
     def _para_fit(self, X):
-        '''
-        A single instance of the fit procedure
+        """
+        A single instance of the fit procedure.
 
         This is formulated in a way that the fits can be done completely
         parallel in a map/reduce fashion.
@@ -708,13 +705,13 @@ class CoulombMatrix(BaseFeature):
         -------
         value : int
             The number of atoms in the molecule
-        '''
+        """
         data = self.convert_input(X)
         return len(data.elements)
 
     def fit(self, X, y=None):
-        '''
-        Fit the model
+        """
+        Fit the model.
 
         Parameters
         ----------
@@ -725,14 +722,14 @@ class CoulombMatrix(BaseFeature):
         -------
         self : object
             Returns the instance itself.
-        '''
+        """
         max_size = self.map(self._para_fit, X)
         self._max_size = max(max_size)
         return self
 
     def _para_transform(self, X):
-        '''
-        A single instance of the transform procedure
+        """
+        A single instance of the transform procedure.
 
         This is formulated in a way that the transformations can be done
         completely parallel with map.
@@ -754,7 +751,7 @@ class CoulombMatrix(BaseFeature):
 
         ValueError
             If the size of the transforming molecules are larger than the fit.
-        '''
+        """
         if self._max_size is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)
@@ -781,8 +778,8 @@ class CoulombMatrix(BaseFeature):
 
 
 class BagOfBonds(BaseFeature):
-    '''
-    A molecular descriptor that groups interactions from the Coulomb Matrix
+    """
+    A molecular descriptor that groups interactions from the Coulomb Matrix.
 
     This feature starts the same as the Coulomb Matrix, and then interaction
     terms of the same element pair are grouped together and then sorted before
@@ -811,14 +808,14 @@ class BagOfBonds(BaseFeature):
     _bag_sizes : dict, element pair->int
         A dictonary mapping element pairs to the maximum size of that element
         pair block in all the fit molecules.
-    '''
+    """
     def __init__(self, input_type='list', n_jobs=1):
         super(BagOfBonds, self).__init__(input_type=input_type, n_jobs=n_jobs)
         self._bag_sizes = None
 
     def _para_fit(self, X):
-        '''
-        A single instance of the fit procedure
+        """
+        A single instance of the fit procedure.
 
         This is formulated in a way that the fits can be done completely
         parallel in a map/reduce fashion.
@@ -832,7 +829,7 @@ class BagOfBonds(BaseFeature):
         -------
         value : list
             All the element pairs in the molecule
-        '''
+        """
         data = self.convert_input(X)
         bags = {}
 
@@ -859,8 +856,8 @@ class BagOfBonds(BaseFeature):
         return {key: value for key, value in bags.items() if value}
 
     def _max_merge_dict(self, x, y):
-        '''
-        Merge the values of two dictonaries using the max of their values
+        """
+        Merge the values of two dictonaries using the max of their values.
 
         Parameters
         ----------
@@ -871,13 +868,13 @@ class BagOfBonds(BaseFeature):
         Returns
         -------
         dict : dict, key->number
-        '''
+        """
         all_keys = tuple(x.keys()) + tuple(y.keys())
         return {key: max(x.get(key, 0), y.get(key, 0)) for key in all_keys}
 
     def fit(self, X, y=None):
-        '''
-        Fit the model
+        """
+        Fit the model.
 
         Parameters
         ----------
@@ -888,14 +885,14 @@ class BagOfBonds(BaseFeature):
         -------
         self : object
             Returns the instance itself.
-        '''
+        """
         bags = self.map(self._para_fit, X)
         self._bag_sizes = self.reduce(self._max_merge_dict, bags)
         return self
 
     def _para_transform(self, X):
-        '''
-        A single instance of the transform procedure
+        """
+        A single instance of the transform procedure.
 
         This is formulated in a way that the transformations can be done
         completely parallel with map.
@@ -918,7 +915,7 @@ class BagOfBonds(BaseFeature):
         ValueError
             If the size of the transforming molecules have more values in at
             least one bag than the same bag from the are larger than the fit.
-        '''
+        """
         if self._bag_sizes is None:
             msg = "This %s instance is not fitted yet. Call 'fit' first."
             raise ValueError(msg % type(self).__name__)

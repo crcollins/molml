@@ -9,21 +9,21 @@ from .utils import LazyValues, read_file_data
 
 
 def _func_star(args):
-    '''
-    A function and argument expanding helper function
+    """
+    A function and argument expanding helper function.
 
     The first item in args is callable, and the remainder of the items are
     used as expanded arguments. This is to make the function header for reduce
     the same for the normal and parallel versions. Otherwise, the functions
     would have to do their own unpacking of arguments.
-    '''
+    """
     f = args[0]
     args = args[1:]
     return f(*args)
 
 
 class BaseFeature(object):
-    '''
+    """
     A base class for all the features.
 
     Parameters
@@ -38,7 +38,7 @@ class BaseFeature(object):
         Specifies the number of processes to create when generating the
         features. Positive numbers specify a specifc amount, and numbers less
         than 1 will use the number of cores the computer has.
-    '''
+    """
     def __init__(self, input_type='list', n_jobs=1):
         self.input_type = input_type
         self.n_jobs = n_jobs
@@ -56,15 +56,15 @@ class BaseFeature(object):
         return "%s(%s)" % (name, ', '.join(params))
 
     def set_params(self, **kwargs):
-        '''
-        Set the feature parameter values
+        """
+        Set the feature parameter values.
 
         Parameters
         ----------
             kwargs : kwargs
                 Key value pairs to set for the feature parameters. Keys that
                 are not valid parameters will be ignored.
-        '''
+        """
         for key, value in kwargs.items():
             try:
                 getattr(self, key)
@@ -73,14 +73,14 @@ class BaseFeature(object):
                 continue
 
     def get_params(self):
-        '''
-        Get a dictonary of all the feature parameters
+        """
+        Get a dictonary of all the feature parameters.
 
         Returns
         -------
             params : dict
                 A dictonary of all the feature parameters.
-        '''
+        """
         argspec = inspect.getargspec(type(self).__init__)
         # Delete the only non-keyword argument
         args = [x for x in argspec.args if x != "self"]
@@ -88,15 +88,15 @@ class BaseFeature(object):
         return {key: value for key, value in zip(args, values)}
 
     def slugify(self):
-        '''
-        Converts an instance to a simple string.
+        """
+        Convert an instance to a simple string.
 
         Returns
         -------
         string : str
             The slug string
 
-        '''
+        """
         name = type(self).__name__
         # Skip the first two parameters
         params = self._get_param_strings()[2:]
@@ -104,8 +104,8 @@ class BaseFeature(object):
         return string
 
     def convert_input(self, X):
-        '''
-        Converts the input (as specified in self.input_type) to a usable form
+        """
+        Convert the input (as specified in self.input_type) to a usable form.
 
         Parameters
         ----------
@@ -149,7 +149,7 @@ class BaseFeature(object):
         ------
         ValueError
             If the input_type given is not allowed.
-        '''
+        """
         connections = None
         if self.input_type == "list":
             try:
@@ -171,8 +171,8 @@ class BaseFeature(object):
         return values
 
     def map(self, f, seq):
-        '''
-        Parallel implementation of map
+        """
+        Parallel implementation of map.
 
         Parameters
         ----------
@@ -186,7 +186,7 @@ class BaseFeature(object):
         -------
         results : list, shape=[len(seq)]
             The evaluated values
-        '''
+        """
         if self.n_jobs < 1:
             n_jobs = multiprocessing.cpu_count()
         elif self.n_jobs == 1:
@@ -199,8 +199,8 @@ class BaseFeature(object):
         return results
 
     def reduce(self, f, seq):
-        '''
-        Parallel implementation of reduce
+        """
+        Parallel implementation of reduce.
 
         This changes the problem from being O(n) steps to O(lg n)
 
@@ -216,7 +216,7 @@ class BaseFeature(object):
         -------
         results : object
             A single reduced object based on 'seq' and 'f'
-        '''
+        """
         if self.n_jobs == 1:
             return reduce(f, seq)
 
@@ -231,8 +231,8 @@ class BaseFeature(object):
         return seq[0]
 
     def fit(self, X, y=None):
-        '''
-        Fit the model
+        """
+        Fit the model.
 
         Parameters
         ----------
@@ -243,12 +243,12 @@ class BaseFeature(object):
         -------
         self : object
             Returns the instance itself.
-        '''
+        """
         raise NotImplementedError
 
     def _para_transform(self, X):
-        '''
-        A single instance of the transform procedure
+        """
+        A single instance of the transform procedure.
 
         This is formulated in a way that the transformations can be done
         completely parallel with map.
@@ -262,12 +262,12 @@ class BaseFeature(object):
         -------
         value : array-like
             The features extracted from the molecule
-        '''
+        """
         raise NotImplementedError
 
     def transform(self, X, y=None):
-        '''
-        Framework for a potentially parallel transform
+        """
+        Framework for a potentially parallel transform.
 
         Parameters
         ----------
@@ -278,13 +278,13 @@ class BaseFeature(object):
         -------
         array : array, shape=(n_samples, n_features)
             The transformed features
-        '''
+        """
         results = self.map(self._para_transform, X)
         return numpy.array(results)
 
     def fit_transform(self, X, y=None):
-        '''
-        A naive default implementation of fitting and transforming
+        """
+        A naive default implementation of fitting and transforming.
 
         Parameters
         ----------
@@ -295,13 +295,13 @@ class BaseFeature(object):
         -------
         array : array, shape=(n_samples, n_features)
             The transformed features
-        '''
+        """
         self.fit(X, y)
         return self.transform(X, y)
 
 
 class MultiFeature(BaseFeature):
-    '''
+    """
     A helper class to make merging different features together easier.
 
     Parameters
@@ -310,13 +310,13 @@ class MultiFeature(BaseFeature):
     features : list
         This is a list of initialized feature objects to use. All of these
         features should have the standard fit/transform methods implemented.
-    '''
+    """
     def __init__(self, features=None):
         self.features = features
 
     def fit(self, X, y=None):
-        '''
-        Fit the model
+        """
+        Fit the model.
 
         Parameters
         ----------
@@ -327,14 +327,14 @@ class MultiFeature(BaseFeature):
         -------
         self : object
             Returns the instance itself.
-        '''
+        """
         for feat in self.features:
             feat.fit(X, y)
         return self
 
     def transform(self, X, y=None):
-        '''
-        Framework for a potentially parallel transform
+        """
+        Framework for a potentially parallel transform.
 
         Parameters
         ----------
@@ -345,6 +345,6 @@ class MultiFeature(BaseFeature):
         -------
         array : array, shape=(n_samples, n_features)
             The transformed features
-        '''
+        """
         results = [feat.transform(X) for feat in self.features]
         return numpy.hstack(results)
