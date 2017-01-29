@@ -10,8 +10,8 @@ from .utils import get_element_pairs, cosine_decay, needs_reversal
 from .utils import get_index_mapping, get_angles
 
 
-__all__ = ["Connectivity", "EncodedAngle", "EncodedBond", "CoulombMatrix",
-           "BagOfBonds"]
+__all__ = ("Connectivity", "EncodedAngle", "EncodedBond", "CoulombMatrix",
+           "BagOfBonds")
 
 
 class Connectivity(BaseFeature):

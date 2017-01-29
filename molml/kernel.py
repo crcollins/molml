@@ -4,7 +4,7 @@ from scipy.spatial.distance import cdist
 from .base import BaseFeature
 
 
-__all__ = ["AtomKernel"]
+__all__ = ("AtomKernel", )
 
 
 class AtomKernel(BaseFeature):
