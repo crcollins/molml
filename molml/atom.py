@@ -1,3 +1,10 @@
+"""
+A module to compute atom based representations.
+
+This module contains a variety of methods to extract features from molecules
+based on the atoms in the molecule. This means that every molecule will
+result in an array of values (n_atoms, n_features).
+"""
 from builtins import range
 
 import numpy

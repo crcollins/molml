@@ -1,3 +1,9 @@
+"""
+A collection of all the base transformer constructions.
+
+This module is a collection of all the base classes and mixins for use with
+the other transformers.
+"""
 import inspect
 import multiprocessing
 from functools import reduce

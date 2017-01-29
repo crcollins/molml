@@ -1,3 +1,6 @@
+"""
+A collection of asssorted utility functions.
+"""
 from builtins import range
 
 import numpy

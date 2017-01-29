@@ -1,3 +1,12 @@
+"""
+A module to compute kernel based representations.
+
+The methods in this module are intended to be used directly as kernels for
+kernel methods (e.g. SVMs or KRR). This results in features that are dependent
+on the number of molecules used to fit the transformers. These should then
+give single vectors that have length n_fit_molecules.
+"""
+
 import numpy
 from scipy.spatial.distance import cdist
 

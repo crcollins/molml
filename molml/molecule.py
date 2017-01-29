@@ -1,3 +1,10 @@
+"""
+A module to compute molecule based representations.
+
+This module contains a variety of methods to extract features from molecules
+based on the entire molecule. All of the methods included here will produce
+one vector per molecule input.
+"""
 from builtins import range
 
 import numpy
