@@ -55,6 +55,11 @@ class Connectivity(BaseFeature):
     ----------
     _base_chains : set, tuples
         All the chains that are in the fit molecules.
+
+    References
+    ----------
+    Collins, C.; Gordon, G.; von Lilienfeld, O. A.; Yaron, D. Constant Size
+    Molecular Descriptors For Use With Machine Learning. arXiv:1701.06649
     """
     def __init__(self, input_type='list', n_jobs=1, depth=1,
                  use_bond_order=False, use_coordination=False,
@@ -527,6 +532,11 @@ class EncodedBond(BaseFeature):
     ----------
     _element_pairs : set, tuples
         A list of all the element pairs in the fit molecules.
+
+    References
+    ----------
+    Collins, C.; Gordon, G.; von Lilienfeld, O. A.; Yaron, D. Constant Size
+    Molecular Descriptors For Use With Machine Learning. arXiv:1701.06649
     """
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing="norm", start=0.2, end=6.0, slope=20., max_depth=0,
