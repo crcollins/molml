@@ -4,7 +4,7 @@ import unittest
 import numpy
 
 from molml.features import Connectivity
-from molml.base import BaseFeature, _func_star, MultiFeature
+from molml.base import BaseFeature, _func_star
 from molml.utils import read_file_data
 
 
@@ -157,37 +157,6 @@ class BaseFeatureTest(unittest.TestCase):
         self.assertEqual(a.n_jobs, 100)
         with self.assertRaises(AttributeError):
             a.fake
-
-
-class MultiFeatureTest(unittest.TestCase):
-
-    def test_fit(self):
-        feats = [Connectivity(), Connectivity()]
-        a = MultiFeature(feats)
-        a.fit([METHANE, METHANE])
-        self.assertIsNotNone(a.features[0]._base_chains)
-        self.assertIsNotNone(a.features[1]._base_chains)
-
-    def test_transform(self):
-        feats = [Connectivity(), Connectivity()]
-        a = MultiFeature(feats)
-        a.fit([METHANE, METHANE])
-        res = a.transform([METHANE, METHANE])
-        expected = numpy.tile(METHANE_ATOMS, (2, 2))
-        self.assertTrue((res == expected).all())
-
-    def test_transform_before_fit(self):
-        feats = [Connectivity(), Connectivity()]
-        a = MultiFeature(feats)
-        with self.assertRaises(ValueError):
-            a.transform([METHANE, METHANE])
-
-    def test_fit_transform(self):
-        feats = [Connectivity(), Connectivity()]
-        a = MultiFeature(feats)
-        res = a.fit_transform([METHANE, METHANE])
-        expected = numpy.tile(METHANE_ATOMS, (2, 2))
-        self.assertTrue((res == expected).all())
 
 
 if __name__ == '__main__':
