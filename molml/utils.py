@@ -206,6 +206,41 @@ def read_xyz_data(path):
     return elements, numbers, numpy.array(coords)
 
 
+def read_mol2_data(path):
+    """
+    Read a mol2 file and extract the molecule's geometry.
+
+    Roughly, the file format is something like
+    @<TRIPOS>MOLECULE
+    ...
+    @<TRIPOS>ATOM
+     1 ele0id x0 y0 z0 ele0.type 1 MOL charge0
+     2 ele1id x1 y1 z1 ele1.type 1 MOL charge1
+    ...
+    @<TRIPOS>BOND
+    ...
+    """
+    elements = []
+    numbers = []
+    coords = []
+    with open(path, 'r') as f:
+        start = False
+        for line in f:
+            if "@<TRIPOS>ATOM" in line:
+                start = True
+                continue
+            if "@<TRIPOS>BOND" in line:
+                break  # can't use connection info yet
+            if not start:
+                continue
+            vals = line.split()
+            ele = vals[5].split('.')[0]
+            elements.append(ele)
+            numbers.append(ELE_TO_NUM[ele])
+            coords.append([float(x) for x in vals[2:5]])
+    return elements, numbers, numpy.array(coords)
+
+
 def get_depth_threshold_mask_connections(connections, max_depth=1):
     mat = numpy.zeros((len(connections), len(connections)))
     for key, values in connections.items():
