@@ -150,10 +150,14 @@ def read_file_data(path):
 
     The accepted file types are .out and .xyz files.
     """
-    if path.endswith('.out'):
-        return read_out_data(path)
-    elif path.endswith('.xyz'):
-        return read_xyz_data(path)
+    end = path.split('.')[-1]
+    mapping = {
+        'out': read_out_data,
+        'xyz': read_xyz_data,
+        'mol2': read_mol2_data,
+    }
+    if end in mapping:
+        return mapping[end](path)
     else:
         raise ValueError("Unknown file type")
 
