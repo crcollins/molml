@@ -287,8 +287,8 @@ class LocalEncodedBond(BaseFeature):
 
     Attributes
     ----------
-    _elements : list
-        A list of all the elements in the fit molecules.
+    _elements : set
+        A set of all the elements in the fit molecules.
     """
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing="norm", start=0.2, end=6.0, slope=20., max_depth=0,
@@ -453,8 +453,8 @@ class LocalEncodedAngle(BaseFeature):
 
     Attributes
     ----------
-    _pairs : list
-        A list of all the element pairs in the fit molecules.
+    _pairs : set
+        A set of all the element pairs in the fit molecules.
     """
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing="norm", slope=20., max_depth=0, r_cut=6.,
@@ -717,6 +717,14 @@ class BehlerParrinello(BaseFeature):
     lambda_ : float, default=1.0
 
     zeta : float, default=1.0
+
+    Attributes
+    ----------
+    _elements : set
+        A set of all the elements in the molecules.
+
+    _element_pairs : set
+        A set of all the element pairs in the molecules.
     """
 
     def __init__(self, input_type='list', n_jobs=1, r_cut=6.0, r_s=1., eta=1.,
@@ -745,8 +753,11 @@ class BehlerParrinello(BaseFeature):
 
         Returns
         -------
-        value : set
-            All the element pairs in the molecule
+        unique_elements : set
+            A set of all the elements in the molecule
+
+        pairs : list
+            A list of all the element pairs in the molecule
         """
         data = self.convert_input(X)
         # This is just a cheap way to approximate the actual value

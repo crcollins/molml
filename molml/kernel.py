@@ -58,11 +58,11 @@ class AtomKernel(BaseFeature):
 
     Attributes
     ----------
-    self._features : numpy.array, shape=(n_mols, (n_atoms, n_features))
+    _features : numpy.array, shape=(n_mols, (n_atoms, n_features))
         A numpy array of numpy arrays (that may be different lengths) that
         stores all of the atom features for the training molecules.
 
-    self._numbers : numpy.array, shape=(n_mols, (n_atoms))
+    _numbers : numpy.array, shape=(n_mols, (n_atoms))
         A numpy array of numpy arrays (that may be different lengths) that
         stores all the atomic numbers for the training atoms.
 
