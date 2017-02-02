@@ -19,9 +19,17 @@ ALL_FEATURES = numpy.array([
     [[1, 0, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0]],
     [[1, 0, 0], [1, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1],
      [0, 1, 0], [0, 1, 0], [0, 1, 0]]])
-KERNEL = numpy.array([
+RBF_KERNEL = numpy.array([
     [17., 14.],
     [14., 29.],
+])
+LAPLACE_KERNEL = numpy.array([
+    [17., 2.563417],
+    [2.563417, 17.955894],
+])
+LINEAR_KERNEL = numpy.array([
+    [32., 0.],
+    [0., 14.],
 ])
 
 
@@ -55,7 +63,7 @@ class AtomKernelTest(unittest.TestCase):
         a.fit(values)
         res = a.transform(values)
         try:
-            numpy.testing.assert_array_almost_equal(KERNEL, res)
+            numpy.testing.assert_array_almost_equal(RBF_KERNEL, res)
         except AssertionError as e:
             self.fail(e)
 
@@ -65,7 +73,7 @@ class AtomKernelTest(unittest.TestCase):
         a.fit(ALL)
         res = a.transform(ALL)
         try:
-            numpy.testing.assert_array_almost_equal(KERNEL, res)
+            numpy.testing.assert_array_almost_equal(RBF_KERNEL, res)
         except AssertionError as e:
             self.fail(e)
 
@@ -76,7 +84,7 @@ class AtomKernelTest(unittest.TestCase):
         values = list(zip(feats, ALL_NUMS))
         res = a.fit_transform(values)
         try:
-            numpy.testing.assert_array_almost_equal(KERNEL, res)
+            numpy.testing.assert_array_almost_equal(RBF_KERNEL, res)
         except AssertionError as e:
             self.fail(e)
 
@@ -85,7 +93,7 @@ class AtomKernelTest(unittest.TestCase):
         a = AtomKernel(transformer=trans)
         res = a.fit_transform(ALL)
         try:
-            numpy.testing.assert_array_almost_equal(KERNEL, res)
+            numpy.testing.assert_array_almost_equal(RBF_KERNEL, res)
         except AssertionError as e:
             self.fail(e)
 
@@ -118,6 +126,36 @@ class AtomKernelTest(unittest.TestCase):
     def test_input_type_match(self):
         trans = Shell(input_type="filename")
         AtomKernel(input_type="filename", transformer=trans)
+
+    def test_laplace_kernel(self):
+        # Set depth=2 so the comparison is not trivial
+        trans = Shell(input_type="filename", depth=2)
+        a = AtomKernel(transformer=trans, kernel="laplace", gamma=1.)
+        a.fit(ALL)
+        res = a.transform(ALL)
+        try:
+            numpy.testing.assert_array_almost_equal(LAPLACE_KERNEL, res)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_custom_kernel(self):
+        # Set depth=2 so the comparison is not trivial
+        trans = Shell(input_type="filename", depth=2)
+        # Simple linear kernel
+        a = AtomKernel(transformer=trans,
+                       kernel=lambda x, y: numpy.dot(x, numpy.transpose(y)))
+        a.fit(ALL)
+        res = a.transform(ALL)
+        try:
+            numpy.testing.assert_array_almost_equal(LINEAR_KERNEL, res)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_invalid_kernel(self):
+        with self.assertRaises(ValueError):
+            trans = Shell(input_type="filename")
+            a = AtomKernel(kernel=1, transformer=trans)
+            a.fit_transform(ALL)
 
 
 if __name__ == '__main__':

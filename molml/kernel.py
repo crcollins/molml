@@ -15,6 +15,11 @@ from .base import BaseFeature
 
 __all__ = ("AtomKernel", )
 
+KERNELS = {
+    'rbf': 'sqeuclidean',
+    'laplace': 'cityblock',
+}
+
 
 class AtomKernel(BaseFeature):
     """
@@ -41,7 +46,7 @@ class AtomKernel(BaseFeature):
         than 1 will use the number of cores the computer has.
 
     gamma : float, default=1e-7
-        The hyperparameter to use for the width of the gaussian kernel
+        The hyperparameter to use for the width of the RBF or Laplace kernels
 
     transformer : BaseFeature, default=None
         The transformer to use to convert molecules to atom-wise features. If
@@ -55,6 +60,12 @@ class AtomKernel(BaseFeature):
     same_element : bool, default=True
         Require that the atom-atom similarity only be computed if the two
         atoms are the same element.
+
+    kernel : string or callable, default="rbf"
+        The kernel function to use when computing the atom-atom interactions.
+        There possible string options are the keys of KERNELS. If a callable
+        object is given, then it must take two arrays and return the pairwise
+        kernel metric between them.
 
     Attributes
     ----------
@@ -73,7 +84,7 @@ class AtomKernel(BaseFeature):
         do not match.
     """
     def __init__(self, input_type=None, n_jobs=1, gamma=1e-7,
-                 transformer=None, same_element=True):
+                 transformer=None, same_element=True, kernel="rbf"):
         super(AtomKernel, self).__init__(input_type=input_type, n_jobs=n_jobs)
         self.gamma = gamma
         if self.input_type is None:
@@ -95,6 +106,7 @@ class AtomKernel(BaseFeature):
 
         self.transformer = transformer
         self.same_element = same_element
+        self.kernel = kernel
         self._features = None
         self._numbers = None
 
@@ -121,16 +133,23 @@ class AtomKernel(BaseFeature):
             kernel : numpy.array, shape=(n_molecules_b, n_molecules_fit)
                 The kernel matrix between the two sets of molecules
         """
+
         kernel = numpy.zeros((len(b_feats), len(self._features)))
         for i, (x, x_nums) in enumerate(zip(b_feats, b_nums)):
             zipped = zip(self._features, self._numbers)
             for j, (y, y_nums) in enumerate(zipped):
                 if symmetric and j > i:
                     continue
+                if callable(self.kernel):
+                    block = self.kernel(x, y)
+                elif self.kernel in KERNELS:
+                    string = KERNELS[self.kernel]
+                    block = cdist(x, y, string)
+                    block *= -self.gamma
+                    numpy.exp(block, block)
+                else:
+                    raise ValueError("This is not a valid kernel value.")
 
-                block = cdist(x, y, 'sqeuclidean')
-                block *= -self.gamma
-                numpy.exp(block, block)
                 # Mask to make sure only elements of the same type are
                 # compared
                 if self.same_element:
