@@ -202,6 +202,8 @@ class BaseFeature(object):
 
         pool = Pool(n_jobs)
         results = list(pool.map(f, seq))
+        # Closing/joining is not really allowed because pathos sees pools as
+        # lasting for the duration of the program.
         return results
 
     def reduce(self, f, seq):
