@@ -112,7 +112,7 @@ class AtomKernel(BaseFeature):
 
     def compute_kernel(self, b_feats, b_nums, symmetric=False):
         """
-        Compute a Gaussian kernel between molecules based on atom features.
+        Compute a kernel between molecules based on atom features.
 
         Parameters
         ----------
