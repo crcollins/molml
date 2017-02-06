@@ -110,6 +110,55 @@ class AtomKernel(BaseFeature):
         self._features = None
         self._numbers = None
 
+        # This makes this not thread safe for multiple calls to transform
+        self._temp_other_features = None
+        self._temp_other_numbers = None
+
+    def _para_compute_kernel(self, data):
+        """
+        Inner parallel function to compute molecule-molecule the kernel value.
+
+        This is formulated in a way that it can easily be done in a map/reduce
+        fashion.
+
+        Parameters
+        ----------
+        X : tuple
+            A tuple of ints (i, j) to index the test molecule and the train
+            molecule respectively.
+
+        Returns
+        -------
+        value : float
+            The final resulting kernel value.
+
+        Raises
+        ------
+            ValueError
+                If the kernel type is not a valid input.
+        """
+        i, j = data
+        x = self._temp_other_features[i]
+        x_nums = self._temp_other_numbers[i]
+        y = self._features[j]
+        y_nums = self._numbers[j]
+
+        if callable(self.kernel):
+            block = self.kernel(x, y)
+        elif self.kernel in KERNELS:
+            string = KERNELS[self.kernel]
+            block = cdist(x, y, string)
+            block *= -self.gamma
+            numpy.exp(block, block)
+        else:
+            raise ValueError("This is not a valid kernel value.")
+
+        # Mask to make sure only elements of the same type are compared
+        if self.same_element:
+            mask = numpy.equal.outer(x_nums, y_nums)
+            block *= mask
+        return block.sum()
+
     def compute_kernel(self, b_feats, b_nums, symmetric=False):
         """
         Compute a kernel between molecules based on atom features.
@@ -133,32 +182,26 @@ class AtomKernel(BaseFeature):
             kernel : numpy.array, shape=(n_molecules_b, n_molecules_fit)
                 The kernel matrix between the two sets of molecules
         """
-
         kernel = numpy.zeros((len(b_feats), len(self._features)))
-        for i, (x, x_nums) in enumerate(zip(b_feats, b_nums)):
-            zipped = zip(self._features, self._numbers)
-            for j, (y, y_nums) in enumerate(zipped):
-                if symmetric and j > i:
-                    continue
-                if callable(self.kernel):
-                    block = self.kernel(x, y)
-                elif self.kernel in KERNELS:
-                    string = KERNELS[self.kernel]
-                    block = cdist(x, y, string)
-                    block *= -self.gamma
-                    numpy.exp(block, block)
-                else:
-                    raise ValueError("This is not a valid kernel value.")
 
-                # Mask to make sure only elements of the same type are
-                # compared
-                if self.same_element:
-                    mask = numpy.equal.outer(x_nums, y_nums)
-                    block *= mask
-                kernel[i, j] = block.sum()
+        self._temp_other_features = b_feats
+        self._temp_other_numbers = b_nums
 
-                if symmetric:
-                    kernel[j, i] = kernel[i, j]
+        if symmetric:
+            idxs = numpy.tril_indices(kernel.shape[0])
+        else:
+            xvals = numpy.arange(len(b_feats))
+            yvals = numpy.arange(len(self._features))
+            vals = numpy.meshgrid(xvals, yvals)
+            idxs = (vals[0].reshape(-1), vals[1].reshape(-1))
+
+        values = self.map(self._para_compute_kernel, zip(*idxs))
+        kernel[idxs] = values
+        if symmetric:
+            kernel[idxs[1], idxs[0]] = values
+
+        self._temp_other_features = None
+        self._temp_other_numbers = None
         return kernel
 
     def _para_get_numbers(self, X):
