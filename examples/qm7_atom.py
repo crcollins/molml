@@ -12,8 +12,8 @@ if __name__ == "__main__":
     Xin_train, Xin_test, y_train, y_test = load_qm7()
 
     # Look at just a few examples to be quick
-    n_train = 100
-    n_test = 10
+    n_train = 200
+    n_test = 200
     Xin_train = Xin_train[:n_train]
     y_train = y_train[:n_train]
     Xin_test = Xin_test[:n_test]
@@ -21,7 +21,8 @@ if __name__ == "__main__":
 
     gamma = 1e-7
     alpha = 1e-7
-    kern = AtomKernel(gamma=gamma, transformer=LocalEncodedBond(n_jobs=-1))
+    kern = AtomKernel(gamma=gamma, transformer=LocalEncodedBond(n_jobs=-1),
+                      n_jobs=-1)
     K_train = kern.fit_transform(Xin_train)
     K_test = kern.transform(Xin_test)
 
