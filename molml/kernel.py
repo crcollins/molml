@@ -6,6 +6,7 @@ kernel methods (e.g. SVMs or KRR). This results in features that are dependent
 on the number of molecules used to fit the transformers. These should then
 give single vectors that have length n_fit_molecules.
 """
+from contextlib import contextmanager
 
 import numpy
 from scipy.spatial.distance import cdist
@@ -114,6 +115,27 @@ class AtomKernel(BaseFeature):
         self._temp_other_features = None
         self._temp_other_numbers = None
 
+    @contextmanager
+    def _temp_store(self, feats, nums):
+        """
+        Helper method to store features/numbers on the object
+
+        This makes the parallel kernel generation easier.
+
+        Parameters
+        ----------
+        feats : numpy.array
+            The array of features to use.
+
+        nums : numpy.array
+            The array of numbers to use.
+        """
+        self._temp_other_features = feats
+        self._temp_other_numbers = nums
+        yield
+        self._temp_other_features = None
+        self._temp_other_numbers = None
+
     def _para_compute_kernel(self, data):
         """
         Inner parallel function to compute molecule-molecule the kernel value.
@@ -184,24 +206,20 @@ class AtomKernel(BaseFeature):
         """
         kernel = numpy.zeros((len(b_feats), len(self._features)))
 
-        self._temp_other_features = b_feats
-        self._temp_other_numbers = b_nums
+        with self._temp_store(b_feats, b_nums):
+            if symmetric:
+                idxs = numpy.tril_indices(kernel.shape[0])
+            else:
+                xvals = numpy.arange(len(b_feats))
+                yvals = numpy.arange(len(self._features))
+                vals = numpy.meshgrid(xvals, yvals)
+                idxs = (vals[0].reshape(-1), vals[1].reshape(-1))
 
-        if symmetric:
-            idxs = numpy.tril_indices(kernel.shape[0])
-        else:
-            xvals = numpy.arange(len(b_feats))
-            yvals = numpy.arange(len(self._features))
-            vals = numpy.meshgrid(xvals, yvals)
-            idxs = (vals[0].reshape(-1), vals[1].reshape(-1))
+            values = self.map(self._para_compute_kernel, zip(*idxs))
+            kernel[idxs] = values
+            if symmetric:
+                kernel[idxs[1], idxs[0]] = values
 
-        values = self.map(self._para_compute_kernel, zip(*idxs))
-        kernel[idxs] = values
-        if symmetric:
-            kernel[idxs[1], idxs[0]] = values
-
-        self._temp_other_features = None
-        self._temp_other_numbers = None
         return kernel
 
     def _para_get_numbers(self, X):
