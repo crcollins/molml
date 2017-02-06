@@ -2,6 +2,7 @@ from __future__ import print_function
 
 from molml.features import CoulombMatrix
 from molml.features import LocalCoulombMatrix
+from molml.kernel import AtomKernel
 
 # Define some base data
 H2_ELES = ['H', 'H']
@@ -60,4 +61,9 @@ if __name__ == "__main__":
     # representation)
     print("Atom feature")
     feat = LocalCoulombMatrix()
+    print(feat.fit_transform([H2, HCN]))
+
+    # Example of generating AtomKernel
+    print("Atom Kernel")
+    feat = AtomKernel(transformer=LocalCoulombMatrix())
     print(feat.fit_transform([H2, HCN]))
