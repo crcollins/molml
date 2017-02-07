@@ -84,6 +84,8 @@ class AtomKernel(BaseFeature):
         If the input_type of the transformer and the input_type keyword given
         do not match.
     """
+    LABELS = None
+
     def __init__(self, input_type=None, n_jobs=1, gamma=1e-7,
                  transformer=None, same_element=True, kernel="rbf"):
         super(AtomKernel, self).__init__(input_type=input_type, n_jobs=n_jobs)

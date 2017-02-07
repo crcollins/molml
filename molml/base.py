@@ -176,6 +176,13 @@ class BaseFeature(object):
                              self.input_type)
         return values
 
+    def get_labels(self):
+        if self.LABELS is None:
+            return tuple()
+
+        values = [tuple(sorted(getattr(self, x))) for x in self.LABELS]
+        return sum(values, tuple())
+
     def map(self, f, seq):
         """
         Parallel implementation of map.

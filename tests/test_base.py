@@ -158,6 +158,30 @@ class BaseFeatureTest(unittest.TestCase):
         with self.assertRaises(AttributeError):
             a.fake
 
+    def test_get_labels(self):
+        class TestFeature1(BaseFeature):
+            LABELS = ('labels', )
+
+            def __init__(self):
+                self.labels = ('C', 'B', 'A')
+
+        class TestFeature2(BaseFeature):
+            LABELS = ('labels1', 'labels2')
+
+            def __init__(self):
+                self.labels1 = ('A', 'B', 'C')
+                self.labels2 = ('DD', 'CC')
+
+        class TestFeature3(BaseFeature):
+            LABELS = None
+
+        a = TestFeature1()
+        self.assertEqual(a.get_labels(), ('A', 'B', 'C'))
+        b = TestFeature2()
+        self.assertEqual(b.get_labels(), ('A', 'B', 'C', 'CC', 'DD'))
+        c = TestFeature3()
+        self.assertEqual(c.get_labels(), tuple())
+
 
 if __name__ == '__main__':
     unittest.main()

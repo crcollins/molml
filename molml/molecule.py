@@ -61,6 +61,8 @@ class Connectivity(BaseFeature):
     Collins, C.; Gordon, G.; von Lilienfeld, O. A.; Yaron, D. Constant Size
     Molecular Descriptors For Use With Machine Learning. arXiv:1701.06649
     """
+    LABELS = ("_base_chains", )
+
     def __init__(self, input_type='list', n_jobs=1, depth=1,
                  use_bond_order=False, use_coordination=False,
                  add_unknown=False):
@@ -337,6 +339,8 @@ class EncodedAngle(BaseFeature):
     _groups : set, tuples
         A list of all the groups (element chains) in the fit molecules.
     """
+    LABELS = ("_groups", )
+
     def __init__(self, input_type='list', n_jobs=1, segments=40,
                  smoothing="norm", slope=20., max_depth=0,
                  form=3, r_cut=6., add_unknown=False):
@@ -538,6 +542,8 @@ class EncodedBond(BaseFeature):
     Collins, C.; Gordon, G.; von Lilienfeld, O. A.; Yaron, D. Constant Size
     Molecular Descriptors For Use With Machine Learning. arXiv:1701.06649
     """
+    LABELS = ("_element_pairs", )
+
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing="norm", start=0.2, end=6.0, slope=20., max_depth=0,
                  spacing="linear", form=2, add_unknown=False):
@@ -699,6 +705,8 @@ class CoulombMatrix(BaseFeature):
         The size of the largest molecule in the fit molecules by number of
         atoms.
     """
+    LABELS = None
+
     def __init__(self, input_type='list', n_jobs=1, sort=False, eigen=False):
         super(CoulombMatrix, self).__init__(input_type=input_type,
                                             n_jobs=n_jobs)
@@ -826,6 +834,8 @@ class BagOfBonds(BaseFeature):
         A dictonary mapping element pairs to the maximum size of that element
         pair block in all the fit molecules.
     """
+    LABELS = ("_bag_sizes", )
+
     def __init__(self, input_type='list', n_jobs=1):
         super(BagOfBonds, self).__init__(input_type=input_type, n_jobs=n_jobs)
         self._bag_sizes = None

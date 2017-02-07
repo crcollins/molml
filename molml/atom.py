@@ -60,6 +60,8 @@ class Shell(BaseFeature):
     _elements : set
         All the elements/types that are in the fit molecules.
     """
+    LABELS = ("_elements", )
+
     def __init__(self, input_type='list', n_jobs=1, depth=1,
                  use_coordination=False, add_unknown=False):
         super(Shell, self).__init__(input_type=input_type, n_jobs=n_jobs)
@@ -290,6 +292,8 @@ class LocalEncodedBond(BaseFeature):
     _elements : set
         A set of all the elements in the fit molecules.
     """
+    LABELS = ("_elements", )
+
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing="norm", start=0.2, end=6.0, slope=20., max_depth=0,
                  spacing="linear", form=1, add_unknown=False):
@@ -456,6 +460,8 @@ class LocalEncodedAngle(BaseFeature):
     _pairs : set
         A set of all the element pairs in the fit molecules.
     """
+    LABELS = ("_pairs", )
+
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing="norm", slope=20., max_depth=0, r_cut=6.,
                  form=2, add_unknown=False):
@@ -623,6 +629,8 @@ class LocalCoulombMatrix(BaseFeature):
                                     + ||  R_{p_i} - R_{p_j} ||_2 ) ** \alpha
         M_{ii} = 0.5 Z_{p_i} ** 2.4
     """
+    LABELS = None
+
     def __init__(self, input_type='list', n_jobs=1, max_occupancy=4, r_cut=10.,
                  alpha=6, use_reduced=False, use_decay=False):
         super(LocalCoulombMatrix, self).__init__(input_type=input_type,
@@ -726,6 +734,7 @@ class BehlerParrinello(BaseFeature):
     _element_pairs : set
         A set of all the element pairs in the molecules.
     """
+    LABELS = ("_elements", "_element_pairs")
 
     def __init__(self, input_type='list', n_jobs=1, r_cut=6.0, r_s=1., eta=1.,
                  lambda_=1., zeta=1.):
