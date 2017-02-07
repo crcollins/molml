@@ -182,6 +182,38 @@ class BaseFeatureTest(unittest.TestCase):
         c = TestFeature3()
         self.assertEqual(c.get_labels(), tuple())
 
+    def test_check_fit(self):
+        class TestFeature1(BaseFeature):
+            ATTRIBUTES = ('data', )
+
+            def __init__(self, value=None):
+                self.data = value
+
+        class TestFeature2(BaseFeature):
+            ATTRIBUTES = ('data1', 'data2')
+
+            def __init__(self, value=None):
+                self.data1 = value
+                self.data2 = value
+
+        class TestFeature3(BaseFeature):
+            ATTRIBUTES = None
+
+        a = TestFeature1(value=1)
+        self.assertIsNone(a.check_fit())
+        b = TestFeature2(value=1)
+        self.assertIsNone(b.check_fit())
+        c = TestFeature3()
+        self.assertIsNone(c.check_fit())
+
+        with self.assertRaises(ValueError):
+            a = TestFeature1()
+            a.check_fit()
+
+        with self.assertRaises(ValueError):
+            b = TestFeature2()
+            b.check_fit()
+
 
 if __name__ == '__main__':
     unittest.main()

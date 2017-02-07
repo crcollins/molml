@@ -84,6 +84,7 @@ class AtomKernel(BaseFeature):
         If the input_type of the transformer and the input_type keyword given
         do not match.
     """
+    ATTRIBUTES = ("_features", "_numbers")
     LABELS = None
 
     def __init__(self, input_type=None, n_jobs=1, gamma=1e-7,
@@ -303,10 +304,7 @@ class AtomKernel(BaseFeature):
             ValueError
                 If the transformer has not been fit.
         """
-        if self._features is None:
-            msg = "This %s instance is not fitted yet. Call 'fit' first."
-            raise ValueError(msg % type(self).__name__)
-
+        self.check_fit()
         if self.transformer is None:
             features, numbers = zip(*X)
         else:

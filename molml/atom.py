@@ -60,6 +60,7 @@ class Shell(BaseFeature):
     _elements : set
         All the elements/types that are in the fit molecules.
     """
+    ATTRIBUTES = ("_elements", )
     LABELS = ("_elements", )
 
     def __init__(self, input_type='list', n_jobs=1, depth=1,
@@ -204,10 +205,7 @@ class Shell(BaseFeature):
         ValueError
             If the transformer has not been fit.
         """
-        if self._elements is None:
-            msg = "This %s instance is not fitted yet. Call 'fit' first."
-            raise ValueError(msg % type(self).__name__)
-
+        self.check_fit()
         data = self.convert_input(X)
 
         vectors = []
@@ -292,6 +290,7 @@ class LocalEncodedBond(BaseFeature):
     _elements : set
         A set of all the elements in the fit molecules.
     """
+    ATTRIBUTES = ("_elements", )
     LABELS = ("_elements", )
 
     def __init__(self, input_type='list', n_jobs=1, segments=100,
@@ -372,9 +371,7 @@ class LocalEncodedBond(BaseFeature):
         ValueError
             If the transformer has not been fit.
         """
-        if self._elements is None:
-            msg = "This %s instance is not fitted yet. Call 'fit' first."
-            raise ValueError(msg % type(self).__name__)
+        self.check_fit()
 
         smoothing_func = get_smoothing_function(self.smoothing)
         theta_func = get_spacing_function(self.spacing)
@@ -460,6 +457,7 @@ class LocalEncodedAngle(BaseFeature):
     _pairs : set
         A set of all the element pairs in the fit molecules.
     """
+    ATTRIBUTES = ("_pairs", )
     LABELS = ("_pairs", )
 
     def __init__(self, input_type='list', n_jobs=1, segments=100,
@@ -541,9 +539,7 @@ class LocalEncodedAngle(BaseFeature):
         ValueError
             If the transformer has not been fit.
         """
-        if self._pairs is None:
-            msg = "This %s instance is not fitted yet. Call 'fit' first."
-            raise ValueError(msg % type(self).__name__)
+        self.check_fit()
 
         smoothing_func = get_smoothing_function(self.smoothing)
 
@@ -629,6 +625,7 @@ class LocalCoulombMatrix(BaseFeature):
                                     + ||  R_{p_i} - R_{p_j} ||_2 ) ** \alpha
         M_{ii} = 0.5 Z_{p_i} ** 2.4
     """
+    ATTRIBUTES = None
     LABELS = None
 
     def __init__(self, input_type='list', n_jobs=1, max_occupancy=4, r_cut=10.,
@@ -734,6 +731,7 @@ class BehlerParrinello(BaseFeature):
     _element_pairs : set
         A set of all the element pairs in the molecules.
     """
+    ATTRIBUTES = ("_elements", "_element_pairs")
     LABELS = ("_elements", "_element_pairs")
 
     def __init__(self, input_type='list', n_jobs=1, r_cut=6.0, r_s=1., eta=1.,
@@ -938,9 +936,7 @@ class BehlerParrinello(BaseFeature):
         ValueError
             If the transformer has not been fit.
         """
-        if self._elements is None or self._element_pairs is None:
-            msg = "This %s instance is not fitted yet. Call 'fit' first."
-            raise ValueError(msg % type(self).__name__)
+        self.check_fit()
 
         data = self.convert_input(X)
 

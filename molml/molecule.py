@@ -61,6 +61,7 @@ class Connectivity(BaseFeature):
     Collins, C.; Gordon, G.; von Lilienfeld, O. A.; Yaron, D. Constant Size
     Molecular Descriptors For Use With Machine Learning. arXiv:1701.06649
     """
+    ATTRIBUTES = ("_base_chains", )
     LABELS = ("_base_chains", )
 
     def __init__(self, input_type='list', n_jobs=1, depth=1,
@@ -264,9 +265,7 @@ class Connectivity(BaseFeature):
         ValueError
             If the transformer has not been fit.
         """
-        if self._base_chains is None:
-            msg = "This %s instance is not fitted yet. Call 'fit' first."
-            raise ValueError(msg % type(self).__name__)
+        self.check_fit()
 
         data = self.convert_input(X)
         chains = self._loop_depth(data.connections)
@@ -339,6 +338,7 @@ class EncodedAngle(BaseFeature):
     _groups : set, tuples
         A list of all the groups (element chains) in the fit molecules.
     """
+    ATTRIBUTES = ("_groups", )
     LABELS = ("_groups", )
 
     def __init__(self, input_type='list', n_jobs=1, segments=40,
@@ -432,9 +432,7 @@ class EncodedAngle(BaseFeature):
         ValueError
             If the transformer has not been fit.
         """
-        if self._groups is None:
-            msg = "This %s instance is not fitted yet. Call 'fit' first."
-            raise ValueError(msg % type(self).__name__)
+        self.check_fit()
 
         smoothing_func = get_smoothing_function(self.smoothing)
 
@@ -542,6 +540,7 @@ class EncodedBond(BaseFeature):
     Collins, C.; Gordon, G.; von Lilienfeld, O. A.; Yaron, D. Constant Size
     Molecular Descriptors For Use With Machine Learning. arXiv:1701.06649
     """
+    ATTRIBUTES = ("_element_pairs", )
     LABELS = ("_element_pairs", )
 
     def __init__(self, input_type='list', n_jobs=1, segments=100,
@@ -621,9 +620,7 @@ class EncodedBond(BaseFeature):
         ValueError
             If the transformer has not been fit.
         """
-        if self._element_pairs is None:
-            msg = "This %s instance is not fitted yet. Call 'fit' first."
-            raise ValueError(msg % type(self).__name__)
+        self.check_fit()
 
         smoothing_func = get_smoothing_function(self.smoothing)
         theta_func = get_spacing_function(self.spacing)
@@ -705,6 +702,7 @@ class CoulombMatrix(BaseFeature):
         The size of the largest molecule in the fit molecules by number of
         atoms.
     """
+    ATTRIBUTES = ("_max_size", )
     LABELS = None
 
     def __init__(self, input_type='list', n_jobs=1, sort=False, eigen=False):
@@ -777,9 +775,7 @@ class CoulombMatrix(BaseFeature):
         ValueError
             If the size of the transforming molecules are larger than the fit.
         """
-        if self._max_size is None:
-            msg = "This %s instance is not fitted yet. Call 'fit' first."
-            raise ValueError(msg % type(self).__name__)
+        self.check_fit()
 
         data = self.convert_input(X)
         if len(data.numbers) > self._max_size:
@@ -834,6 +830,7 @@ class BagOfBonds(BaseFeature):
         A dictonary mapping element pairs to the maximum size of that element
         pair block in all the fit molecules.
     """
+    ATTRIBUTES = ("_bag_sizes", )
     LABELS = ("_bag_sizes", )
 
     def __init__(self, input_type='list', n_jobs=1):
@@ -943,9 +940,7 @@ class BagOfBonds(BaseFeature):
             If the size of the transforming molecules have more values in at
             least one bag than the same bag from the are larger than the fit.
         """
-        if self._bag_sizes is None:
-            msg = "This %s instance is not fitted yet. Call 'fit' first."
-            raise ValueError(msg % type(self).__name__)
+        self.check_fit()
 
         data = self.convert_input(X)
         # Sort the elements and coords based on the element

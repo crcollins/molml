@@ -183,6 +183,15 @@ class BaseFeature(object):
         values = [tuple(sorted(getattr(self, x))) for x in self.LABELS]
         return sum(values, tuple())
 
+    def check_fit(self):
+        if self.ATTRIBUTES is None:
+            return
+
+        msg = "This %s instance is not fitted yet. Call 'fit' first."
+        for key in self.ATTRIBUTES:
+            if getattr(self, key) is None:
+                raise ValueError(msg % type(self).__name__)
+
     def map(self, f, seq):
         """
         Parallel implementation of map.
