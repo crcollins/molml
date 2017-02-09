@@ -27,12 +27,6 @@ class Shell(BaseFeature):
     starting atom. This is similar to the features developed in Qu et. al.
     with the exception that it is atom-based rather than bond-based.
 
-    References
-    ----------
-    Qu, X.; Latino, D. A.; Aires-de Sousa, J. A Big Data Approach to the
-    Ultra-fast Prediction of DFT-calculated Bond Energies. J. Cheminf. 2013,
-    5, 34.
-
     Parameters
     ----------
     input_type : string, default='list'
@@ -59,6 +53,12 @@ class Shell(BaseFeature):
     ----------
     _elements : set
         All the elements/types that are in the fit molecules.
+
+    References
+    ----------
+    Qu, X.; Latino, D. A.; Aires-de Sousa, J. A Big Data Approach to the
+    Ultra-fast Prediction of DFT-calculated Bond Energies. J. Cheminf. 2013,
+    5, 34.
     """
     ATTRIBUTES = ("_elements", )
     LABELS = ("_elements", )
@@ -584,11 +584,6 @@ class LocalCoulombMatrix(BaseFeature):
     An implementation of the Coulomb Matrix where only the local atom
     environment is used by using a cutoff radius.
 
-    References
-    ----------
-    Barker, J.; Bulin, J.;  Hamaekers, J. LC-GAP: Localized Coulomb Descriptors
-    for the Gaussian Approximation Potential. 2016
-
     Parameters
     ----------
     input_type : string, default='list'
@@ -624,6 +619,11 @@ class LocalCoulombMatrix(BaseFeature):
                                     + ||  R_{p_1} - R_{p_j} ||_2
                                     + ||  R_{p_i} - R_{p_j} ||_2 ) ** \alpha
         M_{ii} = 0.5 Z_{p_i} ** 2.4
+
+    References
+    ----------
+    Barker, J.; Bulin, J.;  Hamaekers, J. LC-GAP: Localized Coulomb Descriptors
+    for the Gaussian Approximation Potential. 2016
     """
     ATTRIBUTES = None
     LABELS = None
@@ -695,11 +695,6 @@ class BehlerParrinello(BaseFeature):
     An implementation of the descriptors used in Behler-Parrinello Neural
     Networks.
 
-    References
-    ----------
-    Behler, J; Parrinello, M. Generalized Neural-Network Representation of
-    High-Dimensional Potential-Energy Surfaces. Phys. Rev. Lett. 98, 146401.
-
     Parameters
     ----------
     input_type : string, default='list'
@@ -730,6 +725,11 @@ class BehlerParrinello(BaseFeature):
 
     _element_pairs : set
         A set of all the element pairs in the molecules.
+
+    References
+    ----------
+    Behler, J; Parrinello, M. Generalized Neural-Network Representation of
+    High-Dimensional Potential-Energy Surfaces. Phys. Rev. Lett. 98, 146401.
     """
     ATTRIBUTES = ("_elements", "_element_pairs")
     LABELS = ("_elements", "_element_pairs")

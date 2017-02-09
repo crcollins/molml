@@ -83,6 +83,11 @@ class AtomKernel(BaseFeature):
     ValueError
         If the input_type of the transformer and the input_type keyword given
         do not match.
+
+    References
+    ----------
+    Barker, J.; Bulin, J.;  Hamaekers, J. LC-GAP: Localized Coulomb Descriptors
+    for the Gaussian Approximation Potential. 2016
     """
     ATTRIBUTES = ("_features", "_numbers")
     LABELS = None
