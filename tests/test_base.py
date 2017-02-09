@@ -17,6 +17,63 @@ METHANE = (METHANE_ELEMENTS, METHANE_COORDS)
 METHANE_ATOMS = numpy.array([[1, 4]])
 
 
+class TestFeature1(BaseFeature):
+    '''
+    Some example doc string.
+
+    References
+    ----------
+    Doe, J. Nature. (2016).
+    '''
+    LABELS = ('labels', )
+    ATTRIBUTES = ('data', )
+
+    def __init__(self, input_type='list', n_jobs=1, value=None):
+        super(TestFeature1, self).__init__(input_type, n_jobs)
+        self.labels = ('C', 'B', 'A')
+        self.data = value
+        self.value = value
+
+
+class TestFeature2(BaseFeature):
+    '''
+    Some example doc string.
+
+    References
+    ----------
+    Doe, J. Nature. (2016).
+
+    Smith, J. Science. (2010).
+    '''
+    LABELS = ('labels1', 'labels2')
+    ATTRIBUTES = ('data1', 'data2')
+
+    def __init__(self, value=None):
+        self.labels1 = ('A', 'B', 'C')
+        self.labels2 = ('DD', 'CC')
+        self.data1 = value
+        self.data2 = value
+
+
+class TestFeature3(BaseFeature):
+    '''
+    Some example doc string.
+
+    References
+    ----------
+    Doe, J. Nature. (2016).
+
+    Smith, J. Science. (2010).
+
+    Other
+    -----
+    Something else.
+    '''
+    LABELS = None
+    ATTRIBUTES = None
+
+
+#################################################
 class OtherTest(unittest.TestCase):
 
     def test__func_star(self):
@@ -159,22 +216,6 @@ class BaseFeatureTest(unittest.TestCase):
             a.fake
 
     def test_get_labels(self):
-        class TestFeature1(BaseFeature):
-            LABELS = ('labels', )
-
-            def __init__(self):
-                self.labels = ('C', 'B', 'A')
-
-        class TestFeature2(BaseFeature):
-            LABELS = ('labels1', 'labels2')
-
-            def __init__(self):
-                self.labels1 = ('A', 'B', 'C')
-                self.labels2 = ('DD', 'CC')
-
-        class TestFeature3(BaseFeature):
-            LABELS = None
-
         a = TestFeature1()
         self.assertEqual(a.get_labels(), ('A', 'B', 'C'))
         b = TestFeature2()
@@ -183,22 +224,6 @@ class BaseFeatureTest(unittest.TestCase):
         self.assertEqual(c.get_labels(), tuple())
 
     def test_check_fit(self):
-        class TestFeature1(BaseFeature):
-            ATTRIBUTES = ('data', )
-
-            def __init__(self, value=None):
-                self.data = value
-
-        class TestFeature2(BaseFeature):
-            ATTRIBUTES = ('data1', 'data2')
-
-            def __init__(self, value=None):
-                self.data1 = value
-                self.data2 = value
-
-        class TestFeature3(BaseFeature):
-            ATTRIBUTES = None
-
         a = TestFeature1(value=1)
         self.assertIsNone(a.check_fit())
         b = TestFeature2(value=1)
@@ -215,45 +240,10 @@ class BaseFeatureTest(unittest.TestCase):
             b.check_fit()
 
     def test_get_citation(self):
-        class TestFeature(BaseFeature):
-            '''
-            Some example doc string.
-
-            References
-            ----------
-            Doe, J. Nature. (2016).
-            '''
-
-        class TestFeature2(BaseFeature):
-            '''
-            Some example doc string.
-
-            References
-            ----------
-            Doe, J. Nature. (2016).
-
-            Smith, J. Science. (2010).
-            '''
-
-        class TestFeature3(BaseFeature):
-            '''
-            Some example doc string.
-
-            References
-            ----------
-            Doe, J. Nature. (2016).
-
-            Smith, J. Science. (2010).
-
-            Other
-            -----
-            Something else.
-            '''
-
         citation = "MolML https://github.com/crcollins/molml"
         self.assertEqual(citation, BaseFeature.get_citation())
         self.assertEqual("Doe, J. Nature. (2016).",
-                         TestFeature.get_citation())
+                         TestFeature1.get_citation())
         expected = "Doe, J. Nature. (2016).\n"
         expected += "Smith, J. Science. (2010)."
         self.assertEqual(expected, TestFeature2.get_citation())
