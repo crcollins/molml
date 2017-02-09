@@ -210,6 +210,26 @@ class BaseFeature(object):
             if getattr(self, key) is None:
                 raise ValueError(msg % type(self).__name__)
 
+    @classmethod
+    def get_citation(self):
+        try:
+            docs = self.__doc__
+            idx = docs.index("References")
+            values = [x.strip() for x in docs[idx:].split('\n')[2:]]
+            new_values = [[]]
+            for value in values:
+                if "----" in value:
+                    new_values.pop()
+                    break
+                elif not value:
+                    new_values.append([])
+                else:
+                    new_values[-1].append(value)
+            strings = [' '.join(x) for x in new_values if x]
+            return '\n'.join(strings)
+        except ValueError:
+            return "MolML https://github.com/crcollins/molml"
+
     def map(self, f, seq):
         """
         Parallel implementation of map.

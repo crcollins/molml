@@ -214,6 +214,51 @@ class BaseFeatureTest(unittest.TestCase):
             b = TestFeature2()
             b.check_fit()
 
+    def test_get_citation(self):
+        class TestFeature(BaseFeature):
+            '''
+            Some example doc string.
+
+            References
+            ----------
+            Doe, J. Nature. (2016).
+            '''
+
+        class TestFeature2(BaseFeature):
+            '''
+            Some example doc string.
+
+            References
+            ----------
+            Doe, J. Nature. (2016).
+
+            Smith, J. Science. (2010).
+            '''
+
+        class TestFeature3(BaseFeature):
+            '''
+            Some example doc string.
+
+            References
+            ----------
+            Doe, J. Nature. (2016).
+
+            Smith, J. Science. (2010).
+
+            Other
+            -----
+            Something else.
+            '''
+
+        citation = "MolML https://github.com/crcollins/molml"
+        self.assertEqual(citation, BaseFeature.get_citation())
+        self.assertEqual("Doe, J. Nature. (2016).",
+                         TestFeature.get_citation())
+        expected = "Doe, J. Nature. (2016).\n"
+        expected += "Smith, J. Science. (2010)."
+        self.assertEqual(expected, TestFeature2.get_citation())
+        self.assertEqual(expected, TestFeature3.get_citation())
+
 
 if __name__ == '__main__':
     unittest.main()
