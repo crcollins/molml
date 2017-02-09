@@ -177,6 +177,16 @@ class BaseFeature(object):
         return values
 
     def get_labels(self):
+        """
+        Get the labels for the features in the transformer
+
+        Returns
+        -------
+        values : tuple
+            All of the labels of the resulting features.
+            Note: These may not be a one-to-one mapping, but rather the order
+            in which they occur.
+        """
         if self.LABELS is None:
             return tuple()
 
@@ -184,6 +194,14 @@ class BaseFeature(object):
         return sum(values, tuple())
 
     def check_fit(self):
+        """
+        Check if the transformer has been fit
+
+        Raises
+        ------
+        ValueError
+            The transformer has not been fit.
+        """
         if self.ATTRIBUTES is None:
             return
 
