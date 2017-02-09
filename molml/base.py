@@ -360,3 +360,13 @@ class BaseFeature(object):
         """
         self.fit(X, y)
         return self.transform(X, y)
+
+
+class SetMergeMixin(object):
+    def fit(self, X, y=None):
+        if len(self.ATTRIBUTES) > 1:
+            raise NotImplementedError
+        res = self.map(self._para_fit, X)
+        vals = self.reduce(lambda x, y: set(x) | set(y), res)
+        setattr(self, self.ATTRIBUTES[0], set(vals))
+        return self

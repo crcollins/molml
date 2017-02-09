@@ -4,7 +4,7 @@ import unittest
 import numpy
 
 from molml.features import Connectivity
-from molml.base import BaseFeature, _func_star
+from molml.base import BaseFeature, SetMergeMixin, _func_star
 from molml.utils import read_file_data
 
 
@@ -258,6 +258,30 @@ class BaseFeatureTest(unittest.TestCase):
         expected += "Smith, J. Science. (2010)."
         self.assertEqual(expected, TestFeature2.get_citation())
         self.assertEqual(expected, TestFeature3.get_citation())
+
+
+class TestSetMergeMixin(unittest.TestCase):
+    def test_multiple_attributes(self):
+        class TestFeature(SetMergeMixin, BaseFeature):
+            ATTRIBUTES = ("test1", "test2")
+
+        a = TestFeature()
+        with self.assertRaises(NotImplementedError):
+            a.fit([])
+
+    def test_fit(self):
+        class TestFeature(SetMergeMixin, BaseFeature):
+            ATTRIBUTES = ("test1", )
+
+            def __init__(self, *args, **kwargs):
+                super(TestFeature, self).__init__(*args, **kwargs)
+
+            def _para_fit(self, X):
+                return set([1, 2, 3])
+
+        a = TestFeature(input_type="filename")
+        a.fit([METHANE_PATH, METHANE_PATH])
+        self.assertEqual({1, 2, 3}, a.test1)
 
 
 if __name__ == '__main__':

@@ -10,7 +10,7 @@ from builtins import range
 import numpy
 from scipy.spatial.distance import cdist
 
-from .base import BaseFeature
+from .base import BaseFeature, SetMergeMixin
 from .utils import get_depth_threshold_mask_connections, get_coulomb_matrix
 from .utils import ELE_TO_NUM, get_smoothing_function, get_spacing_function
 from .utils import get_element_pairs, cosine_decay, needs_reversal
@@ -21,7 +21,7 @@ __all__ = ("Connectivity", "EncodedAngle", "EncodedBond", "CoulombMatrix",
            "BagOfBonds")
 
 
-class Connectivity(BaseFeature):
+class Connectivity(SetMergeMixin, BaseFeature):
     """
     A collection of feature types based on the connectivity of atoms.
 
@@ -224,25 +224,6 @@ class Connectivity(BaseFeature):
                                         data.connections)
         return list(all_counts.keys())
 
-    def fit(self, X, y=None):
-        """
-        Fit the model.
-
-        Parameters
-        ----------
-        X : list, shape=(n_samples, )
-            A list of objects to use to fit.
-
-        Returns
-        -------
-        self : object
-            Returns the instance itself.
-        """
-        base_chains = self.map(self._para_fit, X)
-        self._base_chains = set(self.reduce(lambda x, y: set(x) | set(y),
-                                            base_chains))
-        return self
-
     def _para_transform(self, X, y=None):
         """
         A single instance of the transform procedure.
@@ -270,7 +251,6 @@ class Connectivity(BaseFeature):
         data = self.convert_input(X)
         chains = self._loop_depth(data.connections)
         tallies = self._tally_chains(chains, data.elements, data.connections)
-
         vector = [tallies.get(x, 0) for x in sorted(self._base_chains)]
         if self.add_unknown:
             unknown = 0
@@ -281,7 +261,7 @@ class Connectivity(BaseFeature):
         return vector
 
 
-class EncodedAngle(BaseFeature):
+class EncodedAngle(SetMergeMixin, BaseFeature):
     r"""
     A smoothed histogram of atomic angles.
 
@@ -389,24 +369,6 @@ class EncodedAngle(BaseFeature):
                         res.append(temp)
         return set([x if x[0] < x[2] else x[::-1] for x in res])
 
-    def fit(self, X, y=None):
-        """
-        Fit the model.
-
-        Parameters
-        ----------
-        X : list, shape=(n_samples, )
-            A list of objects to use to fit.
-
-        Returns
-        -------
-        self : object
-            Returns the instance itself.
-        """
-        groups = self.map(self._para_fit, X)
-        self._groups = set(self.reduce(lambda x, y: x | y, groups))
-        return self
-
     def f_c(self, R):
         return cosine_decay(R, r_cut=self.r_cut)
 
@@ -469,7 +431,7 @@ class EncodedAngle(BaseFeature):
         return vector.flatten().tolist()
 
 
-class EncodedBond(BaseFeature):
+class EncodedBond(SetMergeMixin, BaseFeature):
     """
     A smoothed histogram of atomic distances.
 
@@ -578,25 +540,6 @@ class EncodedBond(BaseFeature):
         """
         data = self.convert_input(X)
         return get_element_pairs(data.elements)
-
-    def fit(self, X, y=None):
-        """
-        Fit the model.
-
-        Parameters
-        ----------
-        X : list, shape=(n_samples, )
-            A list of objects to use to fit.
-
-        Returns
-        -------
-        self : object
-            Returns the instance itself.
-        """
-        pairs = self.map(self._para_fit, X)
-        self._element_pairs = set(self.reduce(lambda x, y: set(x) | set(y),
-                                              pairs))
-        return self
 
     def _para_transform(self, X, y=None):
         """

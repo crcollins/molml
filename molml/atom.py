@@ -10,7 +10,7 @@ from builtins import range
 import numpy
 from scipy.spatial.distance import cdist
 
-from .base import BaseFeature
+from .base import BaseFeature, SetMergeMixin
 from .utils import get_depth_threshold_mask_connections, get_coulomb_matrix
 from .utils import get_spacing_function, get_smoothing_function
 from .utils import get_element_pairs, cosine_decay, get_angles
@@ -21,7 +21,7 @@ __all__ = ("Shell", "LocalEncodedBond", "LocalEncodedAngle",
            "LocalCoulombMatrix", "BehlerParrinello")
 
 
-class Shell(BaseFeature):
+class Shell(SetMergeMixin, BaseFeature):
     """
     A feature that counts the number of elements in a distance shell from the
     starting atom. This is similar to the features developed in Qu et. al.
@@ -164,25 +164,6 @@ class Shell(BaseFeature):
                         enumerate(elements)]
         return set(elements)
 
-    def fit(self, X, y=None):
-        """
-        Fit the model.
-
-        Parameters
-        ----------
-        X : list, shape=(n_samples, )
-            A list of objects to use to fit.
-
-        Returns
-        -------
-        self : object
-            Returns the instance itself.
-        """
-        results = self.map(self._para_fit, X)
-        self._elements = set(self.reduce(lambda x, y: set(x) | set(y),
-                                         results))
-        return self
-
     def _para_transform(self, X):
         """
         A single instance of the transform procedure.
@@ -225,7 +206,7 @@ class Shell(BaseFeature):
         return vectors
 
 
-class LocalEncodedBond(BaseFeature):
+class LocalEncodedBond(SetMergeMixin, BaseFeature):
     """
     A smoothed histogram of atomic distances.
 
@@ -330,25 +311,6 @@ class LocalEncodedBond(BaseFeature):
         # This is just a cheap way to approximate the actual value
         return set(data.elements)
 
-    def fit(self, X, y=None):
-        """
-        Fit the model.
-
-        Parameters
-        ----------
-        X : list, shape=(n_samples, )
-            A list of objects to use to fit.
-
-        Returns
-        -------
-        self : object
-            Returns the instance itself.
-        """
-        elements = self.map(self._para_fit, X)
-        self._elements = set(self.reduce(lambda x, y: set(x) | set(y),
-                                         elements))
-        return self
-
     def _para_transform(self, X, y=None):
         """
         A single instance of the transform procedure.
@@ -403,7 +365,7 @@ class LocalEncodedBond(BaseFeature):
         return vector.reshape(len(data.elements), -1)
 
 
-class LocalEncodedAngle(BaseFeature):
+class LocalEncodedAngle(SetMergeMixin, BaseFeature):
     r"""
     A smoothed histogram of atomic angles.
 
@@ -497,25 +459,6 @@ class LocalEncodedAngle(BaseFeature):
         data = self.convert_input(X)
         # This is just a cheap way to approximate the actual value
         return get_element_pairs(data.elements)
-
-    def fit(self, X, y=None):
-        """
-        Fit the model.
-
-        Parameters
-        ----------
-        X : list, shape=(n_samples, )
-            A list of objects to use to fit.
-
-        Returns
-        -------
-        self : object
-            Returns the instance itself.
-        """
-        pairs = self.map(self._para_fit, X)
-        self._pairs = set(self.reduce(lambda x, y: set(x) | set(y),
-                                      pairs))
-        return self
 
     def _para_transform(self, X, y=None):
         """
