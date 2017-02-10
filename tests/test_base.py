@@ -3,7 +3,6 @@ import unittest
 
 import numpy
 
-from molml.features import Connectivity
 from molml.base import BaseFeature, SetMergeMixin, _func_star
 from molml.utils import read_file_data
 
@@ -187,13 +186,10 @@ class BaseFeatureTest(unittest.TestCase):
             a.convert_input("bad data")
 
     def test_slugify(self):
-        a = Connectivity()
+        a = TestFeature1()
         expected = [
-                    'Connectivity',
-                    'depth=1',
-                    'use_bond_order=False',
-                    'use_coordination=False',
-                    'add_unknown=False'
+                    'TestFeature1',
+                    'value=None',
                     ]
         self.assertEqual(a.slugify(), '__'.join(expected))
 
