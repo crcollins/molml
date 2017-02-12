@@ -195,6 +195,12 @@ class ShellTest(unittest.TestCase):
         expected = numpy.array(temp)
         self.assertTrue((a.transform(ALL_DATA) == expected).all())
 
+    def test_get_labels(self):
+        a = Shell()
+        a.fit(ALL_DATA)
+        expected = ('C', 'H', 'N', 'O')
+        self.assertEqual(a.get_labels(), expected)
+
 
 class LocalEncodedBondTest(unittest.TestCase):
 
