@@ -364,9 +364,14 @@ class BaseFeature(object):
 
 class SetMergeMixin(object):
     def fit(self, X, y=None):
-        if len(self.ATTRIBUTES) > 1:
-            raise NotImplementedError
         res = self.map(self._para_fit, X)
-        vals = self.reduce(lambda x, y: set(x) | set(y), res)
-        setattr(self, self.ATTRIBUTES[0], set(vals))
+        if len(self.ATTRIBUTES) > 1:
+            temp = self.reduce(lambda x, y: tuple(set(xx) | set(yy)
+                                                  for xx, yy in zip(x, y)),
+                               res)
+            for attr, vals in zip(self.ATTRIBUTES, temp):
+                setattr(self, attr, set(vals))
+        else:
+            vals = self.reduce(lambda x, y: set(x) | set(y), res)
+            setattr(self, self.ATTRIBUTES[0], set(vals))
         return self

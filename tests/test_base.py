@@ -251,9 +251,16 @@ class TestSetMergeMixin(unittest.TestCase):
         class TestFeature(SetMergeMixin, BaseFeature):
             ATTRIBUTES = ("test1", "test2")
 
-        a = TestFeature()
-        with self.assertRaises(NotImplementedError):
-            a.fit([])
+            def __init__(self, *args, **kwargs):
+                super(TestFeature, self).__init__(*args, **kwargs)
+
+            def _para_fit(self, X):
+                return (set([1, 2, 3]), set([2, 3, 4]))
+
+        a = TestFeature(input_type="filename")
+        a.fit([METHANE_PATH, METHANE_PATH])
+        self.assertEqual({1, 2, 3}, a.test1)
+        self.assertEqual({2, 3, 4}, a.test2)
 
     def test_fit(self):
         class TestFeature(SetMergeMixin, BaseFeature):
