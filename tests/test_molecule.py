@@ -508,16 +508,16 @@ class EncodedAngleTest(unittest.TestCase):
         # This is a cheap test to prevent needing all the values here
         data = (
             #       mean          std     min      max
-            (-1, [0.326294631, 1.2002184, 0.0, 33.08446500]),
-            (1, [0.042479715, 0.4281721, 0.0, 14.17023748]),
-            (3, [0.215424364, 0.9898780, 0.0, 29.74949429]),
+            (-1, [0.0325158765862, 0.132101907024, 0.0, 2.01566683797]),
+            (1, [0.00491078348799, 0.0463273875823, 0.0, 0.694568644823]),
+            (3, [0.0063668265711, 0.0513782485995, 0.0, 0.694568644823]),
 
         )
         for max_depth, expected in data:
             a = EncodedAngle(max_depth=max_depth)
             expected_results = numpy.array(expected)
             try:
-                m = a.fit_transform([BIG])
+                m = a.fit_transform([MID])
                 assert_close_statistics(m, expected_results)
             except AssertionError as e:
                 self.fail(e)

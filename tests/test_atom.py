@@ -298,10 +298,9 @@ class LocalEncodedAngleTest(unittest.TestCase):
     def test_transform(self):
         a = LocalEncodedAngle()
         a.fit(ALL_DATA)
-        m = a.transform(ALL_DATA)
+        m = a.transform([METHANE, MID])
         expected_results = numpy.array([42.968775,
-                                        53.28433,
-                                        1250.626658])
+                                        53.28433])
         mm = numpy.array([x.sum() for x in m])
         try:
             numpy.testing.assert_allclose(mm, expected_results)
