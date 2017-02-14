@@ -633,7 +633,7 @@ class LocalCoulombMatrix(BaseFeature):
         return numpy.array(vectors)
 
 
-class BehlerParrinello(BaseFeature):
+class BehlerParrinello(SetMergeMixin, BaseFeature):
     """
     An implementation of the descriptors used in Behler-Parrinello Neural
     Networks.
@@ -714,28 +714,6 @@ class BehlerParrinello(BaseFeature):
         unique_elements = set(data.elements)
         pairs = get_element_pairs(data.elements)
         return unique_elements, pairs
-
-    def fit(self, X, y=None):
-        """
-        Fit the model.
-
-        Parameters
-        ----------
-        X : list, shape=(n_samples, )
-            A list of objects to use to fit.
-
-        Returns
-        -------
-        self : object
-            Returns the instance itself.
-        """
-        results = self.map(self._para_fit, X)
-        elements, pairs = zip(*results)
-        self._elements = set(self.reduce(lambda x, y: set(x) | set(y),
-                                         elements))
-        self._element_pairs = set(self.reduce(lambda x, y: set(x) | set(y),
-                                              pairs))
-        return self
 
     def f_c(self, R):
         return cosine_decay(R, r_cut=self.r_cut)
