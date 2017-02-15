@@ -654,12 +654,18 @@ class BehlerParrinello(SetMergeMixin, BaseFeature):
         "central atom".
 
     r_s : float, default=1.0
+        An offset parameter for computing gaussian values between pairwise
+        distances.
 
     eta : float, default=1.0
+        A decay parameter for the gaussian distances.
 
     lambda_ : float, default=1.0
+        This value sets the orientation of the cosine function for the angles.
+        It should only take values in {-1., 1.}.
 
     zeta : float, default=1.0
+        A decay parameter for the angular terms.
 
     Attributes
     ----------
