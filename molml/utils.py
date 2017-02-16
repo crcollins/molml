@@ -246,6 +246,23 @@ def read_mol2_data(path):
 
 
 def get_depth_threshold_mask_connections(connections, max_depth=1):
+    """
+    Get the depth threshold mask from connections.
+
+    Parameters
+    ----------
+    connections : dict, index->list of indices
+        A dictonary that contains lists of all connected atoms.
+
+    max_depth : int, default=1
+        The maximum depth to allow in the masking
+
+    Returns
+    -------
+    mask : numpy.array, shape=(len(connections), len(connections))
+        A mask of all the atoms that are less than or equal to `max_depth
+        away.
+    """
     mat = numpy.zeros((len(connections), len(connections)))
     for key, values in connections.items():
         for val in values:
