@@ -765,13 +765,19 @@ class BehlerParrinello(SetMergeMixin, BaseFeature):
 
         Parameters
         ----------
+        Theta : array, shape=(N_atoms, N_atoms, N_atoms)
+            An array of triplet angles.
+
         R : array, shape=(N_atoms, N_atoms)
-            A distance matrix for all the atoms (scipy.spatial.cdist)
+            A distance matrix for all the atoms (scipy.spatial.cdist).
+
+        elements : list
+            A list of all the elements in the molecule.
 
         Returns
         -------
-        total : array, shape=(N_atoms, len(self._elements) ** 2)
-            The atom-wise g_1 evaluations.
+        total : array, shape=(N_atoms, len(self._element_pairs))
+            The atom-wise g_2 evaluations.
         """
         F_c_R = self.f_c(R)
 
