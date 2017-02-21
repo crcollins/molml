@@ -116,35 +116,8 @@ class BaseFeature(object):
         Parameters
         ----------
         X : list or string (depends on the instance value of input_type)
-            If input_type is 'list', then it must be an iterable of (elements,
-            coodinates pairs) for each molecule. Where the elements are an
-            iterable of the form (ele1, ele2, ..., elen) and coordinates are an
-            iterable of the form [(x1, y1, z1), (x2, y2, z2), ..., (xn, yn,
-            zn)]. This allows allows for connections to be incldued. This is a
-            dictonary where the keys are the indices of the atoms and the
-            values are dictonaries with the key being another index and the
-            value is the bond order (one of '1', 'Ar', '2', or '3').
-            Example for methane
-            {
-                0: {1: "1", 2: "1", 3: "1", 4: "1"},
-                1: {0: "1"},
-                2: {0: "1"},
-                3: {0: "1"},
-                4: {0: "1"},
-            }
-
-            If input_type is 'filename', then it must be an iterable of
-            paths/filenames for each molecule. The files must then be of the
-            form
-            ele1 x1 y1 z1
-            ele2 x2 y2 z2
-            ...
-            elen xn yn zn
-
-            If input_type is a list, then they will be treated as labels to
-            each of the arguments passed in via a tuple. For example,
-            input_type="list" can be reproduced with ["elements", "coords"]
-            or ["elements", "coords", "connections"].
+            An object that stores the data for a single molecule. See the
+            Notes for more details.
 
         Returns
         -------
@@ -155,6 +128,35 @@ class BaseFeature(object):
         ------
         ValueError
             If the input_type given is not allowed.
+
+        Notes
+        -----
+        If input_type is 'list', then it must be an iterable of (elements,
+        coodinates pairs) for each molecule. Where the elements are an
+        iterable of the form (ele1, ele2, ..., elen) and coordinates are an
+        iterable of the form [(x1, y1, z1), (x2, y2, z2), ..., (xn, yn,
+        zn)]. This allows allows for connections to be incldued. This is a
+        dictonary where the keys are the indices of the atoms and the
+        values are dictonaries with the key being another index and the
+        value is the bond order (one of '1', 'Ar', '2', or '3').
+        Example for methane::
+
+            {
+                0: {1: "1", 2: "1", 3: "1", 4: "1"},
+                1: {0: "1"},
+                2: {0: "1"},
+                3: {0: "1"},
+                4: {0: "1"},
+            }
+
+        If input_type is 'filename', then it must be an iterable of
+        paths/filenames for each molecule. Currently, the supported formats
+        are: xyz, mol2, and a simple xyz format (.out).
+
+        If input_type is a list, then they will be treated as labels to
+        each of the arguments passed in via a tuple. For example,
+        input_type="list" can be reproduced with ["elements", "coords"]
+        or ["elements", "coords", "connections"].
         """
         connections = None
         if self.input_type == "list":
