@@ -113,7 +113,7 @@ def get_bond_type(element1, element2, dist):
 
 def get_connections(elements, coords):
     """
-    Return a dictonary edge list.
+    Return a dictionary edge list.
 
     Each value is is a tuple of the index of
     the connecting atom and the bond order as a string. Where the bond order
@@ -252,7 +252,7 @@ def get_depth_threshold_mask_connections(connections, max_depth=1):
     Parameters
     ----------
     connections : dict, index->list of indices
-        A dictonary that contains lists of all connected atoms.
+        A dictionary that contains lists of all connected atoms.
 
     max_depth : int, default=1
         The maximum depth to allow in the masking
@@ -260,7 +260,7 @@ def get_depth_threshold_mask_connections(connections, max_depth=1):
     Returns
     -------
     mask : numpy.array, shape=(len(connections), len(connections))
-        A mask of all the atoms that are less than or equal to `max_depth
+        A mask of all the atoms that are less than or equal to `max_depth`
         away.
     """
     mat = numpy.zeros((len(connections), len(connections)))
@@ -304,7 +304,7 @@ class LazyValues(object):
     Parameters
     ----------
     connections : dict, key->list of keys, default=None
-        A dictonary edge table with all the bidirectional connections.
+        A dictionary edge table with all the bidirectional connections.
 
     numbers : array-like, shape=(n_atoms, ), default=None
         The atomic numbers of all the atoms.
@@ -319,7 +319,7 @@ class LazyValues(object):
     Attributes
     ----------
     connections : dict, key->list of keys
-        A dictonary edge table with all the bidirectional connections. If the
+        A dictionary edge table with all the bidirectional connections. If the
         initialized value for this was None, then this will be computed from
         the coords and numbers/elements.
 
@@ -465,7 +465,7 @@ def deslugify(string):
             The name of the class corresponding to the string.
 
         final_params : dict
-            A dictonary of the feature parameters.
+            A dictionary of the feature parameters.
     """
     parts = string.split('__')
     name = parts[0]
