@@ -373,11 +373,14 @@ class LazyValues(object):
 
 
 def get_coulomb_matrix(numbers, coords, alpha=1, use_decay=False):
-    """
+    r"""
     Return the coulomb matrix for the given coords and numbers.
 
-    C_ij = Z_i Z_j / | r_i - r_j |
-    C_ii = 0.5 Z_i ** 2.4
+    .. math::
+
+        C_{ij} = Z_i Z_j / | r_i - r_j |
+        \\
+        C_{ii} = \frac{1}{2} Z_i^{2.4}
 
     Parameters
     ----------
@@ -497,8 +500,10 @@ def cosine_decay(R, r_cut=6.):
 
     The cutoff is defined as
 
-    0.5 * ( cos( \pi R_ij / R_c ) + 1, if R_ij <= R_c
-    0, otherwise
+    .. math::
+
+        0.5 ( \cos( \frac{\pi R_{ij}}{R_c} ) + 1, if R_ij <= R_c \\
+        0, otherwise
 
 
     Parameters
@@ -622,7 +627,7 @@ def get_angles(coords):
     r"""
     Get the angles between all triples of coords.
 
-    The resulting values are [0, \pi] and all invalid values are nans.
+    The resulting values are ``[0, \pi]`` and all invalid values are NaNs.
 
     Parameters
     ----------

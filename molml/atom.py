@@ -375,7 +375,7 @@ class LocalEncodedAngle(SetMergeMixin, BaseFeature):
     slight modification of the EncodedAngle to work with single atoms at a
     time. This sets the vertex of the angle to be the atom being examined.
 
-    Note: The angles used are 0 to \pi.
+    Note: The angles used are 0 to :math:`\pi`.
 
     Parameters
     ----------
@@ -558,10 +558,13 @@ class LocalCoulombMatrix(BaseFeature):
         away from the "central atom". This is to alleviate issues the arise as
         atoms enter or leave the cutoff radius.
 
-        M_{ij} = Z_{p_i} Z_{p_j} / (  ||  R_{p_1} - R_{p_i} ||_2
-                                    + ||  R_{p_1} - R_{p_j} ||_2
-                                    + ||  R_{p_i} - R_{p_j} ||_2 ) ** \alpha
-        M_{ii} = 0.5 Z_{p_i} ** 2.4
+        .. math::
+
+            M_{ij} = Z_{p_i} Z_{p_j} / (  || R_{p_1} - R_{p_i} ||_2
+                                        + || R_{p_1} - R_{p_j} ||_2
+                                        + || R_{p_i} - R_{p_j} ||_2 )^{\alpha}
+            \\
+            M_{ii} = 0.5 Z_{p_i}^{2.4}
 
     References
     ----------
@@ -728,7 +731,9 @@ class BehlerParrinello(SetMergeMixin, BaseFeature):
         r"""
         A radial symmetry function.
 
-        G^1_i = \sum_{j \neq i} \exp(- \eta (R_ij-R_s)^2) f_c(R_ij)
+        .. math::
+
+            G^1_i = \sum_{j \neq i} \exp(- \eta (R_{ij} - R_s)^2) f_c(R_{ij})
 
         Parameters
         ----------
@@ -756,10 +761,13 @@ class BehlerParrinello(SetMergeMixin, BaseFeature):
         r"""
         An angular symmetry function.
 
-        G^2_i = 2^{1-\zeta} \sum_{i,k \neq i}
-                    (1 - \lambda \cos(\Theta_ijk))^\zeta
-                    \times \exp(-\eta (R_ij^2 + R_ik^2 + R_jk^2))
-                    \times f_c(R_ij) f_c(R_ik) f_c(R_jk)
+        .. math::
+
+            G^2_i = 2^{1-\zeta} \sum_{i,k \neq i}
+                        (1 - \lambda \cos(\Theta_{ijk}))^\zeta
+                        \exp(-\eta (R_{ij}^2 + R_{ik}^2 + R_{jk}^2))
+                        f_c(R_{ij}) f_c(R_{ik}) f_c(R_{jk})
+
 
         This function needs to be optimized.
 
@@ -816,7 +824,9 @@ class BehlerParrinello(SetMergeMixin, BaseFeature):
         """
         Compute the angular term for all triples of atoms.
 
-        Theta_ijk = (R_ij . R_ik) / (|R_ij| |R_ik|)
+        .. math::
+
+            \Theta_{ijk} = (R_{ij} . R_{ik}) / (|R_{ij}| |R_{ik}|)
 
         Right now this is a fairly naive implementation so this could be
         optimized quite a bit.

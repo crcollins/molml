@@ -605,8 +605,10 @@ class CoulombMatrix(BaseFeature):
     This is a feature that uses a Coulomb-like interaction between all atoms
     in the molecule to generate a matrix that is then vectorized.
 
-    C_ij = Z_i Z_j / | r_i - r_j |
-    C_ii = 0.5 Z_i ** 2.4
+    .. math::
+
+        C_ij = Z_i Z_j / | r_i - r_j |
+        C_ii = 0.5 Z_i ** 2.4
 
     Parameters
     ----------
