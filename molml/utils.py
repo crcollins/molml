@@ -119,12 +119,14 @@ def get_connections(elements, coords):
     the connecting atom and the bond order as a string. Where the bond order
     is one of ['1', 'Ar', '2', '3'].
 
-    Example HCN
-    {
-        0: {1: '1', 2: '3'},
-        1: {0: '1'},
-        2: {0: '3'},
-    }
+    Example HCN::
+
+        {
+            0: {1: '1', 2: '3'},
+            1: {0: '1'},
+            2: {0: '3'},
+        }
+
     """
     dist_mat = cdist(coords, coords)
 
@@ -166,10 +168,11 @@ def read_out_data(path):
     """
     Read an out and extract the molecule's geometry.
 
-    The file should be in the format
-    ele0 x0 y0 z0
-    ele1 x1 y1 z1
-    ...
+    The file should be in the format::
+
+        ele0 x0 y0 z0
+        ele1 x1 y1 z1
+        ...
     """
     elements = []
     numbers = []
@@ -188,12 +191,13 @@ def read_xyz_data(path):
     """
     Read an xyz file and extract the molecule's geometry.
 
-    The file should be in the format
-    num_atoms
-    comment
-    ele0 x0 y0 z0
-    ele1 x1 y1 z1
-    ...
+    The file should be in the format::
+
+        num_atoms
+        comment
+        ele0 x0 y0 z0
+        ele1 x1 y1 z1
+        ...
     """
     elements = []
     numbers = []
@@ -214,15 +218,17 @@ def read_mol2_data(path):
     """
     Read a mol2 file and extract the molecule's geometry.
 
-    Roughly, the file format is something like
-    @<TRIPOS>MOLECULE
-    ...
-    @<TRIPOS>ATOM
-     1 ele0id x0 y0 z0 ele0.type 1 MOL charge0
-     2 ele1id x1 y1 z1 ele1.type 1 MOL charge1
-    ...
-    @<TRIPOS>BOND
-    ...
+    Roughly, the file format is something like::
+
+        @<TRIPOS>MOLECULE
+        ...
+        @<TRIPOS>ATOM
+         1 ele0id x0 y0 z0 ele0.type 1 MOL charge0
+         2 ele1id x1 y1 z1 ele1.type 1 MOL charge1
+        ...
+        @<TRIPOS>BOND
+        ...
+
     """
     elements = []
     numbers = []
