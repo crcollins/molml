@@ -792,11 +792,12 @@ class BehlerParrinello(SetMergeMixin, BaseFeature):
         R2 = self.eta * R ** 2
         new_Theta = (1 - self.lambda_ * numpy.cos(Theta)) ** self.zeta
 
-        order = sorted(self._element_pairs)
-        pair_map = {pair: i for i, pair in enumerate(order)}
+        get_index, length, _ = get_index_mapping(self._element_pairs,
+                                                 2,
+                                                 False)
 
         n = R.shape[0]
-        values = numpy.zeros((n, len(pair_map)))
+        values = numpy.zeros((n, length))
         for i in range(n):
             for j in range(n):
                 if i == j:
@@ -807,17 +808,16 @@ class BehlerParrinello(SetMergeMixin, BaseFeature):
                     if k == i or j == k:
                         continue
                     ele2 = elements[k]
-
-                    if ele1 < ele2:
-                        pair_idx = pair_map[ele1, ele2]
-                    else:
-                        pair_idx = pair_map[ele2, ele1]
+                    eles = ele1, ele2
 
                     exp_term = numpy.exp(-(R2[i, j] + R2[i, k] + R2[j, k]))
                     angular_term = new_Theta[i, j, k]
                     radial_cuts = F_c_R[i, j] * F_c_R[i, k] * F_c_R[j, k]
                     temp = angular_term * exp_term * radial_cuts
-                    values[i, pair_idx] += temp
+                    try:
+                        values[i, get_index(eles)] += temp
+                    except KeyError:
+                        pass
         return 2 ** (1 - self.zeta) * values
 
     def calculate_Theta(self, R_vecs):
