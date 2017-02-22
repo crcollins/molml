@@ -7,3 +7,5 @@ dist/*
 build/*
 examples/*.mat
 cover/*
+docs/_build/*
+play/*
