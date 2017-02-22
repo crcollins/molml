@@ -80,7 +80,6 @@ To install a development version, just clone the git repo.
 
     $ git clone https://github.com/crcollins/molml
     $ # cd to molml and setup some virtualenv
-    $ pip install -r requirements.txt
     $ pip install -r requirements-dev.txt
 
 [Pull requests](https://github.com/crcollins/molml/pulls) and [bug reports](https://github.com/crcollins/molml/issues) are welcomed!
