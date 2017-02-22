@@ -365,7 +365,27 @@ class BaseFeature(object):
 
 
 class SetMergeMixin(object):
+    """
+    A simple mixin that will merge sets.
+
+    This mixin replaces all the duplicate code that just merges sets when
+    doing the parallel fits. For this to work, it requires that the subclasses
+    define `ATTRIBUTES`.
+    """
     def fit(self, X, y=None):
+        """
+        Fit the model.
+
+        Parameters
+        ----------
+        X : list, shape=(n_samples, )
+            A list of objects to use to fit.
+
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        """
         res = self.map(self._para_fit, X)
         if len(self.ATTRIBUTES) > 1:
             temp = self.reduce(lambda x, y: tuple(set(xx) | set(yy)
