@@ -21,6 +21,8 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../molml'))
 
+from sphinx.apidoc import main
+main(['-F', '../molml', '-o', '.', '-e'])
 
 # -- General configuration ------------------------------------------------
 
