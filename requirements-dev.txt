@@ -1,8 +1,8 @@
 -r requirements.txt
+-r docs/requirements.readthedocs.txt
 nose
 coverage
 flake8
 scikit-learn
 matplotlib
 pypandoc
-numpydoc
