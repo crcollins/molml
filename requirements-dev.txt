@@ -4,3 +4,4 @@ flake8
 scikit-learn
 matplotlib
 pypandoc
+numpydoc
