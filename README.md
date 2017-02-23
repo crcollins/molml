@@ -86,10 +86,10 @@ To install a development version, just clone the git repo.
 
 [Pull requests](https://github.com/crcollins/molml/pulls) and [bug reports](https://github.com/crcollins/molml/issues) are welcomed!
 
-To build the documentation, you need to install the additional documentation dependencies.
+To build the documentation, you just need to install the documentation dependencies. These are already included in the dev install.
 
     $ cd docs/
-    $ pip install -r requirements.readthedocs.txt
+    $ pip install -r requirements-docs.txt
     $ make html
 
 Testing
