@@ -1,3 +1,4 @@
 sphinx
 sphinx-autobuild
 numpydoc
+sphinx_rtd_theme
