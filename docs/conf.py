@@ -19,7 +19,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../molml'))
+sys.path.insert(0, os.path.abspath('../'))
 
 from sphinx.apidoc import main
 main(['-F', '../molml', '-o', '.', '-e'])
