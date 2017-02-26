@@ -505,10 +505,14 @@ class LocalEncodedAngle(SetMergeMixin, BaseFeature):
             for j, ele2 in enumerate(data.elements):
                 if i == j or not mat[i, j]:
                     continue
+                if not f_c[i, j]:
+                    continue
                 for k, ele3 in enumerate(data.elements):
                     if j == k or not mat[j, k]:
                         continue
                     if i > k and not both:
+                        continue
+                    if not f_c[i, k] or not f_c[j, k]:
                         continue
 
                     F = f_c[i, j] * f_c[j, k] * f_c[i, k]
@@ -800,12 +804,14 @@ class BehlerParrinello(SetMergeMixin, BaseFeature):
         values = numpy.zeros((n, length))
         for i in range(n):
             for j in range(n):
-                if i == j:
+                if i == j or not F_c_R[i, j]:
                     continue
                 ele1 = elements[j]
 
                 for k in range(n):
                     if k == i or j == k:
+                        continue
+                    if not F_c_R[i, k] or not F_c_R[j, k]:
                         continue
                     ele2 = elements[k]
                     eles = ele1, ele2

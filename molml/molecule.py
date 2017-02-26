@@ -415,10 +415,14 @@ class EncodedAngle(SetMergeMixin, BaseFeature):
             for j, ele2 in enumerate(data.elements):
                 if i == j or not mat[i, j]:
                     continue
+                if not f_c[i, j]:
+                    continue
                 for k, ele3 in enumerate(data.elements):
                     if j == k or not mat[j, k]:
                         continue
                     if i > k and not both:
+                        continue
+                    if not f_c[i, k] or not f_c[j, k]:
                         continue
                     F = f_c[i, j] * f_c[j, k] * f_c[i, k]
                     diff = theta - angles[i, j, k]
