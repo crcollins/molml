@@ -560,6 +560,31 @@ def _get_form_indices(values, depth):
 
 
 def get_index_mapping(values, depth, add_unknown):
+    """
+    Determine the ordering and mapping of feature groups.
+
+    Parameters
+    ----------
+    values : list
+        A list of possible values.
+
+    depth : int
+        The number of elements to use from each values value.
+
+    add_unknown : bool
+        Whether or not to include an extra collector for unknown values.
+
+    Returns
+    -------
+    map_func : function(key)->int
+        A function that gives the mapping index for a given key.
+
+    length : int
+        The length of the mapping values.
+
+    both : bool
+        Indicates whether both values are needed in a loop (A, B) vs (B, A).
+    """
     if depth < 1:
         # Just a constant value
         return (lambda _: 0), 1, False
@@ -637,13 +662,13 @@ def get_angles(coords):
 
     Parameters
     ----------
-        coords : numpy.array, shape=(n_atoms, n_dim)
-            An array of all the coordinates.
+    coords : numpy.array, shape=(n_atoms, n_dim)
+        An array of all the coordinates.
 
     Returns
     -------
-        res : numpy.array, shape=(n_atoms, n_atoms, n_atoms)
-            An array the angles of all triples.
+    res : numpy.array, shape=(n_atoms, n_atoms, n_atoms)
+        An array the angles of all triples.
     """
     diffs = coords - coords[:, None]
     lengths = numpy.linalg.norm(diffs, axis=2)
