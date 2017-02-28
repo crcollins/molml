@@ -649,6 +649,19 @@ def needs_reversal(chain):
 
 
 def sort_chain(chain):
+    """
+    Sort a chain from the inside out.
+
+    Parameters
+    ----------
+    chain : tuple
+        A tuple of elements to treat as a chain
+
+    Returns
+    -------
+    chain : tuple
+        The sorted chain
+    """
     if needs_reversal(chain):
         return chain[::-1]
     return chain
