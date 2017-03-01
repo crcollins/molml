@@ -127,6 +127,19 @@ def get_connections(elements, coords):
             2: {0: '3'},
         }
 
+
+    Parameters
+    ----------
+    elements : list
+        All the elements in the molecule.
+
+    coords : array, shape=(n_atoms, 3)
+        The coordinates of the atoms in the molecule.
+
+    Returns
+    -------
+    connections : dict int->dict
+        Contains all atoms that are connected to each atom and bond type.
     """
     dist_mat = cdist(coords, coords)
 
