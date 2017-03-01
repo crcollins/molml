@@ -164,6 +164,22 @@ def read_file_data(path):
     Determine the file type and call the correct parser.
 
     The accepted file types are .out and .xyz files.
+
+    Parameters
+    ----------
+    path : str
+        A path to a file to read
+
+    Returns
+    -------
+    elements : list
+        All the elements in the molecule.
+
+    numbers : list
+        All the atomic numbers in the molecule.
+
+    coords : numpy.array, shape=(n_atoms, 3)
+        The atomic coordinates of the molecule.
     """
     end = path.split('.')[-1]
     mapping = {
@@ -186,6 +202,22 @@ def read_out_data(path):
         ele0 x0 y0 z0
         ele1 x1 y1 z1
         ...
+
+    Parameters
+    ----------
+    path : str
+        A path to a file to read
+
+    Returns
+    -------
+    elements : list
+        All the elements in the molecule.
+
+    numbers : list
+        All the atomic numbers in the molecule.
+
+    coords : numpy.array, shape=(n_atoms, 3)
+        The atomic coordinates of the molecule.
     """
     elements = []
     numbers = []
@@ -211,6 +243,22 @@ def read_xyz_data(path):
         ele0 x0 y0 z0
         ele1 x1 y1 z1
         ...
+
+    Parameters
+    ----------
+    path : str
+        A path to a file to read
+
+    Returns
+    -------
+    elements : list
+        All the elements in the molecule.
+
+    numbers : list
+        All the atomic numbers in the molecule.
+
+    coords : numpy.array, shape=(n_atoms, 3)
+        The atomic coordinates of the molecule.
     """
     elements = []
     numbers = []
@@ -242,6 +290,21 @@ def read_mol2_data(path):
         @<TRIPOS>BOND
         ...
 
+    Parameters
+    ----------
+    path : str
+        A path to a file to read
+
+    Returns
+    -------
+    elements : list
+        All the elements in the molecule.
+
+    numbers : list
+        All the atomic numbers in the molecule.
+
+    coords : numpy.array, shape=(n_atoms, 3)
+        The atomic coordinates of the molecule.
     """
     elements = []
     numbers = []
