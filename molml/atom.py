@@ -564,11 +564,13 @@ class LocalCoulombMatrix(BaseFeature):
 
         .. math::
 
-            M_{ij} = Z_{p_i} Z_{p_j} / (  || R_{p_1} - R_{p_i} ||_2
-                                        + || R_{p_1} - R_{p_j} ||_2
-                                        + || R_{p_i} - R_{p_j} ||_2 )^{\alpha}
-            \\
-            M_{ii} = 0.5 Z_{p_i}^{2.4}
+            M_{ij} = \begin{cases}
+            \frac{Z_{p_i} Z_{p_j}}{(\| R_{p_1} - R_{p_i} \|_2
+                                  + \| R_{p_1} - R_{p_j} \|_2
+                                  + \| R_{p_i} - R_{p_j} \|_2 )^{\alpha}}, 
+                                  & i \neq j \\
+                             0.5 Z_{p_i}^{2.4} & i = j
+            \end{cases}
 
     References
     ----------
