@@ -460,9 +460,10 @@ def get_coulomb_matrix(numbers, coords, alpha=1, use_decay=False):
 
     .. math::
 
-        C_{ij} = Z_i Z_j / | r_i - r_j |
-        \\
-        C_{ii} = \frac{1}{2} Z_i^{2.4}
+        C_{ij} = \begin{cases}
+            \frac{Z_i Z_j}{\| r_i - r_j \|^\alpha} & i \neq j\\
+            \frac{1}{2} Z_i^{2.4} & i = j
+        \end{cases}
 
     Parameters
     ----------
@@ -584,8 +585,10 @@ def cosine_decay(R, r_cut=6.):
 
     .. math::
 
-        0.5 ( \cos( \frac{\pi R_{ij}}{R_c} ) + 1, if R_ij <= R_c \\
-        0, otherwise
+        f_{R_{c}}(R_{ij}) = \begin{cases}
+            0.5 ( \cos( \frac{\pi R_{ij}}{R_c} ) + 1 ), & R_{ij} \le R_c \\
+            0,  & otherwise
+        \end{cases}
 
 
     Parameters
@@ -747,7 +750,7 @@ def get_angles(coords):
     r"""
     Get the angles between all triples of coords.
 
-    The resulting values are ``[0, \pi]`` and all invalid values are NaNs.
+    The resulting values are :math:`[0, \pi]` and all invalid values are NaNs.
 
     Parameters
     ----------
