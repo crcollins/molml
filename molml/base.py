@@ -7,6 +7,7 @@ the other transformers.
 import inspect
 import multiprocessing
 from functools import reduce
+import json
 
 import numpy
 from pathos.multiprocessing import ProcessingPool as Pool
@@ -362,6 +363,26 @@ class BaseFeature(object):
         """
         self.fit(X, y)
         return self.transform(X, y)
+
+    def save_json(self, f):
+        """
+        Save the model data in a json file
+
+        Parameters
+        ----------
+        f : str or file descriptor
+            The path to save the data or a file descriptor to save it to.
+        """
+        attributes = {key: getattr(self, key) for key in self.ATTRIBUTES}
+        data = {
+                "parameters": self.get_params(),
+                "attributes": attributes,
+        }
+        try:
+            json.dump(data, f)
+        except AttributeError:
+            with open(f, 'w') as out_file:
+                json.dump(data, out_file)
 
 
 class SetMergeMixin(object):

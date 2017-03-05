@@ -1,5 +1,10 @@
 import os
 import unittest
+import json
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 import numpy
 
@@ -244,6 +249,24 @@ class BaseFeatureTest(unittest.TestCase):
         expected += "Smith, J. Science. (2010)."
         self.assertEqual(expected, TestFeature2.get_citation())
         self.assertEqual(expected, TestFeature3.get_citation())
+
+    def test_save_json(self):
+        a = TestFeature1()
+        f = StringIO()
+        a.save_json(f)
+        string = f.getvalue()
+        data = json.loads(string)
+        expected = {'parameters': {'n_jobs': 1,
+                                   'input_type': 'list',
+                                   'value': None},
+                    'attributes': {'data': None}}
+        self.assertEqual(data, expected)
+
+        path = '/tmp/somefile.json'
+        a.save_json(path)
+        with open(path, 'r') as f:
+            data = json.load(f)
+            self.assertEqual(data, expected)
 
 
 class TestSetMergeMixin(unittest.TestCase):
