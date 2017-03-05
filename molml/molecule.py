@@ -611,10 +611,10 @@ class CoulombMatrix(BaseFeature):
 
     .. math::
 
-		C_{ij} = \begin{cases}
-		\frac{Z_i Z_j}{\| r_i - r_j \|} & i \neq j \\
-							0.5 Z_i^{2.4} & i = j
-		\end{cases}
+        C_{ij} = \begin{cases}
+        \frac{Z_i Z_j}{\| r_i - r_j \|} & i \neq j \\
+                          0.5 Z_i^{2.4} & i = j
+        \end{cases}
 
 
     Parameters
