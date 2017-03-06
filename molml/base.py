@@ -374,7 +374,9 @@ class BaseFeature(object):
             The path to save the data or a file descriptor to save it to.
         """
         attributes = {key: getattr(self, key) for key in self.ATTRIBUTES}
+        full_name = self.__module__ + '.' + self.__class__.__name__
         data = {
+                "transformer": full_name,
                 "parameters": self.get_params(),
                 "attributes": attributes,
         }

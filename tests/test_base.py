@@ -256,10 +256,12 @@ class BaseFeatureTest(unittest.TestCase):
         a.save_json(f)
         string = f.getvalue()
         data = json.loads(string)
+        base = a.__module__
         expected = {'parameters': {'n_jobs': 1,
                                    'input_type': 'list',
                                    'value': None},
-                    'attributes': {'data': None}}
+                    'attributes': {'data': None},
+                    'transformer': base + '.TestFeature1'}
         self.assertEqual(data, expected)
 
         path = '/tmp/somefile.json'
