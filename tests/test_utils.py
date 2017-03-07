@@ -1,5 +1,6 @@
 import unittest
 import os
+import json
 
 import numpy
 
@@ -9,6 +10,7 @@ from molml.utils import read_file_data
 from molml.utils import read_out_data, read_xyz_data, read_mol2_data
 from molml.utils import deslugify, _get_form_indices, get_index_mapping
 from molml.utils import sort_chain, needs_reversal
+from molml.utils import load_json
 
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
@@ -248,6 +250,29 @@ class UtilsTest(unittest.TestCase):
 
         no_flip = ("O", "C", "H", "O")
         self.assertFalse(needs_reversal(no_flip))
+
+    def test_load_json(self):
+        data = {'parameters': {'n_jobs': 2,
+                               'input_type': 'list'},
+                'attributes': {'_base_chains': [['H']]},
+                'transformer': 'molml.molecule.Connectivity'}
+        path = '/tmp/somefile.json'
+        with open(path, 'w') as f:
+            json.dump(data, f)
+
+        m = load_json(path)
+        self.assertEqual(m.__class__.__name__,
+                         data["transformer"].split('.')[-1])
+        self.assertEqual(m.n_jobs, data["parameters"]["n_jobs"])
+        self.assertEqual(m._base_chains, data["attributes"]["_base_chains"])
+
+        with open(path, 'r') as f:
+            m = load_json(f)
+
+        self.assertEqual(m.__class__.__name__,
+                         data["transformer"].split('.')[-1])
+        self.assertEqual(m.n_jobs, data["parameters"]["n_jobs"])
+        self.assertEqual(m._base_chains, data["attributes"]["_base_chains"])
 
 
 class LazyValuesTest(unittest.TestCase):

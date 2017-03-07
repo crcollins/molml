@@ -2,6 +2,9 @@
 A collection of asssorted utility functions.
 """
 from builtins import range
+import importlib
+import json
+import warnings
 
 import numpy
 from scipy.spatial.distance import cdist
@@ -717,3 +720,37 @@ def get_angles(coords):
     numpy.clip(res, -1., 1., res)
     numpy.arccos(res, res)
     return res
+
+
+def load_json(f):
+    """
+    Load the model data from a json file
+
+    Parameters
+    ----------
+    f : str or file descriptor
+        The path to save the data or a file descriptor to save it to.
+
+    Returns
+    -------
+    obj : Transformer
+        The transformer object.
+    """
+    try:
+        data = json.load(f)
+    except AttributeError:
+        with open(f, 'r') as in_file:
+            data = json.load(in_file)
+    module, klass = data["transformer"].rsplit('.', 1)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        # Throw away the warnings in Python 3.x because of Dill...
+        # https://github.com/uqfoundation/dill/issues/210
+        m = importlib.import_module(module)
+
+    cls = getattr(m, klass)
+    obj = cls(**data["parameters"])
+    for key, value in data["attributes"].items():
+        setattr(obj, key, value)
+    return obj
