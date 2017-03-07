@@ -34,8 +34,6 @@ setup(
     install_requires=[
         'pathos',
         'future',
-        'numpy',
-        'scipy',
     ],
     classifiers=[
                     "Intended Audience :: Developers",
