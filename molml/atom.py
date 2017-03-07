@@ -574,8 +574,8 @@ class LocalCoulombMatrix(BaseFeature):
 
     References
     ----------
-    Barker, J.; Bulin, J.;  Hamaekers, J. LC-GAP: Localized Coulomb Descriptors
-    for the Gaussian Approximation Potential. 2016
+    Barker, J.; Bulin, J.;  Hamaekers, J.; Mathias, S. Localized Coulomb
+    Descriptors for the Gaussian Approximation Potential. arXiv 1611.05126
     """
     ATTRIBUTES = None
     LABELS = None
