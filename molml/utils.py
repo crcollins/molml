@@ -51,6 +51,19 @@ def get_bond_type(element1, element2, dist):
     Get the bond type between two elements based on their distance.
 
     If there is no bond, return None.
+
+    Parameters
+    ----------
+    element1 : str
+        The element of the first atom
+    element2 : str
+        The element of the second atom
+    dist : float
+        The distance between the two atoms
+    Returns
+    -------
+    key : str
+        The type of the bond
     """
     for key in TYPE_ORDER[::-1]:
         try:
