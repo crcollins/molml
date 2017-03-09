@@ -9,7 +9,7 @@ except ImportError:
 import numpy
 
 from molml.base import BaseFeature, SetMergeMixin, _func_star
-from molml.utils import read_file_data
+from molml.io import read_file_data
 
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data")

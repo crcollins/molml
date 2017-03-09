@@ -6,7 +6,7 @@ import numpy
 from molml.atom import Shell, LocalEncodedBond, LocalCoulombMatrix
 from molml.atom import LocalEncodedAngle
 from molml.atom import BehlerParrinello
-from molml.utils import read_file_data
+from molml.io import read_file_data
 
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data")

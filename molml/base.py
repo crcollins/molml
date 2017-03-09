@@ -12,7 +12,8 @@ import json
 import numpy
 from pathos.multiprocessing import ProcessingPool as Pool
 
-from .utils import LazyValues, read_file_data
+from .utils import LazyValues
+from .io import read_file_data
 
 
 def _func_star(args):

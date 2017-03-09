@@ -5,7 +5,7 @@ import numpy
 
 from molml.kernel import AtomKernel
 from molml.atom import Shell
-from molml.utils import read_file_data
+from molml.io import read_file_data
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
 METHANE_PATH = os.path.join(DATA_PATH, "methane.out")

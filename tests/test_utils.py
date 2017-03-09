@@ -6,8 +6,6 @@ import numpy
 
 from molml.utils import LazyValues, SMOOTHING_FUNCTIONS
 from molml.utils import get_coulomb_matrix, get_element_pairs
-from molml.utils import read_file_data
-from molml.utils import read_out_data, read_xyz_data, read_mol2_data
 from molml.utils import deslugify, _get_form_indices, get_index_mapping
 from molml.utils import sort_chain, needs_reversal
 from molml.utils import load_json
@@ -102,36 +100,6 @@ class UtilsTest(unittest.TestCase):
     def test_get_element_pairs(self):
         res = get_element_pairs(ELEMENTS)
         self.assertEqual(set(res), set([('C', 'H'), ('H', 'H')]))
-
-    def test_read_file_data(self):
-        base_path = os.path.join(DATA_PATH, "methane")
-        data = (
-                ('.out', read_out_data),
-                ('.xyz', read_xyz_data),
-                ('.mol2', read_mol2_data),
-        )
-        for ending, func in data:
-            path = base_path + ending
-            e1, n1, c1 = func(path)
-            e2, n2, c2 = read_file_data(path)
-            self.assertEqual(e1, e2)
-            self.assertEqual(n1, n2)
-            self.assertTrue((c1 == c2).all())
-
-            self.assertEqual(e1, ELEMENTS)
-            try:
-                numpy.testing.assert_array_almost_equal(
-                    c1,
-                    COORDS,
-                    decimal=3)
-            except AssertionError as e:
-                self.fail(e)
-            self.assertEqual(n1, NUMBERS)
-
-    def test_read_file_data_error(self):
-        path = "garbage.nope"
-        with self.assertRaises(ValueError):
-            read_file_data(path)
 
     def test_deslugify(self):
         string = 'Class__int=1__float=1.__str=string'
