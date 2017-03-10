@@ -1,3 +1,6 @@
+"""
+A collection of functions for loading molecule data from different file types.
+"""
 import numpy
 
 from .constants import ELE_TO_NUM
