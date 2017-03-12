@@ -101,7 +101,7 @@ def get_connections(elements, coords):
 
     Returns
     -------
-    connections : dict int->dict
+    connections : dict, int->dict
         Contains all atoms that are connected to each atom and bond type.
     """
     dist_mat = cdist(coords, coords)
@@ -156,6 +156,18 @@ def get_depth_threshold_mask(mat, max_depth=1):
     `max_depth` or fewer.
     This is done by repeated matrix multiplication of the connectivity matrix.
     If `max_depth` is less than 1, this will return all True array.
+
+    Parameters
+    ----------
+    mat : numpy.array, shape=(n, n)
+        A connectivity matrix where element (i,j) is true if (i,j) has a bond.
+    max_depth : int, default=1
+        The maximum number of steps to look for connectivity
+
+    Returns
+    -------
+    mask : numpy.array, shape=(n, n)
+        A boolean mask indicating if from point i you can get to point j.
     """
     if max_depth < 1:
         temp = numpy.ones(mat.shape).astype(bool)
