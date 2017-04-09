@@ -14,6 +14,24 @@ import scipy.stats
 from .constants import ELE_TO_NUM, NUM_TO_ELE, TYPE_ORDER, BOND_LENGTHS
 
 
+def lerp(a, b, x):
+    return a * (1 - x) + b * x
+
+
+def lerp_smooth(x):
+    span = x[1] - x[0]
+    temp = numpy.zeros(x.shape)
+    mask = numpy.logical_and(0 <= x, x <= span)
+    idx = numpy.where(mask)[0]
+    val = x[mask] / span
+    temp[idx] = val
+    try:
+        temp[idx + 1] = 1 - val
+    except IndexError:
+        pass
+    return temp
+
+
 SMOOTHING_FUNCTIONS = {
     "norm_cdf": scipy.stats.norm.cdf,
     "zero_one": lambda x: (x > 0.).astype(float),
@@ -21,7 +39,8 @@ SMOOTHING_FUNCTIONS = {
     "tanh": lambda x: (numpy.tanh(x)+1) / 2,
     "norm": scipy.stats.norm.pdf,
     "expit_pdf": scipy.stats.logistic.pdf,
-    "spike": lambda x: (numpy.abs(x) < 1.).astype(float)
+    "spike": lambda x: (numpy.abs(x) < 1.).astype(float),
+    "lerp": lerp_smooth,
 }
 SPACING_FUNCTIONS = {
     "log": lambda x: numpy.log(x),
