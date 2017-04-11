@@ -141,7 +141,6 @@ class EwaldSumMatrix(CoulombMatrix):
             msg += " are being transformed (%d)."
             raise ValueError(msg % (self._max_size, len(data.numbers)))
 
-        padding_difference = self._max_size - len(data.numbers)
 
         ZZ = numpy.outer(data.numbers, data.numbers)
         numpy.fill_diagonal(ZZ, 0)
@@ -192,6 +191,7 @@ class EwaldSumMatrix(CoulombMatrix):
         if self.eigen:
             values = numpy.linalg.eig(values)[0]
 
+        padding_difference = self._max_size - len(data.numbers)
         values = numpy.pad(values,
                            (0, padding_difference),
                            mode="constant")
