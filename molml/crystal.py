@@ -60,7 +60,9 @@ class EwaldSumMatrix(CoulombMatrix):
 
     References
     ----------
-    https://arxiv.org/pdf/1503.07406v1.pdf
+    Faber, F.; Lindmaa, A; von Lilienfeld, O. A.; Armiento, R. Crystal
+    Structure Representations for Machine Learning Models of Formation
+    Energies. arXiv:1503.07406
     """
     ATTRIBUTES = ("_max_size", )
     LABELS = None
@@ -248,7 +250,9 @@ class SineMatrix(CoulombMatrix):
 
     References
     ----------
-    https://arxiv.org/pdf/1503.07406v1.pdf
+    Faber, F.; Lindmaa, A; von Lilienfeld, O. A.; Armiento, R. Crystal
+    Structure Representations for Machine Learning Models of Formation
+    Energies. arXiv:1503.07406
     """
     ATTRIBUTES = ("_max_size", )
     LABELS = None
