@@ -5,32 +5,78 @@ This module contains a variety of methods to extract features from molecules
 based on the entire molecule. All of the methods included here will produce
 one vector per molecule input.
 """
-from builtins import range
-from itertools import product
+import types
 
 import numpy
 import scipy
 
+from .base import BaseFeature
 from .molecule import CoulombMatrix
+from .utils import _radial_iterator
 
 
-__all__ = ("EwaldSumMatrix", "SineMatrix")
+__all__ = ("GenerallizedCrystal", "EwaldSumMatrix", "SineMatrix")
+
+
+class GenerallizedCrystal(BaseFeature):
+    """
+    A wrapper around other features to facilitate faking crystals.
+    """
+    def __init__(self, transformer=None, radius=None, units=None):
+        self.transformer = transformer
+        if radius is not None and units is not None:
+            msg = "`radius` and `units` can not be set at the same time."
+            raise ValueError(msg)
+        self.radius = radius
+        self.units = units
+
+        self._old_convert_input = self.transformer.convert_input
+        self.transformer.convert_input = types.MethodType(self.transformer,
+                                                          self.convert_input)
+
+    def convert_input(self, X):
+        temp = self._old_convert_input(X)
+        temp.fill_in_crystal(radius=self.radius, units=self.units)
+        return temp
+
+    def fit(self, X, y=None):
+        return self.transformer.fit(X)
+
+    def fit_transform(self, X, y=None):
+        return self.transformer.fit_transform(X)
+
+    def transform(self, X, y=None):
+        return self.transformer.transform(X)
 
 
 class EwaldSumMatrix(CoulombMatrix):
     r"""
-    A molecular descriptor based on Coulomb interactions.
-
-    This is a feature that uses a Coulomb-like interaction between all atoms
-    in the molecule to generate a matrix that is then vectorized.
+    In this construction, we use a similar form to the Ewald sum of breaking
+    the interaction into three parts and adding them together.
 
     .. math::
+        x_{ij} = x_{ij}^{(r)} + x_{ij}^{(m)} + x_{ij}^0
 
-        C_{ij} = \begin{cases}
-        \frac{Z_i Z_j}{\| r_i - r_j \|} & i \neq j \\
-                          0.5 Z_i^{2.4} & i = j
-        \end{cases}
+    .. math::
+        x_{ij}^{(r)} = Z_i Z_j
+        \sum_L \frac{\text{erfc}(\alpha \| r_i - r_j + L \|_2)}
+                                        {\| r_i - r_j + L \|_2}
 
+    ..math::
+        x_{ij}^{(m)} = \frac{Z_i Z_j}{\pi V}
+                            \sum_G \frac{e^{-\|G\|_2^2 / (2 \alpha)^2}}
+                            {\|G\|_2^2} \cos(G \cdot (r_i - r_j))
+
+    ..math::
+        x_{ij}^0 = -(Z_i^2 + Z_j^2) \frac{\alpha}{\sqrt{\pi}} -
+                    (Z_i + Z_j)^2 \frac{\pi}{2 V \alpha^2}
+
+    ..math::
+        x_{ii} = -Z_i^2 \frac{\alpha}{\sqrt{\pi}} -
+                  Z_i^2 \frac{\pi}{2 V \alpha^2}
+
+    ..math::
+        \alpha = \sqrt{\pi} \left(\frac{0.01 M}{V}\right)^{1/6}
 
     Parameters
     ----------
@@ -212,14 +258,14 @@ class SineMatrix(CoulombMatrix):
                           0.5 Z_i^{2.4} & i = j
         \end{cases}
 
-    Where \Phi(r_i, r_j)
+    Where :math:`\Phi(r_i, r_j)`
 
     .. math::
 
         \| B \cdot \sum_{k={x,y,z}} \hat e_k \sin^2 \left[
                     \pi \hat e_k B^{-1} \cdot (r_i - r_j) \right] \|_2^{-1}
 
-    and B is a matrix of the lattice basis vectors.
+    and :math:`B` is a matrix of the lattice basis vectors.
 
 
     Parameters
