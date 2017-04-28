@@ -137,8 +137,8 @@ class BaseFeature(object):
         coodinates pairs) for each molecule. Where the elements are an
         iterable of the form (ele1, ele2, ..., elen) and coordinates are an
         iterable of the form [(x1, y1, z1), (x2, y2, z2), ..., (xn, yn,
-        zn)]. This allows allows for connections to be incldued. This is a
-        dictonary where the keys are the indices of the atoms and the
+        zn)]. This allows allows for connections to be included. This is a
+        dictionary where the keys are the indices of the atoms and the
         values are dictonaries with the key being another index and the
         value is the bond order (one of '1', 'Ar', '2', or '3').
         Example for methane::
