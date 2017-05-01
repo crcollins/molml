@@ -248,9 +248,9 @@ class LazyValuesTest(unittest.TestCase):
     def test_all(self):
         a = LazyValues(elements=ELEMENTS, coords=COORDS, numbers=NUMBERS,
                        connections=CONNECTIONS)
-        self.assertEqual(a.elements, ELEMENTS)
-        self.assertEqual(a.coords, COORDS)
-        self.assertEqual(a.numbers, NUMBERS)
+        self.assertEqual(a.elements.tolist(), ELEMENTS)
+        self.assertEqual(a.coords.tolist(), COORDS)
+        self.assertEqual(a.numbers.tolist(), NUMBERS)
         self.assertEqual(a.connections, CONNECTIONS)
 
     def test_num_from_ele(self):

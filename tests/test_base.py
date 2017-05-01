@@ -128,7 +128,8 @@ class BaseFeatureTest(unittest.TestCase):
             4: {0: "1"},
         }
         self.assertEqual(data.connections, compare_connections)
-        self.assertEqual((data.elements, data.coords), METHANE)
+        self.assertEqual(data.elements.tolist(), METHANE[0])
+        self.assertEqual(data.coords.tolist(), METHANE[1].tolist())
 
     def test_convert_input_list_connections(self):
         a = BaseFeature(input_type="list")
@@ -141,7 +142,8 @@ class BaseFeatureTest(unittest.TestCase):
         }
         data = a.convert_input([METHANE[0], METHANE[1], connections])
         self.assertEqual(data.connections, connections)
-        self.assertEqual((data.elements, data.coords), METHANE)
+        self.assertEqual(data.elements.tolist(), METHANE[0])
+        self.assertEqual(data.coords.tolist(), METHANE[1].tolist())
 
     def test_convert_input_filename(self):
         a = BaseFeature(input_type="filename")
@@ -149,7 +151,7 @@ class BaseFeatureTest(unittest.TestCase):
         for ending in ('.xyz', '.out'):
             path = base_path + ending
             data = a.convert_input(path)
-            self.assertEqual(data.elements, METHANE_ELEMENTS)
+            self.assertEqual(data.elements.tolist(), METHANE_ELEMENTS)
             compare_connections = {
                 0: {1: "1", 2: "1", 3: "1", 4: "1"},
                 1: {0: "1"},
@@ -167,7 +169,7 @@ class BaseFeatureTest(unittest.TestCase):
     def test_convert_input_ele_coords(self):
         a = BaseFeature(input_type=["elements", "coords"])
         data = a.convert_input([METHANE_ELEMENTS, METHANE_COORDS])
-        self.assertEqual(data.elements, METHANE_ELEMENTS)
+        self.assertEqual(data.elements.tolist(), METHANE_ELEMENTS)
         try:
             numpy.testing.assert_array_almost_equal(
                 data.coords, METHANE_COORDS)
@@ -177,8 +179,8 @@ class BaseFeatureTest(unittest.TestCase):
     def test_convert_input_num_ele(self):
         a = BaseFeature(input_type=["numbers", "elements"])
         data = a.convert_input([METHANE_NUMBERS, METHANE_ELEMENTS])
-        self.assertEqual(data.elements, METHANE_ELEMENTS)
-        self.assertEqual(data.numbers, METHANE_NUMBERS)
+        self.assertEqual(data.elements.tolist(), METHANE_ELEMENTS)
+        self.assertEqual(data.numbers.tolist(), METHANE_NUMBERS)
 
     def test_convert_input_invalid_list(self):
         a = BaseFeature(input_type=["error"])
