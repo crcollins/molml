@@ -315,7 +315,7 @@ class SineMatrix(CoulombMatrix):
         padding_difference = self._max_size - len(data.numbers)
 
         # Standard parts
-        ZZ = numpy.outer(data.numbers, data.numbers)
+        ZZ = numpy.outer(data.numbers, data.numbers).astype(float)
         rr = data.coords[:, None] - data.coords
 
         # Compute phi
@@ -327,7 +327,8 @@ class SineMatrix(CoulombMatrix):
         numpy.square(inner, inner)
         full = numpy.tensordot(B, inner, [[1], [0]])
         phi = numpy.linalg.norm(full, axis=0)
-        numpy.power(phi, -1)
+        with numpy.errstate(divide='ignore'):
+            numpy.power(phi, -1, phi)
 
         # Final
         ZZ *= phi
