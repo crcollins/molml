@@ -153,7 +153,6 @@ class EwaldSumMatrix(CoulombMatrix):
             msg += " are being transformed (%d)."
             raise ValueError(msg % (self._max_size, len(data.numbers)))
 
-
         ZZ = numpy.outer(data.numbers, data.numbers)
         numpy.fill_diagonal(ZZ, 0)
         rr = data.coords[:, None] - data.coords
@@ -170,8 +169,10 @@ class EwaldSumMatrix(CoulombMatrix):
         for L in _radial_iterator(B, self.L_max):
             # TODO: optimize symmetry
             temp = norm(rr + L, axis=2)
-            xr += erfc(alpha * temp) / temp
-        xr *= ZZ
+            with numpy.errstate(divide='ignore'):
+                xr += erfc(alpha * temp) / temp
+        with numpy.errstate(invalid='ignore'):
+            xr *= ZZ
 
         # Long range interactions
         xm = numpy.zeros(ZZ.shape)
