@@ -5,8 +5,6 @@ This module contains a variety of methods to extract features from molecules
 based on the entire molecule. All of the methods included here will produce
 one vector per molecule input.
 """
-import types
-
 import numpy
 import scipy
 
@@ -31,8 +29,7 @@ class GenerallizedCrystal(BaseFeature):
         self.units = units
 
         self._old_convert_input = self.transformer.convert_input
-        self.transformer.convert_input = types.MethodType(self.transformer,
-                                                          self.convert_input)
+        self.transformer.convert_input = self.convert_input
 
     def convert_input(self, X):
         temp = self._old_convert_input(X)
