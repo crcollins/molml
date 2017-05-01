@@ -292,7 +292,8 @@ class LazyValues(object):
     def numbers(self):
         if self._numbers is None:
             if self._elements is not None:
-                self._numbers = [ELE_TO_NUM[x] for x in self._elements]
+                temp = [ELE_TO_NUM[x] for x in self._elements]
+                self._numbers = numpy.array(temp)
             else:
                 raise ValueError("No elements to convert to numbers.")
         return self._numbers
@@ -301,7 +302,8 @@ class LazyValues(object):
     def elements(self):
         if self._elements is None:
             if self._numbers is not None:
-                self._elements = [NUM_TO_ELE[x] for x in self._numbers]
+                temp = [NUM_TO_ELE[x] for x in self._numbers]
+                self._elements = numpy.array(temp)
             else:
                 raise ValueError("No numbers to convert to elements.")
         return self._elements

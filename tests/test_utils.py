@@ -261,11 +261,11 @@ class LazyValuesTest(unittest.TestCase):
 
     def test_num_from_ele(self):
         a = LazyValues(elements=ELEMENTS)
-        self.assertEqual(a.numbers, NUMBERS)
+        self.assertEqual(a.numbers.tolist(), NUMBERS)
 
     def test_ele_from_num(self):
         a = LazyValues(numbers=NUMBERS)
-        self.assertEqual(a.elements, ELEMENTS)
+        self.assertEqual(a.elements.tolist(), ELEMENTS)
 
     def test_no_coords(self):
         a = LazyValues(elements=ELEMENTS, numbers=NUMBERS)
