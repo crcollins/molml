@@ -194,7 +194,7 @@ class EwaldSumMatrix(CoulombMatrix):
         # Final
         xii = alpha / numpy.sqrt(numpy.pi) + factor
         xii *= -num2
-        numpy.set_diagonal(values, xii)
+        numpy.fill_diagonal(values, xii)
 
         if self.sort:
             order = numpy.argsort(values.sum(0))[::-1]
