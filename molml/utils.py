@@ -205,6 +205,9 @@ class LazyValues(object):
     elements : array-like, shape=(n_atoms, ), default=None
         The element symbols of all the atoms.
 
+    unit_cell : array-like, shape=(3, 3), default=None
+        An array of unit cell basis vectors, where the vectors are columns.
+
 
     Attributes
     ----------
@@ -213,32 +216,33 @@ class LazyValues(object):
         initialized value for this was None, then this will be computed from
         the coords and numbers/elements.
 
-    numbers : array-like, shape=(n_atoms, )
+    numbers : array, shape=(n_atoms, )
         The atomic numbers of all the atoms. If the initialized value for this
         was None, then this will be computed from the elements.
 
-    coords : array-like, shape=(n_atoms, 3)
+    coords : array, shape=(n_atoms, 3)
         The xyz coordinates of all the atoms (in angstroms).
 
-    elements : array-like, shape=(n_atoms, )
+    elements : array, shape=(n_atoms, )
         The element symbols of all the atoms. If the initialized value for this
         was None, then this will be computed from the numbers.
 
-    unit_cell : array-list, shape=(3, 3)
+    unit_cell : array, shape=(3, 3)
         An array of unit cell basis vectors, where the vectors are columns.
     """
     def __init__(self, connections=None, coords=None, numbers=None,
                  elements=None, unit_cell=None):
         self._connections = connections
-        self._coords = coords
-        self._numbers = numbers
-        self._elements = elements
-        self._unit_cell = unit_cell
+        self._coords = self._none_check(coords)
+        self._numbers = self._none_check(numbers)
+        self._elements = self._none_check(elements)
+        self._unit_cell = self._none_check(unit_cell)
         self.__crystal_size = None
 
-    def fill_in_crystal(self, radius=None, units=None):
-        # Fix assumptions about inputs here
+    def _none_check(self, x):
+        return numpy.array(x) if x is not None else x
 
+    def fill_in_crystal(self, radius=None, units=None):
         offsets = list(_radial_iterator(self.unit_cell, radius))
         self.__crystal_size = len(offsets)
 
