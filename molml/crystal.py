@@ -179,6 +179,8 @@ class EwaldSumMatrix(CoulombMatrix):
         for G in _radial_iterator(Binv, self.G_max):
             # TODO: optimize symmetry
             temp = norm(G) ** 2
+            if not temp:
+                continue
             first = numpy.exp(-temp / (2*alpha) ** 2) / temp
             second = numpy.cos(rr.dot(G))
             xm += first * second
