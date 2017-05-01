@@ -123,37 +123,6 @@ class EwaldSumMatrix(CoulombMatrix):
         self.sort = sort
         self.eigen = eigen
 
-    def _radial_iterator(X, X_max):
-        # We will just approximate the upper bound
-        maxval = X.max()
-        steps = int(X_max / maxval) + 1
-
-        others = [[1], [1], [1]]
-        for i in range(steps):
-            if i:
-                others[0] = [1, -1]
-            temp_x = X[:, 0] * i
-            if numpy.linalg.norm(temp_x) > X_max:
-                continue
-
-            for j in range(steps):
-                if j:
-                    others[1] = [1, -1]
-                temp_y = temp_x + X[:, 1] * j
-                if numpy.linalg.norm(temp_y) > X_max:
-                    continue
-
-                for k in range(steps):
-                    if k:
-                        others[2] = [1, -1]
-                    temp_z = temp_y + X[:, 2] * k
-                    if numpy.linalg.norm(temp_z) > X_max:
-                        continue
-
-                    for group in product(*others):
-                        a = numpy.array(group)
-                        yield temp_z * a
-
     def _para_transform(self, X):
         """
         A single instance of the transform procedure.
@@ -201,7 +170,7 @@ class EwaldSumMatrix(CoulombMatrix):
 
         # Short range interactions
         xr = numpy.zeros(ZZ.shape)
-        for L in self._radial_iterator(B, self.L_max):
+        for L in _radial_iterator(B, self.L_max):
             # TODO: optimize symmetry
             temp = norm(rr + L, axis=2)
             xr += erfc(alpha * temp) / temp
@@ -209,7 +178,7 @@ class EwaldSumMatrix(CoulombMatrix):
 
         # Long range interactions
         xm = numpy.zeros(ZZ.shape)
-        for G in self._radial_iterator(Binv, self.G_max):
+        for G in _radial_iterator(Binv, self.G_max):
             # TODO: optimize symmetry
             temp = norm(G) ** 2
             first = numpy.exp(-temp / (2*alpha) ** 2) / temp

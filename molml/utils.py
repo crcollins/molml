@@ -5,6 +5,7 @@ from builtins import range
 import importlib
 import json
 import warnings
+from itertools import product
 
 import numpy
 from scipy.spatial.distance import cdist
@@ -611,3 +612,19 @@ def load_json(f):
     for key, value in data["attributes"].items():
         setattr(obj, key, value)
     return obj
+
+
+def _radial_iterator(X, r_max):
+    X = numpy.array(X)
+    norm = numpy.linalg.norm
+    lengths = norm(X, axis=0)
+    # Compute the upper bounds for each axis
+    steps = numpy.ceil(r_max / lengths).astype(int)
+    ranges = [range(-x, x + 1) for x in steps]
+
+    for group in product(*ranges):
+        group = numpy.array(group)
+        temp_z = numpy.dot(X, group)
+        if norm(temp_z) > r_max:
+            continue
+        yield temp_z
