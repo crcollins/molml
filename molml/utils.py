@@ -234,6 +234,37 @@ class LazyValues(object):
         self._numbers = numbers
         self._elements = elements
         self._unit_cell = unit_cell
+        self.__crystal_size = None
+
+    def fill_in_crystal(self, radius=None, units=None):
+        # Fix assumptions about inputs here
+
+        offsets = list(_radial_iterator(self.unit_cell, radius))
+        self.__crystal_size = len(offsets)
+
+        if self.coords is not None:
+            new_coords = []
+            for offset in offsets:
+                new_coords.append(numpy.array(self._coords) + offset)
+            self._coords = numpy.concatenate(new_coords)
+
+        if self._numbers is not None:
+            self._numbers = numpy.tile(self._numbers, self.__crystal_size)
+
+        if self._elements is not None:
+            self._elements = numpy.tile(self._elements, self.__crystal_size)
+
+        if self._connections is not None:
+            new_conn = {}
+            n = len(self._connections)
+            for key, items in self._connections.items():
+                for i in range(self.__crystal_size):
+                    off = n * i
+                    values = {inner_key + off: value for
+                              inner_key, value in items.items()}
+                    new_conn[key + off] = values
+            self._connections = new_conn
+            # TODO: Add in geoms
 
     @property
     def connections(self):
