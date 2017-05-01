@@ -28,6 +28,11 @@ CONNECTIONS = {
     3: {0: "1"},
     4: {0: "1"},
 }
+UNIT_CELL = [
+    [2., .1, 0.],
+    [0., 1., 0.],
+    [0., 0., 1.]
+]
 
 
 class UtilsTest(unittest.TestCase):
@@ -247,11 +252,12 @@ class LazyValuesTest(unittest.TestCase):
 
     def test_all(self):
         a = LazyValues(elements=ELEMENTS, coords=COORDS, numbers=NUMBERS,
-                       connections=CONNECTIONS)
+                       connections=CONNECTIONS, unit_cell=UNIT_CELL)
         self.assertEqual(a.elements.tolist(), ELEMENTS)
         self.assertEqual(a.coords.tolist(), COORDS)
         self.assertEqual(a.numbers.tolist(), NUMBERS)
         self.assertEqual(a.connections, CONNECTIONS)
+        self.assertEqual(a.unit_cell.tolist(), UNIT_CELL)
 
     def test_num_from_ele(self):
         a = LazyValues(elements=ELEMENTS)
@@ -265,6 +271,11 @@ class LazyValuesTest(unittest.TestCase):
         a = LazyValues(elements=ELEMENTS, numbers=NUMBERS)
         with self.assertRaises(ValueError):
             a.coords
+
+    def test_no_unit_cell(self):
+        a = LazyValues(elements=ELEMENTS, numbers=NUMBERS)
+        with self.assertRaises(ValueError):
+            a.unit_cell
 
     def test_no_ele_or_num(self):
         a = LazyValues(coords=COORDS)
