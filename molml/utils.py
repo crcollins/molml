@@ -223,19 +223,29 @@ class LazyValues(object):
     elements : array-like, shape=(n_atoms, )
         The element symbols of all the atoms. If the initialized value for this
         was None, then this will be computed from the numbers.
+
+    unit_cell : array-list, shape=(3, 3)
+        An array of unit cell basis vectors, where the vectors are columns.
     """
     def __init__(self, connections=None, coords=None, numbers=None,
-                 elements=None):
+                 elements=None, unit_cell=None):
         self._connections = connections
         self._coords = coords
         self._numbers = numbers
         self._elements = elements
+        self._unit_cell = unit_cell
 
     @property
     def connections(self):
         if self._connections is None:
             self._connections = get_connections(self.elements, self.coords)
         return self._connections
+
+    @property
+    def unit_cell(self):
+        if self._unit_cell is None:
+            raise ValueError("No unit cell exists.")
+        return self._unit_cell
 
     @property
     def coords(self):
