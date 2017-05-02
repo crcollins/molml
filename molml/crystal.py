@@ -20,6 +20,9 @@ class GenerallizedCrystal(BaseFeature):
     """
     A wrapper around other features to facilitate faking crystals.
     """
+    ATTRIBUTES = None
+    LABELS = None
+
     def __init__(self, transformer=None, radius=None, units=None):
         self.transformer = transformer
         if radius is not None and units is not None:
