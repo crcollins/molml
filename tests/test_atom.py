@@ -502,6 +502,21 @@ class BehlerParrinelloTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             a.transform(ALL_DATA)
 
+    def test_predict_outside_fit(self):
+        a = BehlerParrinello()
+        a.fit([METHANE])
+        res = a.transform([MID])
+        expected = numpy.array([[2.812505e-01,
+                                 3.838817e-01,
+                                 2.146962e-17,
+                                 6.621437e-06]])
+        try:
+            numpy.testing.assert_array_almost_equal(
+                numpy.array([x.mean(0) for x in res]),
+                expected)
+        except AssertionError as e:
+            self.fail(e)
+
     def test_transform(self):
         a = BehlerParrinello()
         a.fit(ALL_DATA)
