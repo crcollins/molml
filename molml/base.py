@@ -365,6 +365,36 @@ class BaseFeature(object):
         self.fit(X, y)
         return self.transform(X, y)
 
+    def to_json(self):
+        """
+        Return model data as a json compatible dict
+
+        This will recursively convert other transformer objects as well.
+
+        Returns
+        -------
+        data : dict
+            The json data
+        """
+        attributes = {}
+        if self.ATTRIBUTES is not None:
+            attributes = {key: getattr(self, key) for key in self.ATTRIBUTES}
+
+        full_name = self.__module__ + '.' + self.__class__.__name__
+        params = {}
+        for key, value in self.get_params().items():
+            try:
+                params[key] = value.to_json()
+            except AttributeError:
+                params[key] = value
+
+        data = {
+                "transformer": full_name,
+                "parameters": params,
+                "attributes": attributes,
+        }
+        return data
+
     def save_json(self, f):
         """
         Save the model data in a json file
@@ -374,13 +404,7 @@ class BaseFeature(object):
         f : str or file descriptor
             The path to save the data or a file descriptor to save it to.
         """
-        attributes = {key: getattr(self, key) for key in self.ATTRIBUTES}
-        full_name = self.__module__ + '.' + self.__class__.__name__
-        data = {
-                "transformer": full_name,
-                "parameters": self.get_params(),
-                "attributes": attributes,
-        }
+        data = self.to_json()
         try:
             json.dump(data, f)
         except AttributeError:

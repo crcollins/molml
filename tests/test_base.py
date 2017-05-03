@@ -32,10 +32,10 @@ class TestFeature1(BaseFeature):
     LABELS = ('labels', )
     ATTRIBUTES = ('data', )
 
-    def __init__(self, input_type='list', n_jobs=1, value=None):
+    def __init__(self, input_type='list', n_jobs=1, data=None, value=None):
         super(TestFeature1, self).__init__(input_type, n_jobs)
         self.labels = ('C', 'B', 'A')
-        self.data = value
+        self.data = data
         self.value = value
 
 
@@ -196,6 +196,7 @@ class BaseFeatureTest(unittest.TestCase):
         a = TestFeature1()
         expected = [
                     'TestFeature1',
+                    'data=None',
                     'value=None',
                     ]
         self.assertEqual(a.slugify(), '__'.join(expected))
@@ -227,7 +228,7 @@ class BaseFeatureTest(unittest.TestCase):
         self.assertEqual(c.get_labels(), tuple())
 
     def test_check_fit(self):
-        a = TestFeature1(value=1)
+        a = TestFeature1(data=1)
         self.assertIsNone(a.check_fit())
         b = TestFeature2(value=1)
         self.assertIsNone(b.check_fit())
@@ -261,6 +262,7 @@ class BaseFeatureTest(unittest.TestCase):
         base = a.__module__
         expected = {'parameters': {'n_jobs': 1,
                                    'input_type': 'list',
+                                   'data': None,
                                    'value': None},
                     'attributes': {'data': None},
                     'transformer': base + '.TestFeature1'}
@@ -271,6 +273,41 @@ class BaseFeatureTest(unittest.TestCase):
         with open(path, 'r') as f:
             data = json.load(f)
             self.assertEqual(data, expected)
+
+    def test_to_json_no_attributes(self):
+        a = TestFeature3()
+        data = a.to_json()
+        base = a.__module__
+        expected = {'parameters': {'n_jobs': 1,
+                                   'input_type': 'list'},
+                    'attributes': {},
+                    'transformer': base + '.TestFeature3'}
+        self.assertEqual(data, expected)
+
+    def test_save_json_nested_obj(self):
+        a = TestFeature1(value=TestFeature1())
+        data = a.to_json()
+        base = a.__module__
+        expected = {
+            'attributes': {'data': None},
+            'parameters': {
+                'n_jobs': 1,
+                'input_type': 'list',
+                'value': {
+                    'parameters': {
+                        'n_jobs': 1,
+                        'input_type': 'list',
+                        'value': None,
+                        'data': None,
+                    },
+                    'attributes': {'data': None},
+                    'transformer': base + '.TestFeature1',
+                },
+                'data': None,
+            },
+            'transformer': base + '.TestFeature1'
+        }
+        self.assertEqual(data, expected)
 
 
 class TestSetMergeMixin(unittest.TestCase):
