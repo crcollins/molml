@@ -1,9 +1,8 @@
 """
 A collection of functions for loading molecule data from different file types.
 """
-import numpy
-
 from .constants import ELE_TO_NUM
+from .utils import LazyValues
 
 
 def read_file_data(path):
@@ -57,14 +56,8 @@ def read_out_data(path):
 
     Returns
     -------
-    elements : list
-        All the elements in the molecule.
-
-    numbers : list
-        All the atomic numbers in the molecule.
-
-    coords : numpy.array, shape=(n_atoms, 3)
-        The atomic coordinates of the molecule.
+    val : LazyValues
+        An object storing all the data
     """
     elements = []
     numbers = []
@@ -76,7 +69,7 @@ def read_out_data(path):
             elements.append(ele)
             numbers.append(ELE_TO_NUM[ele])
             coords.append(point)
-    return elements, numbers, numpy.array(coords)
+    return LazyValues(elements=elements, numbers=numbers, coords=coords)
 
 
 def read_xyz_data(path):
@@ -98,14 +91,8 @@ def read_xyz_data(path):
 
     Returns
     -------
-    elements : list
-        All the elements in the molecule.
-
-    numbers : list
-        All the atomic numbers in the molecule.
-
-    coords : numpy.array, shape=(n_atoms, 3)
-        The atomic coordinates of the molecule.
+    val : LazyValues
+        An object storing all the data
     """
     elements = []
     numbers = []
@@ -119,7 +106,7 @@ def read_xyz_data(path):
             elements.append(ele)
             numbers.append(ELE_TO_NUM[ele])
             coords.append(point)
-    return elements, numbers, numpy.array(coords)
+    return LazyValues(elements=elements, numbers=numbers, coords=coords)
 
 
 def read_mol2_data(path):
@@ -144,14 +131,8 @@ def read_mol2_data(path):
 
     Returns
     -------
-    elements : list
-        All the elements in the molecule.
-
-    numbers : list
-        All the atomic numbers in the molecule.
-
-    coords : numpy.array, shape=(n_atoms, 3)
-        The atomic coordinates of the molecule.
+    val : LazyValues
+        An object storing all the data
     """
     elements = []
     numbers = []
@@ -171,4 +152,4 @@ def read_mol2_data(path):
             elements.append(ele)
             numbers.append(ELE_TO_NUM[ele])
             coords.append([float(x) for x in vals[2:5]])
-    return elements, numbers, numpy.array(coords)
+    return LazyValues(elements=elements, numbers=numbers, coords=coords)

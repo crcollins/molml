@@ -169,9 +169,7 @@ class BaseFeature(object):
             values = LazyValues(elements=elements, coords=coords,
                                 connections=connections)
         elif self.input_type == "filename":
-            elements, numbers, coords = read_file_data(X)
-            values = LazyValues(elements=elements, numbers=numbers,
-                                coords=coords)
+            values = read_file_data(X)
         elif type(self.input_type) in (list, tuple):
             d = {x: y for x, y in zip(self.input_type, X)}
             values = LazyValues(**d)
