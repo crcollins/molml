@@ -9,15 +9,11 @@ except ImportError:
 import numpy
 
 from molml.base import BaseFeature, SetMergeMixin, _func_star
-from molml.io import read_file_data
+
+from tests.constants import METHANE_ELEMENTS, METHANE_COORDS, METHANE_PATH
+from tests.constants import METHANE, METHANE_NUMBERS
 
 
-DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
-
-METHANE_PATH = os.path.join(DATA_PATH, "methane.out")
-METHANE_ELEMENTS, METHANE_NUMBERS, METHANE_COORDS = read_file_data(
-    METHANE_PATH)
-METHANE = (METHANE_ELEMENTS, METHANE_COORDS)
 METHANE_ATOMS = numpy.array([[1, 4]])
 
 

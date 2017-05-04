@@ -1,30 +1,13 @@
-import os
 import unittest
 
 import numpy
 
 from molml.molecule import BagOfBonds, Connectivity
 from molml.molecule import CoulombMatrix, EncodedBond, EncodedAngle
-from molml.io import read_file_data
 
+from tests.constants import METHANE, BIG, MID, ALL_DATA
 
-DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
-
-METHANE_PATH = os.path.join(DATA_PATH, "methane.out")
-METHANE_ELEMENTS, METHANE_NUMBERS, METHANE_COORDS = read_file_data(
-    METHANE_PATH)
-METHANE = (METHANE_ELEMENTS, METHANE_COORDS)
 METHANE2 = (METHANE[0], 2 * METHANE[1])
-
-BIG_PATH = os.path.join(DATA_PATH, "big.out")
-BIG_ELEMENTS, BIG_NUMBERS, BIG_COORDS = read_file_data(BIG_PATH)
-BIG = (BIG_ELEMENTS, BIG_COORDS)
-
-MID_PATH = os.path.join(DATA_PATH, "mid.out")
-MID_ELEMENTS, MID_NUMBERS, MID_COORDS = read_file_data(MID_PATH)
-MID = (MID_ELEMENTS, MID_COORDS)
-
-ALL_DATA = [METHANE, MID, BIG]
 ALL_ATOM = numpy.array([[1, 4, 0, 0],
                         [2, 3, 0, 4],
                         [25, 15, 5, 4]])
