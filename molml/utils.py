@@ -5,6 +5,7 @@ from builtins import range
 import importlib
 import json
 import warnings
+from itertools import product
 
 import numpy
 from scipy.spatial.distance import cdist
@@ -223,6 +224,9 @@ class LazyValues(object):
     elements : array-like, shape=(n_atoms, ), default=None
         The element symbols of all the atoms.
 
+    unit_cell : array-like, shape=(3, 3), default=None
+        An array of unit cell basis vectors, where the vectors are columns.
+
 
     Attributes
     ----------
@@ -231,29 +235,71 @@ class LazyValues(object):
         initialized value for this was None, then this will be computed from
         the coords and numbers/elements.
 
-    numbers : array-like, shape=(n_atoms, )
+    numbers : array, shape=(n_atoms, )
         The atomic numbers of all the atoms. If the initialized value for this
         was None, then this will be computed from the elements.
 
-    coords : array-like, shape=(n_atoms, 3)
+    coords : array, shape=(n_atoms, 3)
         The xyz coordinates of all the atoms (in angstroms).
 
-    elements : array-like, shape=(n_atoms, )
+    elements : array, shape=(n_atoms, )
         The element symbols of all the atoms. If the initialized value for this
         was None, then this will be computed from the numbers.
+
+    unit_cell : array, shape=(3, 3)
+        An array of unit cell basis vectors, where the vectors are columns.
     """
     def __init__(self, connections=None, coords=None, numbers=None,
-                 elements=None):
+                 elements=None, unit_cell=None):
         self._connections = connections
-        self._coords = coords
-        self._numbers = numbers
-        self._elements = elements
+        self._coords = self._none_check(coords)
+        self._numbers = self._none_check(numbers)
+        self._elements = self._none_check(elements)
+        self._unit_cell = self._none_check(unit_cell)
+        self.__crystal_size = None
+
+    def _none_check(self, x):
+        return numpy.array(x) if x is not None else x
+
+    def fill_in_crystal(self, radius=None, units=None):
+        coords = numpy.array(self.coords)
+        offsets = list(_radial_iterator(self.unit_cell, radius))
+        self.__crystal_size = len(offsets)
+
+        new_coords = []
+        for offset in offsets:
+            new_coords.append(coords + offset)
+        self._coords = numpy.concatenate(new_coords)
+
+        if self._numbers is not None:
+            self._numbers = numpy.tile(self._numbers, self.__crystal_size)
+
+        if self._elements is not None:
+            self._elements = numpy.tile(self._elements, self.__crystal_size)
+
+        if self._connections is not None:
+            new_conn = {}
+            n = len(self._connections)
+            for key, items in self._connections.items():
+                for i in range(self.__crystal_size):
+                    off = n * i
+                    values = {inner_key + off: value for
+                              inner_key, value in items.items()}
+                    new_conn[key + off] = values
+            self._connections = new_conn
+            # TODO: Add in geoms
 
     @property
     def connections(self):
         if self._connections is None:
             self._connections = get_connections(self.elements, self.coords)
         return self._connections
+
+    @property
+    def unit_cell(self):
+        if self._unit_cell is None:
+            raise ValueError("No unit cell exists.")
+        return self._unit_cell
 
     @property
     def coords(self):
@@ -265,7 +311,8 @@ class LazyValues(object):
     def numbers(self):
         if self._numbers is None:
             if self._elements is not None:
-                self._numbers = [ELE_TO_NUM[x] for x in self._elements]
+                temp = [ELE_TO_NUM[x] for x in self._elements]
+                self._numbers = numpy.array(temp)
             else:
                 raise ValueError("No elements to convert to numbers.")
         return self._numbers
@@ -274,7 +321,8 @@ class LazyValues(object):
     def elements(self):
         if self._elements is None:
             if self._numbers is not None:
-                self._elements = [NUM_TO_ELE[x] for x in self._numbers]
+                temp = [NUM_TO_ELE[x] for x in self._numbers]
+                self._elements = numpy.array(temp)
             else:
                 raise ValueError("No numbers to convert to elements.")
         return self._elements
@@ -630,3 +678,19 @@ def load_json(f):
     for key, value in data["attributes"].items():
         setattr(obj, key, value)
     return obj
+
+
+def _radial_iterator(X, r_max):
+    X = numpy.array(X)
+    norm = numpy.linalg.norm
+    lengths = norm(X, axis=0)
+    # Compute the upper bounds for each axis
+    steps = numpy.ceil(r_max / lengths).astype(int)
+    ranges = [range(-x, x + 1) for x in steps]
+
+    for group in product(*ranges):
+        group = numpy.array(group)
+        temp_z = numpy.dot(X, group)
+        if norm(temp_z) > r_max:
+            continue
+        yield temp_z

@@ -28,6 +28,11 @@ CONNECTIONS = {
     3: {0: "1"},
     4: {0: "1"},
 }
+UNIT_CELL = [
+    [2., .1, 0.],
+    [0., 1., 0.],
+    [0., 0., 1.]
+]
 
 
 class UtilsTest(unittest.TestCase):
@@ -247,24 +252,30 @@ class LazyValuesTest(unittest.TestCase):
 
     def test_all(self):
         a = LazyValues(elements=ELEMENTS, coords=COORDS, numbers=NUMBERS,
-                       connections=CONNECTIONS)
-        self.assertEqual(a.elements, ELEMENTS)
-        self.assertEqual(a.coords, COORDS)
-        self.assertEqual(a.numbers, NUMBERS)
+                       connections=CONNECTIONS, unit_cell=UNIT_CELL)
+        self.assertEqual(a.elements.tolist(), ELEMENTS)
+        self.assertEqual(a.coords.tolist(), COORDS)
+        self.assertEqual(a.numbers.tolist(), NUMBERS)
         self.assertEqual(a.connections, CONNECTIONS)
+        self.assertEqual(a.unit_cell.tolist(), UNIT_CELL)
 
     def test_num_from_ele(self):
         a = LazyValues(elements=ELEMENTS)
-        self.assertEqual(a.numbers, NUMBERS)
+        self.assertEqual(a.numbers.tolist(), NUMBERS)
 
     def test_ele_from_num(self):
         a = LazyValues(numbers=NUMBERS)
-        self.assertEqual(a.elements, ELEMENTS)
+        self.assertEqual(a.elements.tolist(), ELEMENTS)
 
     def test_no_coords(self):
         a = LazyValues(elements=ELEMENTS, numbers=NUMBERS)
         with self.assertRaises(ValueError):
             a.coords
+
+    def test_no_unit_cell(self):
+        a = LazyValues(elements=ELEMENTS, numbers=NUMBERS)
+        with self.assertRaises(ValueError):
+            a.unit_cell
 
     def test_no_ele_or_num(self):
         a = LazyValues(coords=COORDS)
@@ -276,6 +287,74 @@ class LazyValuesTest(unittest.TestCase):
     def test_connections(self):
         a = LazyValues(elements=ELEMENTS, coords=COORDS, numbers=NUMBERS)
         self.assertEqual(a.connections, CONNECTIONS)
+
+    def test_fill_in_crystal(self):
+        a = LazyValues(elements=ELEMENTS, coords=COORDS, numbers=NUMBERS,
+                       connections=CONNECTIONS, unit_cell=UNIT_CELL)
+        a.fill_in_crystal(radius=1.)
+        length = 3
+        self.assertEqual(a.elements.tolist(), ELEMENTS * length)
+        expected_results = numpy.array([
+            [0.99826008, -0.00246000, -1.00436000],
+            [2.09021016, -0.00243000, -0.99586000],
+            [0.63379005,  1.02686007, -0.99586000],
+            [0.62704006, -0.52773003, -0.12188990],
+            [0.64136006, -0.50747003, -1.90540005],
+            [0.99826008, -0.00246000, -0.00436000],
+            [2.09021016, -0.00243000,  0.00414000],
+            [0.63379005,  1.02686007,  0.00414000],
+            [0.62704006, -0.52773003,  0.87811010],
+            [0.64136006, -0.50747003, -0.90540005],
+            [0.99826008, -0.00246000,  0.99564000],
+            [2.09021016, -0.00243000,  1.00414000],
+            [0.63379005,  1.02686007,  1.00414000],
+            [0.62704006, -0.52773003,  1.87811010],
+            [0.64136006, -0.50747003,  0.09459995],
+        ])
+        try:
+            numpy.testing.assert_array_almost_equal(
+                a.coords,
+                expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
+        self.assertEqual(a.numbers.tolist(), NUMBERS * length)
+        new_conn = {
+            0: {1: '1', 2: '1', 3: '1', 4: '1'},
+            1: {0: '1'},
+            2: {0: '1'},
+            3: {0: '1'},
+            4: {0: '1'},
+            5: {6: '1', 7: '1', 8: '1', 9: '1'},
+            6: {5: '1'},
+            7: {5: '1'},
+            8: {5: '1'},
+            9: {5: '1'},
+            10: {11: '1', 12: '1', 13: '1', 14: '1'},
+            11: {10: '1'},
+            12: {10: '1'},
+            13: {10: '1'},
+            14: {10: '1'},
+        }
+        self.assertEqual(a.connections, new_conn)
+
+    def test_fill_in_crystal_null(self):
+        a = LazyValues()
+        with self.assertRaises(ValueError):
+            a.fill_in_crystal(radius=1.)
+
+        a = LazyValues(unit_cell=UNIT_CELL)
+        with self.assertRaises(ValueError):
+            a.fill_in_crystal(radius=1.)
+
+        length = 3
+        a = LazyValues(numbers=NUMBERS, coords=COORDS, unit_cell=UNIT_CELL)
+        a.fill_in_crystal(radius=1.)
+        self.assertEqual(a.numbers.tolist(), NUMBERS * length)
+
+        a = LazyValues(elements=ELEMENTS, coords=COORDS, unit_cell=UNIT_CELL)
+        a.fill_in_crystal(radius=1.)
+        self.assertEqual(a.elements.tolist(), ELEMENTS * length)
 
 
 if __name__ == '__main__':

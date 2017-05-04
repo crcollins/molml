@@ -1,20 +1,16 @@
-import os
 import unittest
 
 import numpy
 
 from molml.kernel import AtomKernel
 from molml.atom import Shell
-from molml.io import read_file_data
 
-DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
-METHANE_PATH = os.path.join(DATA_PATH, "methane.out")
-MID_PATH = os.path.join(DATA_PATH, "mid.out")
+from .constants import METHANE_NUMBERS, MID_NUMBERS
+from .constants import METHANE_PATH, MID_PATH
 
-_, METHANE_NUMS, _ = read_file_data(METHANE_PATH)
-_, MID_NUMS, _ = read_file_data(MID_PATH)
+
 ALL = (METHANE_PATH, MID_PATH)
-ALL_NUMS = [METHANE_NUMS, MID_NUMS]
+ALL_NUMS = [METHANE_NUMBERS, MID_NUMBERS]
 ALL_FEATURES = numpy.array([
     [[1, 0, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0]],
     [[1, 0, 0], [1, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1],
@@ -47,7 +43,7 @@ class AtomKernelTest(unittest.TestCase):
         trans = Shell(input_type="filename")
         a = AtomKernel(transformer=trans)
         a.fit(ALL)
-        self.assertEqual(ALL_NUMS, list(a._numbers))
+        self.assertEqual(ALL_NUMS, [x.tolist() for x in a._numbers])
         self.assertEqual(list(ALL_FEATURES), list(a._features))
 
     def test_transform_before_fit(self):

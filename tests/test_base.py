@@ -9,15 +9,11 @@ except ImportError:
 import numpy
 
 from molml.base import BaseFeature, SetMergeMixin, _func_star
-from molml.io import read_file_data
+
+from .constants import METHANE_ELEMENTS, METHANE_COORDS, METHANE_PATH
+from .constants import METHANE, METHANE_NUMBERS
 
 
-DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
-
-METHANE_PATH = os.path.join(DATA_PATH, "methane.out")
-METHANE_ELEMENTS, METHANE_NUMBERS, METHANE_COORDS = read_file_data(
-    METHANE_PATH)
-METHANE = (METHANE_ELEMENTS, METHANE_COORDS)
 METHANE_ATOMS = numpy.array([[1, 4]])
 
 
@@ -32,10 +28,10 @@ class TestFeature1(BaseFeature):
     LABELS = ('labels', )
     ATTRIBUTES = ('data', )
 
-    def __init__(self, input_type='list', n_jobs=1, value=None):
+    def __init__(self, input_type='list', n_jobs=1, data=None, value=None):
         super(TestFeature1, self).__init__(input_type, n_jobs)
         self.labels = ('C', 'B', 'A')
-        self.data = value
+        self.data = data
         self.value = value
 
 
@@ -128,7 +124,8 @@ class BaseFeatureTest(unittest.TestCase):
             4: {0: "1"},
         }
         self.assertEqual(data.connections, compare_connections)
-        self.assertEqual((data.elements, data.coords), METHANE)
+        self.assertEqual(data.elements.tolist(), METHANE[0])
+        self.assertEqual(data.coords.tolist(), METHANE[1].tolist())
 
     def test_convert_input_list_connections(self):
         a = BaseFeature(input_type="list")
@@ -141,7 +138,8 @@ class BaseFeatureTest(unittest.TestCase):
         }
         data = a.convert_input([METHANE[0], METHANE[1], connections])
         self.assertEqual(data.connections, connections)
-        self.assertEqual((data.elements, data.coords), METHANE)
+        self.assertEqual(data.elements.tolist(), METHANE[0])
+        self.assertEqual(data.coords.tolist(), METHANE[1].tolist())
 
     def test_convert_input_filename(self):
         a = BaseFeature(input_type="filename")
@@ -149,7 +147,7 @@ class BaseFeatureTest(unittest.TestCase):
         for ending in ('.xyz', '.out'):
             path = base_path + ending
             data = a.convert_input(path)
-            self.assertEqual(data.elements, METHANE_ELEMENTS)
+            self.assertEqual(data.elements.tolist(), METHANE_ELEMENTS)
             compare_connections = {
                 0: {1: "1", 2: "1", 3: "1", 4: "1"},
                 1: {0: "1"},
@@ -167,7 +165,7 @@ class BaseFeatureTest(unittest.TestCase):
     def test_convert_input_ele_coords(self):
         a = BaseFeature(input_type=["elements", "coords"])
         data = a.convert_input([METHANE_ELEMENTS, METHANE_COORDS])
-        self.assertEqual(data.elements, METHANE_ELEMENTS)
+        self.assertEqual(data.elements.tolist(), METHANE_ELEMENTS)
         try:
             numpy.testing.assert_array_almost_equal(
                 data.coords, METHANE_COORDS)
@@ -177,8 +175,8 @@ class BaseFeatureTest(unittest.TestCase):
     def test_convert_input_num_ele(self):
         a = BaseFeature(input_type=["numbers", "elements"])
         data = a.convert_input([METHANE_NUMBERS, METHANE_ELEMENTS])
-        self.assertEqual(data.elements, METHANE_ELEMENTS)
-        self.assertEqual(data.numbers, METHANE_NUMBERS)
+        self.assertEqual(data.elements.tolist(), METHANE_ELEMENTS)
+        self.assertEqual(data.numbers.tolist(), METHANE_NUMBERS)
 
     def test_convert_input_invalid_list(self):
         a = BaseFeature(input_type=["error"])
@@ -194,6 +192,7 @@ class BaseFeatureTest(unittest.TestCase):
         a = TestFeature1()
         expected = [
                     'TestFeature1',
+                    'data=None',
                     'value=None',
                     ]
         self.assertEqual(a.slugify(), '__'.join(expected))
@@ -225,7 +224,7 @@ class BaseFeatureTest(unittest.TestCase):
         self.assertEqual(c.get_labels(), tuple())
 
     def test_check_fit(self):
-        a = TestFeature1(value=1)
+        a = TestFeature1(data=1)
         self.assertIsNone(a.check_fit())
         b = TestFeature2(value=1)
         self.assertIsNone(b.check_fit())
@@ -259,6 +258,7 @@ class BaseFeatureTest(unittest.TestCase):
         base = a.__module__
         expected = {'parameters': {'n_jobs': 1,
                                    'input_type': 'list',
+                                   'data': None,
                                    'value': None},
                     'attributes': {'data': None},
                     'transformer': base + '.TestFeature1'}
@@ -269,6 +269,41 @@ class BaseFeatureTest(unittest.TestCase):
         with open(path, 'r') as f:
             data = json.load(f)
             self.assertEqual(data, expected)
+
+    def test_to_json_no_attributes(self):
+        a = TestFeature3()
+        data = a.to_json()
+        base = a.__module__
+        expected = {'parameters': {'n_jobs': 1,
+                                   'input_type': 'list'},
+                    'attributes': {},
+                    'transformer': base + '.TestFeature3'}
+        self.assertEqual(data, expected)
+
+    def test_save_json_nested_obj(self):
+        a = TestFeature1(value=TestFeature1())
+        data = a.to_json()
+        base = a.__module__
+        expected = {
+            'attributes': {'data': None},
+            'parameters': {
+                'n_jobs': 1,
+                'input_type': 'list',
+                'value': {
+                    'parameters': {
+                        'n_jobs': 1,
+                        'input_type': 'list',
+                        'value': None,
+                        'data': None,
+                    },
+                    'attributes': {'data': None},
+                    'transformer': base + '.TestFeature1',
+                },
+                'data': None,
+            },
+            'transformer': base + '.TestFeature1'
+        }
+        self.assertEqual(data, expected)
 
 
 class TestSetMergeMixin(unittest.TestCase):

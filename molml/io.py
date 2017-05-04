@@ -1,9 +1,8 @@
 """
 A collection of functions for loading molecule data from different file types.
 """
-import numpy
-
 from .constants import ELE_TO_NUM
+from .utils import LazyValues
 
 
 def read_file_data(path):
@@ -33,6 +32,7 @@ def read_file_data(path):
         'out': read_out_data,
         'xyz': read_xyz_data,
         'mol2': read_mol2_data,
+        'cry': read_cry_data,
     }
     if end in mapping:
         return mapping[end](path)
@@ -57,14 +57,8 @@ def read_out_data(path):
 
     Returns
     -------
-    elements : list
-        All the elements in the molecule.
-
-    numbers : list
-        All the atomic numbers in the molecule.
-
-    coords : numpy.array, shape=(n_atoms, 3)
-        The atomic coordinates of the molecule.
+    val : LazyValues
+        An object storing all the data
     """
     elements = []
     numbers = []
@@ -76,7 +70,7 @@ def read_out_data(path):
             elements.append(ele)
             numbers.append(ELE_TO_NUM[ele])
             coords.append(point)
-    return elements, numbers, numpy.array(coords)
+    return LazyValues(elements=elements, numbers=numbers, coords=coords)
 
 
 def read_xyz_data(path):
@@ -98,14 +92,8 @@ def read_xyz_data(path):
 
     Returns
     -------
-    elements : list
-        All the elements in the molecule.
-
-    numbers : list
-        All the atomic numbers in the molecule.
-
-    coords : numpy.array, shape=(n_atoms, 3)
-        The atomic coordinates of the molecule.
+    val : LazyValues
+        An object storing all the data
     """
     elements = []
     numbers = []
@@ -119,7 +107,7 @@ def read_xyz_data(path):
             elements.append(ele)
             numbers.append(ELE_TO_NUM[ele])
             coords.append(point)
-    return elements, numbers, numpy.array(coords)
+    return LazyValues(elements=elements, numbers=numbers, coords=coords)
 
 
 def read_mol2_data(path):
@@ -144,14 +132,8 @@ def read_mol2_data(path):
 
     Returns
     -------
-    elements : list
-        All the elements in the molecule.
-
-    numbers : list
-        All the atomic numbers in the molecule.
-
-    coords : numpy.array, shape=(n_atoms, 3)
-        The atomic coordinates of the molecule.
+    val : LazyValues
+        An object storing all the data
     """
     elements = []
     numbers = []
@@ -171,4 +153,46 @@ def read_mol2_data(path):
             elements.append(ele)
             numbers.append(ELE_TO_NUM[ele])
             coords.append([float(x) for x in vals[2:5]])
-    return elements, numbers, numpy.array(coords)
+    return LazyValues(elements=elements, numbers=numbers, coords=coords)
+
+
+def read_cry_data(path):
+    """
+    Read a cry file and extract the molecule's geometry.
+
+    The format should be as follows::
+
+        U_xx U_xy U_xz
+        U_yx U_yy U_yz
+        U_zx U_zy U_zz
+        energy (or comment, this is ignored for now)
+        ele0 x0 y0 z0
+        ele1 x1 y1 z1
+        ...
+        elen xn yn zn
+
+    Where the U matrix is made of the unit cell basis vectors as column
+    vectors.
+
+    Parameters
+    ----------
+    path : str
+        A path to a file to read
+
+    Returns
+    -------
+    val : LazyValues
+        An object storing all the data
+    """
+    unit = []
+    coords = []
+    elements = []
+    with open(path, 'r') as f:
+        for line in f:
+            parts = line.strip().split()
+            if len(parts) == 3:
+                unit.append([float(x) for x in parts])
+            if len(parts) == 4:
+                elements.append(parts[0])
+                coords.append([float(x) for x in parts[1:]])
+    return LazyValues(elements=elements, coords=coords, unit_cell=unit)
