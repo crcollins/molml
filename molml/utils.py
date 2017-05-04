@@ -243,12 +243,13 @@ class LazyValues(object):
         return numpy.array(x) if x is not None else x
 
     def fill_in_crystal(self, radius=None, units=None):
+        coords = numpy.array(self.coords)
         offsets = list(_radial_iterator(self.unit_cell, radius))
         self.__crystal_size = len(offsets)
 
         new_coords = []
         for offset in offsets:
-            new_coords.append(numpy.array(self.coords) + offset)
+            new_coords.append(coords + offset)
         self._coords = numpy.concatenate(new_coords)
 
         if self._numbers is not None:
