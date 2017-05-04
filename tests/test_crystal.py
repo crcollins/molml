@@ -1,5 +1,4 @@
 import unittest
-import os
 
 import numpy
 
@@ -7,17 +6,6 @@ from molml.molecule import Connectivity
 from molml.crystal import GenerallizedCrystal
 from molml.crystal import EwaldSumMatrix, SineMatrix
 
-
-DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
-ELEMENTS = ['C', 'H', 'H', 'H', 'H']
-NUMBERS = [6, 1, 1, 1, 1]
-COORDS = [
-    [0.99826008, -0.00246000, -0.00436000],
-    [2.09021016, -0.00243000, 0.00414000],
-    [0.63379005, 1.02686007, 0.00414000],
-    [0.62704006, -0.52773003, 0.87811010],
-    [0.64136006, -0.50747003, -0.90540005],
-]
 
 H_ELES = ['H']
 H_NUMS = [1]
@@ -46,6 +34,7 @@ H2_UNIT = numpy.array([
     [.25, 1., 0.],
     [0., .3, 1.],
 ])
+H2 = (H2_ELES, H2_COORDS, H2_UNIT)
 
 
 class GenerallizedCrystalTest(unittest.TestCase):
@@ -88,8 +77,8 @@ class EwaldSumMatrixCrystalTest(unittest.TestCase):
 
     def test_transform(self):
         a = EwaldSumMatrix(input_type=H_INPUT)
-        a.fit([(H2_ELES, H2_COORDS, H2_UNIT)])
-        res = a.transform([(H2_ELES, H2_COORDS, H2_UNIT)])
+        a.fit([H2])
+        res = a.transform([H2])
         expected = numpy.array([[-1.68059225, 0.94480435,
                                  0.94480435, -1.68059225]])
         try:
@@ -101,14 +90,14 @@ class EwaldSumMatrixCrystalTest(unittest.TestCase):
 
     def test_small_to_large_transform(self):
         a = EwaldSumMatrix(input_type=H_INPUT)
-        a.fit([(H_ELES, H_COORDS, H_UNIT)])
+        a.fit([H])
         with self.assertRaises(ValueError):
-            a.transform([(H2_ELES, H2_COORDS, H2_UNIT)])
+            a.transform([H2])
 
     def test_large_to_small_transform(self):
         a = EwaldSumMatrix(input_type=H_INPUT)
         a.fit([(H2_ELES, H2_COORDS, H2_UNIT)])
-        res = a.transform([(H_ELES, H_COORDS, H_UNIT)])
+        res = a.transform([H])
         expected = numpy.array([[-1.944276, 0., 0., 0.]])
         try:
             numpy.testing.assert_array_almost_equal(
@@ -124,7 +113,7 @@ class EwaldSumMatrixCrystalTest(unittest.TestCase):
 
     def test_fit_transform(self):
         a = EwaldSumMatrix(input_type=H_INPUT)
-        res = a.fit_transform([(H2_ELES, H2_COORDS, H2_UNIT)])
+        res = a.fit_transform([H2])
         expected = numpy.array([[-1.68059225, 0.94480435,
                                  0.94480435, -1.68059225]])
         try:
@@ -136,7 +125,7 @@ class EwaldSumMatrixCrystalTest(unittest.TestCase):
 
     def test_sort(self):
         a = EwaldSumMatrix(input_type=H_INPUT, sort=True)
-        res = a.fit_transform([(H2_ELES, H2_COORDS, H2_UNIT)])
+        res = a.fit_transform([H2])
         expected = numpy.array([[-1.68059225, 0.94480435,
                                  0.94480435, -1.68059225]])
         try:
@@ -148,7 +137,7 @@ class EwaldSumMatrixCrystalTest(unittest.TestCase):
 
     def test_eigen(self):
         a = EwaldSumMatrix(input_type=H_INPUT, eigen=True)
-        res = a.fit_transform([(H2_ELES, H2_COORDS, H2_UNIT)])
+        res = a.fit_transform([H2])
         expected = numpy.array([[-0.735788, -2.625397]])
         try:
             numpy.testing.assert_array_almost_equal(
@@ -166,8 +155,8 @@ class SineMatrixTest(unittest.TestCase):
 
     def test_transform(self):
         a = SineMatrix(input_type=H_INPUT)
-        a.fit([(H2_ELES, H2_COORDS, H2_UNIT)])
-        res = a.transform([(H2_ELES, H2_COORDS, H2_UNIT)])
+        a.fit([H2])
+        res = a.transform([H2])
         expected = numpy.array([[0.5, 0.475557, 0.475557, 0.5]])
         try:
             numpy.testing.assert_array_almost_equal(
@@ -178,14 +167,14 @@ class SineMatrixTest(unittest.TestCase):
 
     def test_small_to_large_transform(self):
         a = SineMatrix(input_type=H_INPUT)
-        a.fit([(H_ELES, H_COORDS, H_UNIT)])
+        a.fit([H])
         with self.assertRaises(ValueError):
-            a.transform([(H2_ELES, H2_COORDS, H2_UNIT)])
+            a.transform([H2])
 
     def test_large_to_small_transform(self):
         a = SineMatrix(input_type=H_INPUT)
-        a.fit([(H2_ELES, H2_COORDS, H2_UNIT)])
-        res = a.transform([(H_ELES, H_COORDS, H_UNIT)])
+        a.fit([H2])
+        res = a.transform([H])
         expected = numpy.array([[0.5, 0., 0., 0.]])
         try:
             numpy.testing.assert_array_almost_equal(
@@ -201,7 +190,7 @@ class SineMatrixTest(unittest.TestCase):
 
     def test_fit_transform(self):
         a = SineMatrix(input_type=H_INPUT)
-        res = a.fit_transform([(H2_ELES, H2_COORDS, H2_UNIT)])
+        res = a.fit_transform([H2])
         expected = numpy.array([[0.5, 0.475557, 0.475557, 0.5]])
         try:
             numpy.testing.assert_array_almost_equal(
@@ -212,7 +201,7 @@ class SineMatrixTest(unittest.TestCase):
 
     def test_sort(self):
         a = SineMatrix(input_type=H_INPUT, sort=True)
-        res = a.fit_transform([(H2_ELES, H2_COORDS, H2_UNIT)])
+        res = a.fit_transform([H2])
         expected = numpy.array([[0.5, 0.475557, 0.475557, 0.5]])
         try:
             numpy.testing.assert_array_almost_equal(
@@ -223,7 +212,7 @@ class SineMatrixTest(unittest.TestCase):
 
     def test_eigen(self):
         a = SineMatrix(input_type=H_INPUT, eigen=True)
-        res = a.fit_transform([(H2_ELES, H2_COORDS, H2_UNIT)])
+        res = a.fit_transform([H2])
         expected = numpy.array([[0.975557, 0.024443]])
         try:
             numpy.testing.assert_array_almost_equal(
