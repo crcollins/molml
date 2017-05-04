@@ -5,7 +5,7 @@ import numpy
 from molml.molecule import BagOfBonds, Connectivity
 from molml.molecule import CoulombMatrix, EncodedBond, EncodedAngle
 
-from tests.constants import METHANE, BIG, MID, ALL_DATA
+from .constants import METHANE, BIG, MID, ALL_DATA
 
 METHANE2 = (METHANE[0], 2 * METHANE[1])
 ALL_ATOM = numpy.array([[1, 4, 0, 0],

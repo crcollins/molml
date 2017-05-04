@@ -5,8 +5,8 @@ import numpy
 from molml.kernel import AtomKernel
 from molml.atom import Shell
 
-from tests.constants import METHANE_NUMBERS, MID_NUMBERS
-from tests.constants import METHANE_PATH, MID_PATH
+from .constants import METHANE_NUMBERS, MID_NUMBERS
+from .constants import METHANE_PATH, MID_PATH
 
 
 ALL = (METHANE_PATH, MID_PATH)

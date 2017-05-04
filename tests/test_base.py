@@ -10,8 +10,8 @@ import numpy
 
 from molml.base import BaseFeature, SetMergeMixin, _func_star
 
-from tests.constants import METHANE_ELEMENTS, METHANE_COORDS, METHANE_PATH
-from tests.constants import METHANE, METHANE_NUMBERS
+from .constants import METHANE_ELEMENTS, METHANE_COORDS, METHANE_PATH
+from .constants import METHANE, METHANE_NUMBERS
 
 
 METHANE_ATOMS = numpy.array([[1, 4]])

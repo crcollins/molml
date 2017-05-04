@@ -6,7 +6,7 @@ from molml.atom import Shell, LocalEncodedBond, LocalCoulombMatrix
 from molml.atom import LocalEncodedAngle
 from molml.atom import BehlerParrinello
 
-from tests.constants import METHANE, BIG, MID, ALL_DATA
+from .constants import METHANE, BIG, MID, ALL_DATA
 
 BASE_SHELL = numpy.array([
     [[1, 0, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0],
