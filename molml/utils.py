@@ -246,11 +246,10 @@ class LazyValues(object):
         offsets = list(_radial_iterator(self.unit_cell, radius))
         self.__crystal_size = len(offsets)
 
-        if self.coords is not None:
-            new_coords = []
-            for offset in offsets:
-                new_coords.append(numpy.array(self._coords) + offset)
-            self._coords = numpy.concatenate(new_coords)
+        new_coords = []
+        for offset in offsets:
+            new_coords.append(numpy.array(self.coords) + offset)
+        self._coords = numpy.concatenate(new_coords)
 
         if self._numbers is not None:
             self._numbers = numpy.tile(self._numbers, self.__crystal_size)

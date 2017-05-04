@@ -338,6 +338,24 @@ class LazyValuesTest(unittest.TestCase):
         }
         self.assertEqual(a.connections, new_conn)
 
+    def test_fill_in_crystal_null(self):
+        a = LazyValues()
+        with self.assertRaises(ValueError):
+            a.fill_in_crystal(radius=1.)
+
+        a = LazyValues(unit_cell=UNIT_CELL)
+        with self.assertRaises(ValueError):
+            a.fill_in_crystal(radius=1.)
+
+        length = 3
+        a = LazyValues(numbers=NUMBERS, coords=COORDS, unit_cell=UNIT_CELL)
+        a.fill_in_crystal(radius=1.)
+        self.assertEqual(a.numbers.tolist(), NUMBERS * length)
+
+        a = LazyValues(elements=ELEMENTS, coords=COORDS, unit_cell=UNIT_CELL)
+        a.fill_in_crystal(radius=1.)
+        self.assertEqual(a.elements.tolist(), ELEMENTS * length)
+
 
 if __name__ == '__main__':
     unittest.main()
