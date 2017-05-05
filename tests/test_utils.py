@@ -368,26 +368,30 @@ class LazyValuesTest(unittest.TestCase):
                 expected_results)
         except AssertionError as e:
             self.fail(e)
-
         self.assertEqual(a.numbers.tolist(), NUMBERS * length)
-        new_conn = {
-            0: {1: '1', 2: '1', 3: '1', 4: '1'},
-            1: {0: '1'},
-            2: {0: '1'},
-            3: {0: '1'},
-            4: {0: '1'},
-            5: {6: '1', 7: '1', 8: '1', 9: '1'},
-            6: {5: '1'},
-            7: {5: '1'},
-            8: {5: '1'},
-            9: {5: '1'},
-            10: {11: '1', 12: '1', 13: '1', 14: '1'},
-            11: {10: '1'},
-            12: {10: '1'},
-            13: {10: '1'},
-            14: {10: '1'},
+
+    def test_fill_in_crystal_conn(self):
+        eles = ['H']
+        coords = numpy.array([[0.0, 0.0, 0.0]])
+        nums = [1]
+        connections = {0: {}}
+        unit_cell = numpy.array([[1., 0, 0],
+                                 [0, 1., 0],
+                                 [0, 0, 1.]])
+        a = LazyValues(elements=eles, coords=coords, numbers=nums,
+                       connections=connections, unit_cell=unit_cell)
+        a.fill_in_crystal(radius=1.)
+        self.assertEqual(a.elements.tolist(), eles * 7)
+        expected = {
+            0: {3: '1'},
+            1: {3: '1'},
+            2: {3: '1'},
+            3: {0: '1', 1: '1', 2: '1', 4: '1', 5: '1', 6: '1'},
+            4: {3: '1'},
+            5: {3: '1'},
+            6: {3: '1'},
         }
-        self.assertEqual(a.connections, new_conn)
+        self.assertEqual(a.connections, expected)
 
     def test_fill_in_crystal_null(self):
         a = LazyValues()

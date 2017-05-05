@@ -129,6 +129,48 @@ def get_connections(elements, coords):
     return connections
 
 
+def get_connections_disjoint(elements1, coords1, elements2, coords2):
+    """
+    Return a dictionary edge list between two disjoint sets of atoms.
+
+    Each value is is a tuple of the index of the connecting atom and the bond
+    order as a string. Where the bond order is one of ['1', 'Ar', '2', '3'].
+
+    Note: This returns only the connections from the first set to the second.
+    This is in contrast to returning connections from both directions.
+
+    Parameters
+    ----------
+    elements1 : list
+        All the elements in set 1.
+
+    coords1 : array, shape=(n_atoms, 3)
+        The coordinates of the atoms in set 1.
+
+    elements1 : list
+        All the elements in set 2.
+
+    coords1 : array, shape=(n_atoms, 3)
+        The coordinates of the atoms in set 2.
+
+    Returns
+    -------
+    connections : dict, int->dict
+        Contains all atoms that are connected to each atom and bond type.
+    """
+    dist_mat = cdist(coords1, coords2)
+    connections = {i: {} for i in range(len(elements1))}
+    for i, element1 in enumerate(elements1):
+        for j, element2 in enumerate(elements2):
+            dist = dist_mat[i, j]
+            bond_type = get_bond_type(element1, element2, dist)
+            if not bond_type:
+                continue
+
+            connections[i][j] = bond_type
+    return connections
+
+
 def get_depth_threshold_mask_connections(connections, max_depth=1):
     """
     Get the depth threshold mask from connections.
@@ -274,7 +316,31 @@ class LazyValues(object):
                               inner_key, value in items.items()}
                     new_conn[key + off] = values
             self._connections = new_conn
-            # TODO: Add in geoms
+
+            a = numpy.array(offsets)
+            I = numpy.linalg.inv(self.unit_cell)
+            counts = I.dot(a.T).T
+            dists = cdist(counts, counts, 'chebyshev')
+            for i, j in zip(*numpy.where(dists <= 1)):
+                if i == j or i > j:
+                    continue
+                off1 = n * i
+                end1 = off1 + n
+                off2 = n * j
+                end2 = off2 + n
+                elements1 = self.elements[off1:end1]
+                coords1 = self.coords[off1:end1, :]
+                elements2 = self.elements[off2:end2]
+                coords2 = self.coords[off2:end2, :]
+                conn = get_connections_disjoint(elements1, coords1,
+                                                elements2, coords2)
+
+                for key1, items in conn.items():
+                    idx1 = key1 + off1
+                    for key2, bond in items.items():
+                        idx2 = key2 + off2
+                        self._connections[idx1][idx2] = bond
+                        self._connections[idx2][idx1] = bond
 
     @property
     def connections(self):
