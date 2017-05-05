@@ -88,6 +88,32 @@ class EwaldSumMatrixCrystalTest(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
+    def test_G_max(self):
+        a = EwaldSumMatrix(input_type=H_INPUT, G_max=2)
+        a.fit([H2])
+        res = a.transform([H2])
+        expected = numpy.array([[-1.68059225, 0.945167,
+                                 0.945167, -1.68059225]])
+        try:
+            numpy.testing.assert_array_almost_equal(
+                res,
+                expected)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_L_max(self):
+        a = EwaldSumMatrix(input_type=H_INPUT, L_max=2)
+        a.fit([H2])
+        res = a.transform([H2])
+        expected = numpy.array([[-1.68059225, 0.43748,
+                                 0.43748, -1.68059225]])
+        try:
+            numpy.testing.assert_array_almost_equal(
+                res,
+                expected)
+        except AssertionError as e:
+            self.fail(e)
+
     def test_small_to_large_transform(self):
         a = EwaldSumMatrix(input_type=H_INPUT)
         a.fit([H])
