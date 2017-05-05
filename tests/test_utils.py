@@ -265,10 +265,38 @@ class UtilsTest(unittest.TestCase):
                 self.assertEqual(m._base_chains,
                                  data["attributes"]["_base_chains"])
 
+    def test_load_json_nested(self):
+        # We will hack on connectivity a sub transformer on its `depth` param.
+        data = {
+            'parameters': {
+                'n_jobs': 2,
+                'depth': {
+                    'parameters': {
+                        'n_jobs': 3,
+                        'input_type': 'list'},
+                    'attributes': {'_base_chains': [['H']]},
+                    'transformer': 'molml.molecule.Connectivity'},
+                'input_type': 'list'},
+            'attributes': {'_base_chains': [['H']]},
+            'transformer': 'molml.molecule.Connectivity'
+        }
+        path = '/tmp/somefile.json'
+        with open(path, 'w') as f:
+            json.dump(data, f)
+
+        m = load_json(path)
         self.assertEqual(m.__class__.__name__,
                          data["transformer"].split('.')[-1])
         self.assertEqual(m.n_jobs, data["parameters"]["n_jobs"])
         self.assertEqual(m._base_chains, data["attributes"]["_base_chains"])
+
+        in_data = data["parameters"]["depth"]
+        in_m = m.depth
+        self.assertEqual(in_m.__class__.__name__,
+                         in_data["transformer"].split('.')[-1])
+        self.assertEqual(in_m.n_jobs, in_data["parameters"]["n_jobs"])
+        self.assertEqual(in_m._base_chains,
+                         in_data["attributes"]["_base_chains"])
 
 
 class LazyValuesTest(unittest.TestCase):
