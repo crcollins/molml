@@ -633,6 +633,44 @@ def get_angles(coords):
     return res
 
 
+def _load_transformer(data):
+    """
+    Load the transformer object
+
+    Parameters
+    ----------
+    data : dict
+        A dictionary of values to load as a transformer.
+
+    Returns
+    -------
+    obj : Transformer
+        The transformer object.
+    """
+    module, klass = data["transformer"].rsplit('.', 1)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        # Throw away the warnings in Python 3.x because of Dill...
+        # https://github.com/uqfoundation/dill/issues/210
+        m = importlib.import_module(module)
+
+    cls = getattr(m, klass)
+    comp = set(["attributes", "parameters", "transformer"])
+    parameters = {}
+    for key, value in data["parameters"].items():
+        if not isinstance(value, dict) or \
+           len(comp & set(value.keys())) != 3:
+            parameters[key] = value
+            continue
+        parameters[key] = _load_transformer(value)
+
+    obj = cls(**parameters)
+    for key, value in data["attributes"].items():
+        setattr(obj, key, value)
+    return obj
+
+
 def load_json(f):
     """
     Load the model data from a json file
@@ -652,19 +690,7 @@ def load_json(f):
     except AttributeError:
         with open(f, 'r') as in_file:
             data = json.load(in_file)
-    module, klass = data["transformer"].rsplit('.', 1)
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        # Throw away the warnings in Python 3.x because of Dill...
-        # https://github.com/uqfoundation/dill/issues/210
-        m = importlib.import_module(module)
-
-    cls = getattr(m, klass)
-    obj = cls(**data["parameters"])
-    for key, value in data["attributes"].items():
-        setattr(obj, key, value)
-    return obj
+    return _load_transformer(data)
 
 
 def _radial_iterator(X, r_max):
