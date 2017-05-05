@@ -256,14 +256,14 @@ class UtilsTest(unittest.TestCase):
         with open(path, 'w') as f:
             json.dump(data, f)
 
-        m = load_json(path)
-        self.assertEqual(m.__class__.__name__,
-                         data["transformer"].split('.')[-1])
-        self.assertEqual(m.n_jobs, data["parameters"]["n_jobs"])
-        self.assertEqual(m._base_chains, data["attributes"]["_base_chains"])
-
         with open(path, 'r') as f:
-            m = load_json(f)
+            for x in (path, f):
+                m = load_json(path)
+                self.assertEqual(m.__class__.__name__,
+                                 data["transformer"].split('.')[-1])
+                self.assertEqual(m.n_jobs, data["parameters"]["n_jobs"])
+                self.assertEqual(m._base_chains,
+                                 data["attributes"]["_base_chains"])
 
         self.assertEqual(m.__class__.__name__,
                          data["transformer"].split('.')[-1])
