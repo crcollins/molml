@@ -90,3 +90,42 @@ def load_qm7_data():
 def load_qm7(fold=0):
     data = load_qm7_data()
     return get_data_train_test(data, fold=fold)
+
+
+def plot_cell(coords, radius, unit, connections=None):
+    from mpl_toolkits.mplot3d import Axes3D  # NOQA
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    if connections is not None:
+        for i, values in connections.items():
+            for j in values:
+                if i > j:
+                    continue
+                ax.plot([coords[i, 0], coords[j, 0]],
+                        [coords[i, 1], coords[j, 1]],
+                        [coords[i, 2], coords[j, 2]],
+                        '--c')
+
+    ax.scatter(coords[:, 0], coords[:, 1], coords[:, 2])
+    unit = numpy.array(unit)
+
+    vals = numpy.linspace(0, 2 * numpy.pi)
+    y = radius * numpy.cos(vals)
+    x = radius * numpy.sin(vals)
+    zeros = numpy.zeros(vals.shape)
+
+    ax.plot(x, y, '-r')
+    ax.plot(zeros, x, y, '-g')
+    ax.plot(x, zeros, y, '-b')
+
+    ax.plot([-radius, radius], [0, 0], 'r-')
+    ax.plot([0, 0], [-radius, radius], 'g-')
+    ax.plot([0, 0], [0, 0], [-radius, radius], 'b-')
+
+    ax.plot([0, unit[0, 0]], [0, unit[1, 0]], [0, unit[2, 0]], '-k')
+    ax.plot([0, unit[0, 1]], [0, unit[1, 1]], [0, unit[2, 1]], '-k')
+    ax.plot([0, unit[0, 2]], [0, unit[1, 2]], [0, unit[2, 2]], '-k')
+
+    plt.show()
