@@ -61,6 +61,29 @@ class UtilsTest(unittest.TestCase):
         expected = numpy.array([0., 0., 1., 1., 1., 0., 0.])
         self.assertTrue((f(values) == expected).all())
 
+    def test_smoothing_lerp(self):
+        f = SMOOTHING_FUNCTIONS['lerp']
+        # Note: this is slightly different from the others because lerp
+        # depends on the spacing between the first two bins
+        theta = numpy.linspace(1, 3, 3)
+        pairs = [
+            (0., numpy.array([0., 0., 0.])),
+            (.4, numpy.array([0.4, 0., 0.])),
+            (1., numpy.array([1., 0., 0.])),
+            (1.3, numpy.array([.7, .3, 0.])),
+            (2., numpy.array([0., 1., 0.])),
+            (2.5, numpy.array([0., .5, .5])),
+            (3., numpy.array([0., 0., 1.])),
+            (3.3, numpy.array([0., 0., .7])),
+        ]
+        for off, expected in pairs:
+            try:
+                numpy.testing.assert_array_almost_equal(
+                    f(theta - off),
+                    expected)
+            except AssertionError as e:
+                self.fail(e)
+
     def test_get_coulomb_matrix(self):
         res = get_coulomb_matrix([1, 1], [[0.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
         expected_results = numpy.array([
