@@ -23,7 +23,10 @@ class GenerallizedCrystal(BaseFeature):
     ATTRIBUTES = None
     LABELS = None
 
-    def __init__(self, transformer=None, radius=None, units=None):
+    def __init__(self, input_type='list', n_jobs=1, transformer=None,
+                 radius=None, units=None):
+        super(GenerallizedCrystal, self).__init__(input_type=input_type,
+                                                  n_jobs=n_jobs)
         self.transformer = transformer
         if radius is not None and units is not None:
             msg = "`radius` and `units` can not be set at the same time."

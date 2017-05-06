@@ -39,7 +39,8 @@ if __name__ == "__main__":
     # Example of generallized crystal
     # Any transformer can be used as it just expands the molecule using the
     # unit cell and coordinates.
-    trans = GenerallizedCrystal(CoulombMatrix(input_type=input_type),
+    cm = CoulombMatrix(input_type=input_type)
+    trans = GenerallizedCrystal(transformer=cm,
                                 radius=radius)
     res = trans.fit_transform([X])
     print(res)
