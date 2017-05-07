@@ -11,7 +11,7 @@ from contextlib import contextmanager
 import numpy
 from scipy.spatial.distance import cdist
 
-from .base import BaseFeature
+from .base import BaseFeature, InputTypeMixin
 
 
 __all__ = ("AtomKernel", )
@@ -22,7 +22,7 @@ KERNELS = {
 }
 
 
-class AtomKernel(BaseFeature):
+class AtomKernel(InputTypeMixin, BaseFeature):
     """
     Computes a kernel between molecules using atom similarity.
 
@@ -96,23 +96,7 @@ class AtomKernel(BaseFeature):
                  transformer=None, same_element=True, kernel="rbf"):
         super(AtomKernel, self).__init__(input_type=input_type, n_jobs=n_jobs)
         self.gamma = gamma
-        if self.input_type is None:
-            if transformer is not None:
-                self.input_type = transformer.input_type
-            else:
-                # Standard default
-                self.input_type = 'list'
-        else:
-            if transformer is not None:
-                if self.input_type != transformer.input_type:
-                    string = "The input_type for transformer (%r) does not "
-                    string += "match the input_type of the atom kernel (%r)"
-                    raise ValueError(string % (transformer.input_type,
-                                               self.input_type))
-            else:
-                # input_type is ignored
-                pass
-
+        self.check_transformer(transformer)
         self.transformer = transformer
         self.same_element = same_element
         self.kernel = kernel

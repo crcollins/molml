@@ -106,23 +106,6 @@ class AtomKernelTest(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
-    def test_default_input_type(self):
-        a = AtomKernel()
-        self.assertEqual("list", a.input_type)
-
-    def test_input_type_mismatch(self):
-        trans = Shell(input_type="filename")
-        with self.assertRaises(ValueError):
-            AtomKernel(input_type="list", transformer=trans)
-
-    def test_input_type_ignored(self):
-        a = AtomKernel(input_type="filename")
-        self.assertEqual("filename", a.input_type)
-
-    def test_input_type_match(self):
-        trans = Shell(input_type="filename")
-        AtomKernel(input_type="filename", transformer=trans)
-
     def test_laplace_kernel(self):
         # Set depth=2 so the comparison is not trivial
         trans = Shell(input_type="filename", depth=2)

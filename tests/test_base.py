@@ -8,7 +8,7 @@ except ImportError:
 
 import numpy
 
-from molml.base import BaseFeature, SetMergeMixin, _func_star
+from molml.base import BaseFeature, SetMergeMixin, InputTypeMixin, _func_star
 
 from .constants import METHANE_ELEMENTS, METHANE_COORDS, METHANE_PATH
 from .constants import METHANE, METHANE_NUMBERS
@@ -335,6 +335,40 @@ class TestSetMergeMixin(unittest.TestCase):
         a = TestFeature(input_type="filename")
         a.fit([METHANE_PATH, METHANE_PATH])
         self.assertEqual({1, 2, 3}, a.test1)
+
+
+class Feature(InputTypeMixin, BaseFeature):
+
+    def __init__(self, input_type=None, transformer=None, *args, **kwargs):
+        super(Feature, self).__init__(input_type=input_type, *args, **kwargs)
+        self.check_transformer(transformer)
+        self.transformer = transformer
+
+
+class TestInputTypeMixin(unittest.TestCase):
+
+    def test_input_type_default(self):
+        a = Feature()
+        self.assertEqual("list", a.input_type)
+
+    def test_input_type_mismatch(self):
+        trans = BaseFeature(input_type="filename")
+        with self.assertRaises(ValueError):
+            Feature(input_type="list", transformer=trans)
+
+    def test_input_type_match(self):
+        trans = BaseFeature(input_type="filename")
+        a = Feature(input_type="filename", transformer=trans)
+        self.assertEqual("filename", a.input_type)
+
+    def test_input_type_normal(self):
+        a = Feature(input_type="filename")
+        self.assertEqual("filename", a.input_type)
+
+    def test_input_type_from_param(self):
+        trans = BaseFeature(input_type="filename")
+        a = Feature(transformer=trans)
+        self.assertEqual("filename", a.input_type)
 
 
 if __name__ == '__main__':

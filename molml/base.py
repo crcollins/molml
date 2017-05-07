@@ -443,3 +443,43 @@ class SetMergeMixin(object):
             vals = self.reduce(lambda x, y: set(x) | set(y), res)
             setattr(self, self.ATTRIBUTES[0], set(vals))
         return self
+
+
+class InputTypeMixin(object):
+    """
+    A simple mixin to to check input_types if there are multiples.
+
+    This mixin adds a method to check if a transformer parameter does not have
+    the same input_type as the parent object.
+    """
+    def check_transformer(self, transformer):
+        """
+        Check a transformer.
+
+        Parameters
+        ----------
+        transformer : BaseFeature
+            A transformer object.
+
+        Raises
+        ------
+        ValueError
+            If the input_type pairing given is not allowed.
+        """
+        if self.input_type is None:
+            if transformer is not None:
+                self.input_type = transformer.input_type
+            else:
+                # Standard default
+                self.input_type = 'list'
+        else:
+            if transformer is not None:
+                if self.input_type != transformer.input_type:
+                    string = "The input_type for transformer (%r) does not "
+                    string += "match the input_type of this %s (%r)"
+                    raise ValueError(string % (transformer.input_type,
+                                               self.__class__.__name__,
+                                               self.input_type))
+            else:
+                # input_type is ignored
+                pass

@@ -8,7 +8,7 @@ one vector per molecule input.
 import numpy
 import scipy
 
-from .base import BaseFeature
+from .base import BaseFeature, InputTypeMixin
 from .molecule import CoulombMatrix
 from .utils import _radial_iterator
 
@@ -16,17 +16,18 @@ from .utils import _radial_iterator
 __all__ = ("GenerallizedCrystal", "EwaldSumMatrix", "SineMatrix")
 
 
-class GenerallizedCrystal(BaseFeature):
+class GenerallizedCrystal(InputTypeMixin, BaseFeature):
     """
     A wrapper around other features to facilitate faking crystals.
     """
     ATTRIBUTES = None
     LABELS = None
 
-    def __init__(self, input_type='list', n_jobs=1, transformer=None,
+    def __init__(self, input_type=None, n_jobs=1, transformer=None,
                  radius=None, units=None):
         super(GenerallizedCrystal, self).__init__(input_type=input_type,
                                                   n_jobs=n_jobs)
+        self.check_transformer(transformer)
         self.transformer = transformer
         if radius is not None and units is not None:
             msg = "`radius` and `units` can not be set at the same time."
