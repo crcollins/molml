@@ -19,6 +19,37 @@ __all__ = ("GenerallizedCrystal", "EwaldSumMatrix", "SineMatrix")
 class GenerallizedCrystal(InputTypeMixin, BaseFeature):
     """
     A wrapper around other features to facilitate faking crystals.
+
+    This is done by a brute force expansion of atoms in the molecules based on
+    a given unit cell. This is highly inefficient, but it does set a baseline.
+
+    Parameters
+    ----------
+    input_type : string, default='list'
+        Specifies the format the input values will be (must be one of 'list'
+        or 'filename').
+
+    n_jobs : int, default=1
+        Specifies the number of processes to create when generating the
+        features. Positive numbers specify a specifc amount, and numbers less
+        than 1 will use the number of cores the computer has.
+
+    transformer : BaseFeature, default=None
+        The transformer that will be used once the atoms have been expanded
+        into the crystal.
+
+    radius : float, default=None
+        The cutoff radius for including unit cells in angstroms.
+
+    units : list or int, default=None
+        The number of unit cells to include for each axis (if this is an int,
+        then it is the same for all).
+
+    References
+    ----------
+    Faber, F.; Lindmaa, A; von Lilienfeld, O. A.; Armiento, R. Crystal
+    Structure Representations for Machine Learning Models of Formation
+    Energies. arXiv:1503.07406
     """
     ATTRIBUTES = None
     LABELS = None
