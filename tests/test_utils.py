@@ -4,6 +4,7 @@ import json
 
 import numpy
 
+from molml.utils import get_connections
 from molml.utils import LazyValues, SMOOTHING_FUNCTIONS
 from molml.utils import get_coulomb_matrix, get_element_pairs
 from molml.utils import deslugify, _get_form_indices, get_index_mapping
@@ -297,6 +298,22 @@ class UtilsTest(unittest.TestCase):
         self.assertEqual(in_m.n_jobs, in_data["parameters"]["n_jobs"])
         self.assertEqual(in_m._base_chains,
                          in_data["attributes"]["_base_chains"])
+
+    def test_get_connections(self):
+        res = get_connections(ELEMENTS, COORDS)
+        self.assertEqual(res, CONNECTIONS)
+
+    def test_get_connections_disjoint(self):
+        coords2 = numpy.array(COORDS) + 1
+        res = get_connections(ELEMENTS, COORDS, ELEMENTS, coords2)
+        expected = {
+            0: {4: '1'},
+            1: {0: '1', 4: '1'},
+            2: {4: '1'},
+            3: {},
+            4: {}
+        }
+        self.assertEqual(res, expected)
 
 
 class LazyValuesTest(unittest.TestCase):
