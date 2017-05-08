@@ -147,10 +147,10 @@ def get_connections_disjoint(elements1, coords1, elements2, coords2):
     coords1 : array, shape=(n_atoms, 3)
         The coordinates of the atoms in set 1.
 
-    elements1 : list
+    elements2 : list
         All the elements in set 2.
 
-    coords1 : array, shape=(n_atoms, 3)
+    coords2 : array, shape=(n_atoms, 3)
         The coordinates of the atoms in set 2.
 
     Returns
