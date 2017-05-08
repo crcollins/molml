@@ -479,14 +479,10 @@ class InputTypeMixin(object):
             else:
                 # Standard default
                 self.input_type = 'list'
-        else:
-            if transformer is not None:
-                if self.input_type != transformer.input_type:
-                    string = "The input_type for transformer (%r) does not "
-                    string += "match the input_type of this %s (%r)"
-                    raise ValueError(string % (transformer.input_type,
-                                               self.__class__.__name__,
-                                               self.input_type))
-            else:
-                # input_type is ignored
-                pass
+        elif transformer is not None:
+            if self.input_type != transformer.input_type:
+                string = "The input_type for transformer (%r) does not "
+                string += "match the input_type of this %s (%r)"
+                raise ValueError(string % (transformer.input_type,
+                                           self.__class__.__name__,
+                                           self.input_type))
