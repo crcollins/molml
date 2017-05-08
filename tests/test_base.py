@@ -188,6 +188,11 @@ class BaseFeatureTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             a.convert_input("bad data")
 
+    def test_convert_input_callable(self):
+        a = BaseFeature(input_type=lambda x: (x, x ** 2))
+        res = a.convert_input(10)
+        self.assertEqual(res, (10, 100))
+
     def test_slugify(self):
         a = TestFeature1()
         expected = [

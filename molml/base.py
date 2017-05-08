@@ -36,11 +36,13 @@ class BaseFeature(object):
 
     Parameters
     ----------
-    input_type : string or list, default='list'
+    input_type : str, list of str, or callable, default='list'
         Specifies the format the input values will be (must be one of 'list',
-        'filename', or a list of strings). If it is a list of strings, the
-        strings tell the order of (and if they are included) the different
-        molecule attributes (coords, elements, numbers, connections).
+        'filename', a list of strings, or a callable). If it is a list of
+        strings, the strings tell the order of (and if they are included) the
+        different molecule attributes (coords, elements, numbers,
+        connections). If a callable is given, then it is assumed to return a
+        LazyValues object.
 
     n_jobs : int, default=1
         Specifies the number of processes to create when generating the
@@ -159,6 +161,9 @@ class BaseFeature(object):
         each of the arguments passed in via a tuple. For example,
         input_type="list" can be reproduced with ["elements", "coords"]
         or ["elements", "coords", "connections"].
+
+        If input_type is a callable, then it is assumed that the callable
+        returns a LazyValues object.
         """
         connections = None
         if self.input_type == "list":
@@ -173,6 +178,8 @@ class BaseFeature(object):
         elif type(self.input_type) in (list, tuple):
             d = {x: y for x, y in zip(self.input_type, X)}
             values = LazyValues(**d)
+        elif callable(self.input_type):
+            values = self.input_type(X)
         else:
             raise ValueError("The input_type '%s' is not allowed." %
                              self.input_type)

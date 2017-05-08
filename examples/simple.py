@@ -4,6 +4,8 @@ from molml.features import CoulombMatrix
 from molml.features import LocalCoulombMatrix
 from molml.kernel import AtomKernel
 
+from molml.utils import LazyValues
+
 # Define some base data
 H2_ELES = ['H', 'H']
 H2_NUMS = [1, 1]
@@ -28,6 +30,7 @@ HCN_CONNS = {
     1: {0: '1', 2: '3'},
     2: {1: '3'},
 }
+
 
 if __name__ == "__main__":
     # Example of Generating the Coulomb matrix with just elements and coords.
@@ -67,3 +70,9 @@ if __name__ == "__main__":
     print("Atom Kernel")
     feat = AtomKernel(transformer=LocalCoulombMatrix())
     print(feat.fit_transform([H2, HCN]))
+
+    # Example of using arbitrary function to load data
+    # This example is useless, but it shows the possibility
+    feat = CoulombMatrix(input_type=lambda x: LazyValues(elements=HCN_ELES,
+                                                         coords=HCN_COORDS))
+    feat.fit_transform(list(range(10)))
