@@ -275,8 +275,13 @@ class LazyValues(object):
         ValueError
             If radius and units are either both None, or if both are not None.
         """
+        if radius is not None and units is None:
+            offsets = list(_radial_iterator(self.unit_cell, radius))
+        elif radius is None and units is not None:
+            offsets = list(_unit_iterator(self.unit_cell, units))
+        else:
+            raise ValueError("Only one of radius and units must be set.")
         coords = numpy.array(self.coords)
-        offsets = list(_radial_iterator(self.unit_cell, radius))
         self.__crystal_size = len(offsets)
 
         new_coords = []
@@ -762,4 +767,20 @@ def _radial_iterator(X, r_max):
         temp_z = numpy.dot(X, group)
         if norm(temp_z) > r_max:
             continue
+        yield temp_z
+
+
+def _unit_iterator(X, unit_max):
+    X = numpy.array(X)
+    if isinstance(unit_max, int):
+        ranges = [range(-unit_max, unit_max + 1) for _ in range(3)]
+    else:
+        # Assumed iterable of len 3
+        if len(unit_max) != X.shape[1]:
+            raise ValueError("Invalid unit cell size.")
+        ranges = [range(-x, x + 1) for x in unit_max]
+
+    for group in product(*ranges):
+        group = numpy.array(group)
+        temp_z = numpy.dot(X, group)
         yield temp_z

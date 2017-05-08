@@ -387,6 +387,34 @@ class LazyValuesTest(unittest.TestCase):
             self.fail(e)
         self.assertEqual(a.numbers.tolist(), NUMBERS * length)
 
+    def test_fill_in_crystal_units(self):
+        a = LazyValues(elements=ELEMENTS, coords=COORDS, numbers=NUMBERS,
+                       connections=CONNECTIONS, unit_cell=UNIT_CELL)
+        a.fill_in_crystal(units=1)
+        length = 3 * 3 * 3
+        self.assertEqual(a.elements.tolist(), ELEMENTS * length)
+        self.assertEqual(a.numbers.tolist(), NUMBERS * length)
+
+    def test_fill_in_crystal_units_list(self):
+        a = LazyValues(elements=ELEMENTS, coords=COORDS, numbers=NUMBERS,
+                       connections=CONNECTIONS, unit_cell=UNIT_CELL)
+        a.fill_in_crystal(units=[1, 2, 3])
+        length = 3 * 5 * 7
+        self.assertEqual(a.elements.tolist(), ELEMENTS * length)
+        self.assertEqual(a.numbers.tolist(), NUMBERS * length)
+
+    def test_fill_in_crystal_units_list_invalid(self):
+        a = LazyValues(elements=ELEMENTS, coords=COORDS, numbers=NUMBERS,
+                       connections=CONNECTIONS, unit_cell=UNIT_CELL)
+        with self.assertRaises(ValueError):
+            a.fill_in_crystal(units=[1, 2, 3, 4])
+
+        with self.assertRaises(ValueError):
+            a.fill_in_crystal(units=[1, 2])
+
+        with self.assertRaises(ValueError):
+            a.fill_in_crystal(units=[1, 2], radius=2)
+
     def test_fill_in_crystal_conn(self):
         eles = ['H']
         coords = numpy.array([[0.0, 0.0, 0.0]])
