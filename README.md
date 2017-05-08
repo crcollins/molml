@@ -11,6 +11,35 @@ A library to interface molecules and machine learning. The goal of this library 
 All of the coordinates are assumed to be in angstroms.
 
 
+Features
+========
+
+
+    - Simple interface to many common molecular descriptors and their variants
+        - Molecule
+            - Coulomb Matrix
+            - Bag of Bonds
+            - Encoded Bonds
+            - Encoded Angles
+            - Connectivity Counts
+        - Atom
+            - Shell
+            - Local Encoded Bonds
+            - Local Encoded Angles
+            - Local Coulomb Matrix
+            - Behler-Parrinello
+        - Kernel
+            - Atom Kernel
+        - Crystal
+            - Generallized Crystal
+            - Ewald Sum Matrix
+            - Sine Matrix
+    - Parallel feature generation
+    - Ability to save/load fit models
+    - Multiple input formats supported (and ability to define your own)
+    - Supports both Python 2 and Python 3
+
+
 Example Usage
 =============
 
@@ -53,20 +82,20 @@ Dependencies
 
 MolML works with both Python 2 and Python 3. It has been tested with the versions listed below, but newer versions should work.
 
-    python>=2.7/3.4/3.5
+    python>=2.7/3.4/3.5/3.5/3.6
     numpy>=1.9.1
     scipy>=0.15.1
     pathos>=0.2.0
     future  # For python 2
 
 
-NOTE: Due to an issue with multiprocess (a pathos dependency), the minimum version of python that will work is 2.7.4. For full details see [this link](https://github.com/uqfoundation/multiprocess/issues/11). Without this, the parallel computation of features will fail.
+NOTE: Due to an issue with multiprocess (a pathos dependency), the minimum version of Python that will work is 2.7.4. For full details see [this link](https://github.com/uqfoundation/multiprocess/issues/11). Without this, the parallel computation of features will fail.
 
 
 Install
 =======
 
-Once the dependencies are installed, the package can be installed with pip.
+Once `numpy` and `scipy` are installed, the package can be installed with pip.
 
     $ pip install molml
 
