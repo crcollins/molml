@@ -81,63 +81,19 @@ def get_bond_type(element1, element2, dist):
             continue
 
 
-def get_connections(elements, coords):
+def get_connections(elements1, coords1, elements2=None, coords2=None):
     """
-    Return a dictionary edge list.
+    Return a dictionary edge list
 
-    Each value is is a tuple of the index of
-    the connecting atom and the bond order as a string. Where the bond order
-    is one of ['1', 'Ar', '2', '3'].
-
-    Example HCN::
-
-        {
-            0: {1: '1', 2: '3'},
-            1: {0: '1'},
-            2: {0: '3'},
-        }
-
-
-    Parameters
-    ----------
-    elements : list
-        All the elements in the molecule.
-
-    coords : array, shape=(n_atoms, 3)
-        The coordinates of the atoms in the molecule.
-
-    Returns
-    -------
-    connections : dict, int->dict
-        Contains all atoms that are connected to each atom and bond type.
-    """
-    dist_mat = cdist(coords, coords)
-
-    connections = {i: {} for i in range(len(elements))}
-    for i, element1 in enumerate(elements):
-        for j, element2 in enumerate(elements[i+1:]):
-            j += i + 1
-            dist = dist_mat[i, j]
-            bond_type = get_bond_type(element1, element2, dist)
-            if not bond_type:
-                continue
-
-            # Loop over both connection directions
-            # A -> B and A <- B
-            for x, y in ((i, j), (j, i)):
-                connections[x][y] = bond_type
-    return connections
-
-
-def get_connections_disjoint(elements1, coords1, elements2, coords2):
-    """
-    Return a dictionary edge list between two disjoint sets of atoms.
+    If two sets of elements and coordinates are given, then they
+    will be treated as two disjoint sets of atoms.
 
     Each value is is a tuple of the index of the connecting atom and the bond
     order as a string. Where the bond order is one of ['1', 'Ar', '2', '3'].
 
-    Note: This returns only the connections from the first set to the second.
-    This is in contrast to returning connections from both directions.
+    Note: If two sets are given, this returns only the connections from the
+    first set to the second. This is in contrast to returning connections from
+    both directions.
 
     Parameters
     ----------
@@ -147,10 +103,10 @@ def get_connections_disjoint(elements1, coords1, elements2, coords2):
     coords1 : array, shape=(n_atoms, 3)
         The coordinates of the atoms in set 1.
 
-    elements2 : list
+    elements2 : list, default=None
         All the elements in set 2.
 
-    coords2 : array, shape=(n_atoms, 3)
+    coords2 : array, shape=(n_atoms, 3), default=None
         The coordinates of the atoms in set 2.
 
     Returns
@@ -158,16 +114,27 @@ def get_connections_disjoint(elements1, coords1, elements2, coords2):
     connections : dict, int->dict
         Contains all atoms that are connected to each atom and bond type.
     """
+    disjoint = True
+    if elements2 is None or coords2 is None:
+        disjoint = False
+        elements2 = elements1
+        coords2 = coords1
+
     dist_mat = cdist(coords1, coords2)
     connections = {i: {} for i in range(len(elements1))}
     for i, element1 in enumerate(elements1):
         for j, element2 in enumerate(elements2):
+            if not disjoint and i >= j:
+                continue
+
             dist = dist_mat[i, j]
             bond_type = get_bond_type(element1, element2, dist)
             if not bond_type:
                 continue
 
             connections[i][j] = bond_type
+            if not disjoint:
+                connections[j][i] = bond_type
     return connections
 
 
@@ -332,8 +299,8 @@ class LazyValues(object):
                 coords1 = self.coords[off1:end1, :]
                 elements2 = self.elements[off2:end2]
                 coords2 = self.coords[off2:end2, :]
-                conn = get_connections_disjoint(elements1, coords1,
-                                                elements2, coords2)
+                conn = get_connections(elements1, coords1,
+                                       elements2, coords2)
 
                 for key1, items in conn.items():
                     idx1 = key1 + off1
