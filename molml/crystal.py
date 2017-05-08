@@ -97,6 +97,8 @@ class EwaldSumMatrix(CoulombMatrix):
 
     The components are defined as follows
 
+    .. math::
+
         x_{ij}^{(r)} = Z_i Z_j
         \sum_L \frac{\text{erfc}(\alpha \| r_i - r_j + L \|_2)}
                                         {\| r_i - r_j + L \|_2}
