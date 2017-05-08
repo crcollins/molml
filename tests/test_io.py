@@ -53,6 +53,10 @@ class IOTest(unittest.TestCase):
                 self.fail(e)
             self.assertEqual(v1.numbers.tolist(), NUMBERS)
 
+    def test_empty_file(self):
+        path = os.path.join(DATA_PATH, "empty")
+        read_mol2_data(path)
+
     def test_read_cry_data_unit(self):
         path = os.path.join(DATA_PATH, "methane.cry")
         v = read_cry_data(path)
