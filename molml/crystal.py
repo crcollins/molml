@@ -89,28 +89,28 @@ class EwaldSumMatrix(CoulombMatrix):
     In this construction, we use a similar form to the Ewald sum of breaking
     the interaction into three parts and adding them together.
 
-    .. math::
-        x_{ij} = x_{ij}^{(r)} + x_{ij}^{(m)} + x_{ij}^0
+    The interaction between two atoms is defined as follows
 
     .. math::
+        x_{ij} = x_{ij}^{(r)} + x_{ij}^{(m)} + x_{ij}^0.
+
+
+    The components are defined as follows
+
         x_{ij}^{(r)} = Z_i Z_j
         \sum_L \frac{\text{erfc}(\alpha \| r_i - r_j + L \|_2)}
                                         {\| r_i - r_j + L \|_2}
 
-    ..math::
         x_{ij}^{(m)} = \frac{Z_i Z_j}{\pi V}
                             \sum_G \frac{e^{-\|G\|_2^2 / (2 \alpha)^2}}
                             {\|G\|_2^2} \cos(G \cdot (r_i - r_j))
 
-    ..math::
         x_{ij}^0 = -(Z_i^2 + Z_j^2) \frac{\alpha}{\sqrt{\pi}} -
                     (Z_i + Z_j)^2 \frac{\pi}{2 V \alpha^2}
 
-    ..math::
         x_{ii} = -Z_i^2 \frac{\alpha}{\sqrt{\pi}} -
                   Z_i^2 \frac{\pi}{2 V \alpha^2}
 
-    ..math::
         \alpha = \sqrt{\pi} \left(\frac{0.01 M}{V}\right)^{1/6}
 
     Parameters
