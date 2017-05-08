@@ -291,40 +291,46 @@ class LazyValues(object):
             self._elements = numpy.tile(self._elements, self.__crystal_size)
 
         if self._connections is not None:
-            new_conn = {}
-            n = len(self._connections)
-            for key, items in self._connections.items():
-                for i in range(self.__crystal_size):
-                    off = n * i
-                    values = {inner_key + off: value for
-                              inner_key, value in items.items()}
-                    new_conn[key + off] = values
-            self._connections = new_conn
+            self._connections = self._expand_connections(offsets)
 
-            a = numpy.array(offsets)
-            I = numpy.linalg.inv(self.unit_cell)
-            counts = I.dot(a.T).T
-            dists = cdist(counts, counts, 'chebyshev')
-            for i, j in zip(*numpy.where(dists <= 1)):
-                if i == j or i > j:
-                    continue
-                off1 = n * i
-                end1 = off1 + n
-                off2 = n * j
-                end2 = off2 + n
-                elements1 = self.elements[off1:end1]
-                coords1 = self.coords[off1:end1, :]
-                elements2 = self.elements[off2:end2]
-                coords2 = self.coords[off2:end2, :]
-                conn = get_connections(elements1, coords1,
-                                       elements2, coords2)
+    def _expand_connections(self, offsets):
+        new_conn = {}
 
-                for key1, items in conn.items():
-                    idx1 = key1 + off1
-                    for key2, bond in items.items():
-                        idx2 = key2 + off2
-                        self._connections[idx1][idx2] = bond
-                        self._connections[idx2][idx1] = bond
+        # Local connections
+        n = len(self._connections)
+        for key, items in self._connections.items():
+            for i in range(self.__crystal_size):
+                off = n * i
+                values = {inner_key + off: value for
+                          inner_key, value in items.items()}
+                new_conn[key + off] = values
+
+        # Connections between cells
+        a = numpy.array(offsets)
+        I = numpy.linalg.inv(self.unit_cell)
+        counts = I.dot(a.T).T
+        dists = cdist(counts, counts, 'chebyshev')
+        for i, j in zip(*numpy.where(dists <= 1)):
+            if i == j or i > j:
+                continue
+            off1 = n * i
+            end1 = off1 + n
+            off2 = n * j
+            end2 = off2 + n
+            elements1 = self.elements[off1:end1]
+            coords1 = self.coords[off1:end1, :]
+            elements2 = self.elements[off2:end2]
+            coords2 = self.coords[off2:end2, :]
+            conn = get_connections(elements1, coords1,
+                                   elements2, coords2)
+
+            for key1, items in conn.items():
+                idx1 = key1 + off1
+                for key2, bond in items.items():
+                    idx2 = key2 + off2
+                    new_conn[idx1][idx2] = bond
+                    new_conn[idx2][idx1] = bond
+        return new_conn
 
     @property
     def connections(self):
