@@ -258,6 +258,23 @@ class LazyValues(object):
         return numpy.array(x) if x is not None else x
 
     def fill_in_crystal(self, radius=None, units=None):
+        """
+        Duplicate the atoms to form a crystal.
+
+        Parameters
+        ----------
+        radius : float, default=None
+            Specifies the radius of unit cell points to include
+
+        units : list or int, default=None
+            Specifies the number of unit cells to include on each axis.
+            These will all be equal if it is an int.
+
+        Raises
+        ------
+        ValueError
+            If radius and units are either both None, or if both are not None.
+        """
         coords = numpy.array(self.coords)
         offsets = list(_radial_iterator(self.unit_cell, radius))
         self.__crystal_size = len(offsets)
