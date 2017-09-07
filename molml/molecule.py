@@ -6,6 +6,7 @@ based on the entire molecule. All of the methods included here will produce
 one vector per molecule input.
 """
 from builtins import range
+from collections import defaultdict
 
 import numpy
 from scipy.spatial.distance import cdist
@@ -61,19 +62,25 @@ class Connectivity(SetMergeMixin, BaseFeature):
     Collins, C.; Gordon, G.; von Lilienfeld, O. A.; Yaron, D. Constant Size
     Molecular Descriptors For Use With Machine Learning. arXiv:1701.06649
     """
-    ATTRIBUTES = ("_base_chains", )
+    ATTRIBUTES = ("_base_chains", "_idf_values")
     LABELS = ("_base_chains", )
 
     def __init__(self, input_type='list', n_jobs=1, depth=1,
                  use_bond_order=False, use_coordination=False,
-                 add_unknown=False):
+                 add_unknown=False, do_tfidf=False):
         super(Connectivity, self).__init__(input_type=input_type,
                                            n_jobs=n_jobs)
         self.depth = depth
         self.use_bond_order = use_bond_order
         self.use_coordination = use_coordination
         self.add_unknown = add_unknown
+        self.do_tfidf = do_tfidf
         self._base_chains = None
+
+        if self.do_tfidf:
+            self._idf_values = None
+        else:
+            self._idf_values = {}
 
     def _loop_depth(self, connections):
         """
@@ -224,6 +231,23 @@ class Connectivity(SetMergeMixin, BaseFeature):
                                         data.connections)
         return list(all_counts.keys())
 
+    def _idf(self, all_keys):
+        res = defaultdict(float)
+        for mol in all_keys:
+            for key in mol:
+                res[key] += 1
+        N = len(all_keys)
+        return {key: numpy.log(N / x) for key, x in res.items()}
+
+    def fit(self, X, y=None):
+        res = self.map(self._para_fit, X)
+        vals = self.reduce(lambda x, y: set(x) | set(y), res)
+        self._base_chains = set(vals)
+
+        if self.do_tfidf:
+            self._idf_values = self._idf(res)
+        return self
+
     def _para_transform(self, X, y=None):
         """
         A single instance of the transform procedure.
@@ -251,7 +275,14 @@ class Connectivity(SetMergeMixin, BaseFeature):
         data = self.convert_input(X)
         chains = self._loop_depth(data.connections)
         tallies = self._tally_chains(chains, data.elements, data.connections)
-        vector = [tallies.get(x, 0) for x in sorted(self._base_chains)]
+
+        vector = []
+        for x in sorted(self._base_chains):
+            value = tallies.get(x, 0)
+            if self.do_tfidf:
+                value *= self._idf_values[x]
+            vector.append(value)
+
         if self.add_unknown:
             unknown = 0
             for key, value in tallies.items():
