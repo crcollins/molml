@@ -668,6 +668,13 @@ class CoulombMatrix(BaseFeature):
         matrix rather than the matrix itself. This changes the scaling to be
         linear in the number of atoms.
 
+    drop_values : bool, default=False
+        Specifies whether or not to drop the atoms from molecules larger than
+        the training set. If this value is set to False, and the molecule is
+        too large to transform, the transform will throw a ValueError. If it is
+        set to True, then it will truncate the molecule to only include the
+        first _max_size atoms of the molecule.
+
     Attributes
     ----------
     _max_size : int
@@ -688,12 +695,14 @@ class CoulombMatrix(BaseFeature):
     ATTRIBUTES = ("_max_size", )
     LABELS = None
 
-    def __init__(self, input_type='list', n_jobs=1, sort=False, eigen=False):
+    def __init__(self, input_type='list', n_jobs=1, sort=False, eigen=False,
+                 drop_values=False):
         super(CoulombMatrix, self).__init__(input_type=input_type,
                                             n_jobs=n_jobs)
         self._max_size = None
         self.sort = sort
         self.eigen = eigen
+        self.drop_values = drop_values
 
     def _para_fit(self, X):
         """
@@ -762,12 +771,18 @@ class CoulombMatrix(BaseFeature):
 
         data = self.convert_input(X)
         if len(data.numbers) > self._max_size:
-            msg = "The fit molecules (%d) were not as large as the ones that"
-            msg += " are being transformed (%d)."
-            raise ValueError(msg % (self._max_size, len(data.numbers)))
+            if not self.drop_values:
+                msg = "The fit molecules (%d) were not as large as the ones"
+                msg += " that are being transformed (%d)."
+                raise ValueError(msg % (self._max_size, len(data.numbers)))
+            numbers = data.numbers[:self._max_size]
+            coords = data.coords[:self._max_size, :]
+        else:
+            numbers = data.numbers
+            coords = data.coords
 
-        padding_difference = self._max_size - len(data.numbers)
-        values = get_coulomb_matrix(data.numbers, data.coords)
+        padding_difference = self._max_size - len(numbers)
+        values = get_coulomb_matrix(numbers, coords)
         if self.sort:
             order = numpy.argsort(values.sum(0))[::-1]
             values = values[order, :][:, order]
@@ -800,6 +815,13 @@ class BagOfBonds(BaseFeature):
         features. Positive numbers specify a specifc amount, and numbers less
         than 1 will use the number of cores the computer has.
 
+    drop_values : bool, default=False
+        Specifies whether or not to drop interactions if there are more than
+        was seen in the training set. If this value is set to False, and the
+        molecule is too large to transform, it will throw a ValueError. If it
+        is set to True, then it will truncate that particular bag to only
+        include the largest _bag_sizes[ele1, ele2] of the molecule.
+
     Attributes
     ----------
     _bag_sizes : dict, element pair->int
@@ -816,9 +838,10 @@ class BagOfBonds(BaseFeature):
     ATTRIBUTES = ("_bag_sizes", )
     LABELS = ("_bag_sizes", )
 
-    def __init__(self, input_type='list', n_jobs=1):
+    def __init__(self, input_type='list', n_jobs=1, drop_values=False):
         super(BagOfBonds, self).__init__(input_type=input_type, n_jobs=n_jobs)
         self._bag_sizes = None
+        self.drop_values = drop_values
 
     def _para_fit(self, X):
         """
@@ -951,8 +974,10 @@ class BagOfBonds(BaseFeature):
 
             # The molecule being used was fit to something smaller
             if len(values) > len(bags[ele1, ele2]):
-                msg = "The size of the %s bag is too small for this input"
-                raise ValueError(msg % ((ele1, ele2), ))
+                if not self.drop_values:
+                    msg = "The size of the %s bag is too small for this input"
+                    raise ValueError(msg % ((ele1, ele2), ))
+                values = values[:len(bags[ele1, ele2])]
 
             bags[ele1, ele2][:len(values)] = values
         order = sorted(bags)

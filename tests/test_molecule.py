@@ -572,6 +572,12 @@ class CoulombMatrixTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             a.transform(ALL_DATA)
 
+    def test_small_to_large_transform_drop_values(self):
+        a = CoulombMatrix(drop_values=True)
+        a.fit([METHANE])
+        a.transform(ALL_DATA)
+        self.assertEqual(a.transform(ALL_DATA).shape, (3, 25))
+
     def test_large_to_small_transform(self):
         a = CoulombMatrix()
         a.fit([MID])
@@ -700,6 +706,11 @@ class BagOfBondsTest(unittest.TestCase):
         a.fit([METHANE])
         with self.assertRaises(ValueError):
             a.transform(ALL_DATA)
+
+    def test_small_to_large_transform_drop_values(self):
+        a = BagOfBonds(drop_values=True)
+        a.fit([METHANE])
+        self.assertEqual(a.transform(ALL_DATA).shape, (3, 10))
 
     def test_large_to_small_transform(self):
         a = BagOfBonds()
