@@ -136,6 +136,18 @@ class ConnectivityTest(unittest.TestCase):
         a.fit([METHANE])
         self.assertTrue((a.transform(ALL_DATA) == expected_results).all())
 
+    def test_tfidf(self):
+        a = Connectivity(do_tfidf=True)
+        expected = numpy.array([[0., 0.,  0., 0.],
+                                [0., 0., 0., 1.62186043],
+                                [0., 0., 5.49306144, 1.62186043]])
+        a.fit(ALL_DATA)
+        try:
+            m = a.transform(ALL_DATA)
+            numpy.testing.assert_array_almost_equal(m, expected)
+        except AssertionError as e:
+            self.fail(e)
+
 
 class AutocorrelationTest(unittest.TestCase):
 
