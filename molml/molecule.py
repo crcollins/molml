@@ -7,6 +7,7 @@ one vector per molecule input.
 """
 from builtins import range
 from collections import defaultdict
+from itertools import product
 
 import numpy
 from scipy.spatial.distance import cdist
@@ -16,10 +17,12 @@ from .utils import get_depth_threshold_mask_connections, get_coulomb_matrix
 from .utils import ELE_TO_NUM, get_smoothing_function, get_spacing_function
 from .utils import get_element_pairs, cosine_decay, needs_reversal
 from .utils import get_index_mapping, get_angles
+from .utils import get_graph_distance
+from .constants import ELECTRONEGATIVITY, BOND_LENGTHS
 
 
-__all__ = ("Connectivity", "EncodedAngle", "EncodedBond", "CoulombMatrix",
-           "BagOfBonds")
+__all__ = ("Connectivity", "Autocorrelation", "EncodedAngle", "EncodedBond",
+           "CoulombMatrix", "BagOfBonds")
 
 
 class Connectivity(SetMergeMixin, BaseFeature):
@@ -290,6 +293,98 @@ class Connectivity(SetMergeMixin, BaseFeature):
                     unknown += value
             vector.append(unknown)
         return vector
+
+
+class Autocorrelation(BaseFeature):
+    """
+    A molecular descriptor based on Autocorrelation functions for properties.
+
+    This is a compact (only depends on the number of properties used and the
+    number of depths) molecule representation that uses the graph distance
+    between atoms to extract information.
+
+    .. math::
+
+        V_d = \sum_i \sum_j P_i P_j \delta(d_{ij}, d)
+
+
+    Parameters
+    ----------
+    input_type : string, default='list'
+        Specifies the format the input values will be (must be one of 'list'
+        or 'filename').
+
+    n_jobs : int, default=1
+        Specifies the number of processes to create when generating the
+        features. Positive numbers specify a specifc amount, and numbers less
+        than 1 will use the number of cores the computer has.
+
+    depths : list/tuple, default=None
+        A list of depths to use for computing the autocorrelations functions.
+        If this value is None, [0, 1, 2, 3] will be used.
+
+    properties : list/tuple, default=None
+        A list/tuple of properties to use. Each of these properties should be
+        defined for a single atom in the molecule. Each property can be either
+        a function (that takes in a LazyValues function and returns a vector
+        the with one element per atom) or it can be a one of the following
+        strings ('Z', 'EN', 'CN', 'I', 'R'). Each of these keys corresponds
+        to the atomic number, the electronegativity, coordination number, the
+        identity function (always returns 1), and the covalent radius.
+        If this value is None, then all the predefined properties will be
+        used.
+
+    References
+    ----------
+    Janet, J. P. and  Kulik, H. J. Resolving Transition Metal Chemical Space:
+    Feature Selection for Machine Learning and Structure-Property
+    Relationships. J. Phys. Chem. A 2017, 121, 8939-8954
+    """
+    ATTRIBUTES = None
+    LABELS = ('_labels', )
+
+    def __init__(self, input_type='list', n_jobs=1, depths=None,
+                 properties=None):
+        super(Autocorrelation, self).__init__(input_type=input_type,
+                                              n_jobs=n_jobs)
+        self.functions = {
+            'Z': lambda data: data.numbers,
+            'EN': lambda data: [ELECTRONEGATIVITY[x] for x in data.elements],
+            'CN': lambda data: [len(value) for key, value in
+                                data.connections.items()],
+            'I': lambda data: [1 for x in data.numbers],
+            'R': lambda data: [BOND_LENGTHS[x]['1'] for x in data.elements],
+        }
+        if depths is None:
+            depths = list(range(4))
+        self.depths = depths
+        if properties is None:
+            properties = sorted(self.functions.keys())
+        self.properties = properties
+        self._labels = ['%s%s' % pair for pair in
+                        product(self.properties, self.depths)]
+
+    def fit(self, X, y=None):
+        """No fitting is required because it is defined by the parameters."""
+        return self
+
+    def _para_transform(self, X):
+        self.check_fit()
+
+        data = self.convert_input(X)
+        D = get_graph_distance(data.connections)
+
+        res = []
+        for prop in self.properties:
+            if callable(prop):
+                p = prop(data)
+            else:
+                p = self.functions[prop](data)
+
+            P = numpy.outer(p, p)
+            for d in self.depths:
+                res.append(((D == d) * P).sum())
+        return res
 
 
 class EncodedAngle(SetMergeMixin, BaseFeature):
