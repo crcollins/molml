@@ -163,7 +163,17 @@ class AutocorrelationTest(unittest.TestCase):
         self.assertTrue(
             (a.transform([METHANE2]) == numpy.array([[5, 0, 40, 0]])).all())
 
-    def test_depths(self):
+    def test_default_depths(self):
+        a = Autocorrelation(properties=['I'])
+        a.fit(ALL_DATA)
+        expected = numpy.array([
+            [5, 8, 12, 0],
+            [9, 8, 2, 0],
+            [49, 104, 156, 190]
+        ])
+        self.assertTrue((a.transform(ALL_DATA) == expected).all())
+
+    def test_wide_depths(self):
         a = Autocorrelation(depths=[-1, 1, 4, 10, 100], properties=['I'])
         a.fit(ALL_DATA)
         expected = numpy.array([
