@@ -138,6 +138,15 @@ def get_connections(elements1, coords1, elements2=None, coords2=None):
     return connections
 
 
+def get_graph_distance(connections):
+    # At some point this will just do BFS to really compute it
+    mat = numpy.zeros((len(connections), len(connections)))
+    for key, values in connections.items():
+        for val in values:
+            mat[key, val] = 1
+    return mat
+
+
 def get_depth_threshold_mask_connections(connections, max_depth=1):
     """
     Get the depth threshold mask from connections.

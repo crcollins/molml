@@ -16,6 +16,8 @@ from .utils import get_depth_threshold_mask_connections, get_coulomb_matrix
 from .utils import ELE_TO_NUM, get_smoothing_function, get_spacing_function
 from .utils import get_element_pairs, cosine_decay, needs_reversal
 from .utils import get_index_mapping, get_angles
+from .utils import get_graph_distance
+from .constants import ELECTRONEGATIVITY, BOND_LENGTHS
 
 
 __all__ = ("Connectivity", "EncodedAngle", "EncodedBond", "CoulombMatrix",
@@ -290,6 +292,74 @@ class Connectivity(SetMergeMixin, BaseFeature):
                     unknown += value
             vector.append(unknown)
         return vector
+
+
+class Autocorrelation(BaseFeature):
+    """
+    Parameters
+    ----------
+    input_type : string, default='list'
+        Specifies the format the input values will be (must be one of 'list'
+        or 'filename').
+
+    n_jobs : int, default=1
+        Specifies the number of processes to create when generating the
+        features. Positive numbers specify a specifc amount, and numbers less
+        than 1 will use the number of cores the computer has.
+
+    depths : list/tuple, default=None
+        If this value is None, (1, 2, 3, 4, 5) will be used.
+
+    properties : list/tuple, default=None
+        If this value is None, ('Z', 'EN', 'CN', 'I', 'R') will be used.
+
+    References
+    ----------
+    Janet, J. P. and  Kulik, H. J. Resolving Transition Metal Chemical Space:
+    Feature Selection for Machine Learning and Structure-Property
+    Relationships. J. Phys. Chem. A 2017, 121, 8939-8954
+    """
+    def __init__(self, input_type='list', n_jobs=1, depths=None,
+                 properties=None):
+        super(Autocorrelation, self).__init__(input_type=input_type,
+                                              n_jobs=n_jobs)
+        if depths is None:
+            depths = (1, 2, 3, 4, 5)
+        self.depths = depths
+        if properties is None:
+            properties = ('Z', 'EN', 'CN', 'I', 'R')
+        self.properties = properties
+
+        self.functions = {
+            'Z': lambda data: data.numbers,
+            'EN': lambda data: [ELECTRONEGATIVITY[x] for x in data.elements],
+            'CN': lambda data: [len(value) for key, value in
+                                data.connections.items()],
+            'I': lambda data: [1 for x in data.numbers],
+            'R': lambda data: [BOND_LENGTHS[x]['1'] for x in data.elements],
+        }
+
+    def fit(self, X, y=None):
+        # Fitting is not required
+        return self
+
+    def transform(self, X):
+        self.check_fit()
+
+        data = self.convert_input(X)
+        D = get_graph_distance(data.connections)
+
+        res = []
+        for prop in self.properties:
+            if callable(prop):
+                p = prop(data)
+            else:
+                p = self.functions[prop](data)
+
+            P = numpy.outer(p, p)
+            for d in self.depths:
+                res.append(((D == d) * P).sum())
+        return res
 
 
 class EncodedAngle(SetMergeMixin, BaseFeature):
