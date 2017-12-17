@@ -297,6 +297,17 @@ class Connectivity(SetMergeMixin, BaseFeature):
 
 class Autocorrelation(BaseFeature):
     """
+    A molecular descriptor based on Autocorrelation functions for properties.
+
+    This is a compact (only depends on the number of properties used and the
+    number of depths) molecule representation that uses the graph distance
+    between atoms to extract information.
+
+    .. math::
+
+        V_d = \sum_i \sum_j P_i P_j \delta(d_{ij}, d)
+
+
     Parameters
     ----------
     input_type : string, default='list'
@@ -309,10 +320,19 @@ class Autocorrelation(BaseFeature):
         than 1 will use the number of cores the computer has.
 
     depths : list/tuple, default=None
-        If this value is None, (1, 2, 3, 4, 5) will be used.
+        A list of depths to use for computing the autocorrelations functions.
+        If this value is None, [0, 1, 2, 3] will be used.
 
     properties : list/tuple, default=None
-        If this value is None, ('Z', 'EN', 'CN', 'I', 'R') will be used.
+        A list/tuple of properties to use. Each of these properties should be
+        defined for a single atom in the molecule. Each property can be either
+        a function (that takes in a LazyValues function and returns a vector
+        the with one element per atom) or it can be a one of the following
+        strings ('Z', 'EN', 'CN', 'I', 'R'). Each of these keys corresponds
+        to the atomic number, the electronegativity, coordination number, the
+        identity function (always returns 1), and the covalent radius.
+        If this value is None, then all the predefined properties will be
+        used.
 
     References
     ----------
