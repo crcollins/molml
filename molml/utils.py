@@ -139,12 +139,34 @@ def get_connections(elements1, coords1, elements2=None, coords2=None):
 
 
 def get_graph_distance(connections):
-    # At some point this will just do BFS to really compute it
-    mat = numpy.zeros((len(connections), len(connections)))
+    """
+    Compute the graph distance between all pairs of atoms using Floyd-Warshall
+
+    Parameters
+    ----------
+    connections : dict, index->list of indices
+        A dictionary that contains lists of all connected atoms.
+
+    Returns
+    -------
+    dist : numpy.array, shape=(len(connections), len(connections))
+        The graph distance between all pairs of atoms
+    """
+    # Floyd-Warshall
+    V = len(connections)
+    dist = numpy.ones((V, V)) * numpy.inf
+    numpy.fill_diagonal(dist, numpy.zeros(V))
     for key, values in connections.items():
         for val in values:
-            mat[key, val] = 1
-    return mat
+            dist[key, val] = 1
+
+    for k in range(V):
+        for i in range(V):
+            for j in range(V):
+                temp = dist[i, k] + dist[k, j]
+                if dist[i, j] > temp:
+                    dist[i, j] = temp
+    return dist
 
 
 def get_depth_threshold_mask_connections(connections, max_depth=1):
@@ -165,46 +187,11 @@ def get_depth_threshold_mask_connections(connections, max_depth=1):
         A mask of all the atoms that are less than or equal to `max_depth`
         away.
     """
-    mat = numpy.zeros((len(connections), len(connections)))
-    for key, values in connections.items():
-        for val in values:
-            mat[key, val] = 1
-    return get_depth_threshold_mask(mat, max_depth)
-
-
-def get_depth_threshold_mask(mat, max_depth=1):
-    """
-    Compute a depth threshold mask based on an adjacency matrix.
-
-    Given a connectivity matrix (either strings or ints), return a mask that is
-    True at [i,j] if there exists a path from i to j that is of length
-    `max_depth` or fewer.
-    This is done by repeated matrix multiplication of the connectivity matrix.
-    If `max_depth` is less than 1, this will return all True array.
-
-    Parameters
-    ----------
-    mat : numpy.array, shape=(n, n)
-        A connectivity matrix where element (i,j) is true if (i,j) has a bond.
-    max_depth : int, default=1
-        The maximum number of steps to look for connectivity
-
-    Returns
-    -------
-    mask : numpy.array, shape=(n, n)
-        A boolean mask indicating if from point i you can get to point j.
-    """
     if max_depth < 1:
-        temp = numpy.ones(mat.shape).astype(bool)
-        return numpy.array(temp)
-
-    mask = mat.copy().astype(bool)
-    d = numpy.matrix(mat).astype(int)
-    acc = d.copy()
-    for i in range(2, max_depth + 1):
-        acc *= d
-        mask |= (acc == 1)
-    return numpy.array(mask)
+        V = len(connections)
+        return numpy.ones((V, V)).astype(bool)
+    dist = get_graph_distance(connections)
+    return dist <= max_depth
 
 
 class LazyValues(object):

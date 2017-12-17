@@ -273,8 +273,8 @@ class EncodedBondTest(unittest.TestCase):
 
         # This is a cheap test to prevent needing all the values here
         expected_results = numpy.array([
-            0.18434482,  # mean
-            0.62589799,  # std
+            0.192026,  # mean
+            0.63276,  # std
             0.,  # min
             7.15861023,  # max
         ])
