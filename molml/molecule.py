@@ -20,8 +20,8 @@ from .utils import get_graph_distance
 from .constants import ELECTRONEGATIVITY, BOND_LENGTHS
 
 
-__all__ = ("Connectivity", "EncodedAngle", "EncodedBond", "CoulombMatrix",
-           "BagOfBonds")
+__all__ = ("Connectivity", "Autocorrelation", "EncodedAngle", "EncodedBond",
+           "CoulombMatrix", "BagOfBonds")
 
 
 class Connectivity(SetMergeMixin, BaseFeature):
@@ -340,10 +340,10 @@ class Autocorrelation(BaseFeature):
         }
 
     def fit(self, X, y=None):
-        # Fitting is not required
+        """No fitting is required because it is defined by the parameters."""
         return self
 
-    def transform(self, X):
+    def _para_transform(self, X):
         self.check_fit()
 
         data = self.convert_input(X)
