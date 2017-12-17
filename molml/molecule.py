@@ -327,15 +327,6 @@ class Autocorrelation(BaseFeature):
                  properties=None):
         super(Autocorrelation, self).__init__(input_type=input_type,
                                               n_jobs=n_jobs)
-        if depths is None:
-            depths = (1, 2, 3, 4, 5)
-        self.depths = depths
-        if properties is None:
-            properties = ('Z', 'EN', 'CN', 'I', 'R')
-        self.properties = properties
-        self._labels = ['%s%s' % pair for pair in
-                        product(self.properties, self.depths)]
-
         self.functions = {
             'Z': lambda data: data.numbers,
             'EN': lambda data: [ELECTRONEGATIVITY[x] for x in data.elements],
@@ -344,6 +335,14 @@ class Autocorrelation(BaseFeature):
             'I': lambda data: [1 for x in data.numbers],
             'R': lambda data: [BOND_LENGTHS[x]['1'] for x in data.elements],
         }
+        if depths is None:
+            depths = list(range(4))
+        self.depths = depths
+        if properties is None:
+            properties = sorted(self.functions.keys())
+        self.properties = properties
+        self._labels = ['%s%s' % pair for pair in
+                        product(self.properties, self.depths)]
 
     def fit(self, X, y=None):
         """No fitting is required because it is defined by the parameters."""

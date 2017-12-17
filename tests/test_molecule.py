@@ -2,7 +2,7 @@ import unittest
 
 import numpy
 
-from molml.molecule import BagOfBonds, Connectivity
+from molml.molecule import BagOfBonds, Connectivity, Autocorrelation
 from molml.molecule import CoulombMatrix, EncodedBond, EncodedAngle
 
 from .constants import METHANE, BIG, MID, ALL_DATA
@@ -135,6 +135,89 @@ class ConnectivityTest(unittest.TestCase):
                                         [25, 15, 9]])
         a.fit([METHANE])
         self.assertTrue((a.transform(ALL_DATA) == expected_results).all())
+
+
+class AutocorrelationTest(unittest.TestCase):
+
+    def test_depths_properties(self):
+        a = Autocorrelation(depths=[1, 2], properties=['I', 'Z'])
+        a.fit([METHANE])
+        self.assertTrue(
+            (a.transform([METHANE]) == numpy.array([[8, 12, 48, 12]])).all())
+
+    def test_fit_atom_separated(self):
+        a = Autocorrelation(depths=[0, 1], properties=['I', 'Z'])
+        a.fit([METHANE2])
+        self.assertTrue(
+            (a.transform([METHANE2]) == numpy.array([[5, 0, 40, 0]])).all())
+
+    def test_depths(self):
+        a = Autocorrelation(depths=[-1, 1, 4, 10, 100], properties=['I'])
+        a.fit(ALL_DATA)
+        expected = numpy.array([
+            [0, 8, 0, 0, 0],
+            [0, 8, 0, 0, 0],
+            [0, 104, 216, 166, 0]
+        ])
+        self.assertTrue((a.transform(ALL_DATA) == expected).all())
+
+    def test_properties(self):
+        a = Autocorrelation(depths=[0])
+        a.fit(ALL_DATA)
+        expected = numpy.array([
+            [20., 25.8625, 5., 2.1625, 40.],
+            [10., 74.8594, 9., 4.4571, 331.],
+            [260., 328.7049, 49., 28.1326, 1416.]
+        ])
+        try:
+            m = a.transform(ALL_DATA)
+            numpy.testing.assert_array_almost_equal(m, expected)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_property_function(self):
+        a = Autocorrelation(depths=[1],
+                            properties=[lambda data:
+                                        [2 for x in data.numbers]])
+        a.fit(ALL_DATA)
+        expected = numpy.array([
+            [32],
+            [32],
+            [416],
+        ])
+        self.assertTrue((a.transform(ALL_DATA) == expected).all())
+
+    def test_both_property(self):
+        a = Autocorrelation(depths=[1],
+                            properties=['I',
+                                        lambda data:
+                                        [2 for x in data.numbers]])
+        a.fit(ALL_DATA)
+        expected = numpy.array([
+            [8, 32],
+            [8, 32],
+            [104, 416],
+        ])
+        self.assertTrue((a.transform(ALL_DATA) == expected).all())
+
+    def test_transform(self):
+        a = Autocorrelation(depths=[1], properties=['I'])
+        a.fit(ALL_DATA)
+        expected = numpy.array([
+            [8],
+            [8],
+            [104],
+        ])
+        self.assertTrue((a.transform(ALL_DATA) == expected).all())
+
+    def test_fit_transform(self):
+        a = Autocorrelation(depths=[1], properties=['I'])
+        expected = numpy.array([
+            [8],
+            [8],
+            [104],
+        ])
+        self.assertTrue((a.fit_transform(ALL_DATA) == expected).all())
 
 
 class EncodedBondTest(unittest.TestCase):
