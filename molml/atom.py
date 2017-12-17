@@ -592,7 +592,7 @@ class LocalCoulombMatrix(BaseFeature):
 
     def fit(self, X, y=None):
         """No fitting is required because it is defined by the parameters."""
-        pass
+        return self
 
     def _para_transform(self, X):
         """
