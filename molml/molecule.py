@@ -7,6 +7,7 @@ one vector per molecule input.
 """
 from builtins import range
 from collections import defaultdict
+from itertools import product
 
 import numpy
 from scipy.spatial.distance import cdist
@@ -319,6 +320,9 @@ class Autocorrelation(BaseFeature):
     Feature Selection for Machine Learning and Structure-Property
     Relationships. J. Phys. Chem. A 2017, 121, 8939-8954
     """
+    ATTRIBUTES = None
+    LABELS = ('_labels', )
+
     def __init__(self, input_type='list', n_jobs=1, depths=None,
                  properties=None):
         super(Autocorrelation, self).__init__(input_type=input_type,
@@ -329,6 +333,8 @@ class Autocorrelation(BaseFeature):
         if properties is None:
             properties = ('Z', 'EN', 'CN', 'I', 'R')
         self.properties = properties
+        self._labels = ['%s%s' % pair for pair in
+                        product(self.properties, self.depths)]
 
         self.functions = {
             'Z': lambda data: data.numbers,
