@@ -626,9 +626,9 @@ class EncodedBond(SetMergeMixin, BaseFeature):
         and the start and end points are numpy.log(x).
 
     form : int, default=2
-        The histogram splitting style to use. This value hese options
-        change the scaling of this method to be O(E^2), O(E), or O(1) for
-        2, 1, or 0 respectively (where E is the number of elements).
+        The histogram splitting style to use. This changes the scaling of this
+        method to be O(E^2), O(E), or O(1) for 2, 1, or 0 respectively (where
+        E is the number of elements).
 
     add_unknown : boolean, default=False
         Specifies whether or not to include an extra UNKNOWN count in the
