@@ -169,7 +169,8 @@ def get_graph_distance(connections):
     return dist
 
 
-def get_depth_threshold_mask_connections(connections, max_depth=1):
+def get_depth_threshold_mask_connections(connections, min_depth=0,
+                                         max_depth=1):
     """
     Get the depth threshold mask from connections.
 
@@ -177,6 +178,10 @@ def get_depth_threshold_mask_connections(connections, max_depth=1):
     ----------
     connections : dict, index->list of indices
         A dictionary that contains lists of all connected atoms.
+
+
+    min_depth : int, default=0
+        The minimum depth to allow in the masking
 
     max_depth : int, default=1
         The maximum depth to allow in the masking
@@ -191,7 +196,7 @@ def get_depth_threshold_mask_connections(connections, max_depth=1):
         V = len(connections)
         return numpy.ones((V, V)).astype(bool)
     dist = get_graph_distance(connections)
-    return dist <= max_depth
+    return (min_depth <= dist) & (dist <= max_depth)
 
 
 class LazyValues(object):

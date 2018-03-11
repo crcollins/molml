@@ -245,6 +245,11 @@ class LocalEncodedBond(SetMergeMixin, BaseFeature):
         A parameter to tune the smoothing values. This is applied as a
         multiplication before calling the smoothing function.
 
+    min_depth : int, default=0
+        A parameter to set the minimum geodesic distance to include in the
+        interactions. A value of np.inf signifies including only intermolecular
+        interactions.
+
     max_depth : int, default=0
         A parameter to set the maximum geodesic distance to include in the
         interactions. A value of 0 signifies that all interactions are
@@ -275,8 +280,8 @@ class LocalEncodedBond(SetMergeMixin, BaseFeature):
     LABELS = ("_elements", )
 
     def __init__(self, input_type='list', n_jobs=1, segments=100,
-                 smoothing="norm", start=0.2, end=6.0, slope=20., max_depth=0,
-                 spacing="linear", form=1, add_unknown=False):
+                 smoothing="norm", start=0.2, end=6.0, slope=20., min_depth=0,
+                 max_depth=0, spacing="linear", form=1, add_unknown=False):
         super(LocalEncodedBond, self).__init__(input_type=input_type,
                                                n_jobs=n_jobs)
         self._elements = None
@@ -285,6 +290,7 @@ class LocalEncodedBond(SetMergeMixin, BaseFeature):
         self.start = start
         self.end = end
         self.slope = slope
+        self.min_depth = min_depth
         self.max_depth = max_depth
         self.spacing = spacing
         self.form = form
@@ -348,6 +354,7 @@ class LocalEncodedBond(SetMergeMixin, BaseFeature):
         theta = numpy.linspace(theta_func(self.start), theta_func(self.end),
                                self.segments)
         mat = get_depth_threshold_mask_connections(data.connections,
+                                                   min_depth=self.min_depth,
                                                    max_depth=self.max_depth)
 
         distances = cdist(data.coords, data.coords)
@@ -400,6 +407,11 @@ class LocalEncodedAngle(SetMergeMixin, BaseFeature):
         A parameter to tune the smoothing values. This is applied as a
         multiplication before calling the smoothing function.
 
+    min_depth : int, default=0
+        A parameter to set the minimum geodesic distance to include in the
+        interactions. A value of np.inf signifies including only intermolecular
+        interactions.
+
     max_depth : int, default=0
         A parameter to set the maximum geodesic distance to include in the
         interactions. A value of 0 signifies that all interactions are
@@ -423,14 +435,15 @@ class LocalEncodedAngle(SetMergeMixin, BaseFeature):
     LABELS = ("_pairs", )
 
     def __init__(self, input_type='list', n_jobs=1, segments=100,
-                 smoothing="norm", slope=20., max_depth=0, r_cut=6.,
-                 form=2, add_unknown=False):
+                 smoothing="norm", slope=20., min_depth=0, max_depth=0,
+                 r_cut=6., form=2, add_unknown=False):
         super(LocalEncodedAngle, self).__init__(input_type=input_type,
                                                 n_jobs=n_jobs)
         self._pairs = None
         self.segments = segments
         self.smoothing = smoothing
         self.slope = slope
+        self.min_depth = min_depth
         self.max_depth = max_depth
         self.r_cut = r_cut
         self.form = form
@@ -496,6 +509,7 @@ class LocalEncodedAngle(SetMergeMixin, BaseFeature):
 
         theta = numpy.linspace(0., numpy.pi, self.segments)
         mat = get_depth_threshold_mask_connections(data.connections,
+                                                   min_depth=self.min_depth,
                                                    max_depth=self.max_depth)
 
         distances = cdist(data.coords, data.coords)
