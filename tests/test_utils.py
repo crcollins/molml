@@ -5,6 +5,7 @@ import json
 import numpy
 
 from molml.utils import get_connections
+from molml.utils import get_graph_distance
 from molml.utils import LazyValues, SMOOTHING_FUNCTIONS
 from molml.utils import get_coulomb_matrix, get_element_pairs
 from molml.utils import deslugify, _get_form_indices, get_index_mapping
@@ -302,6 +303,30 @@ class UtilsTest(unittest.TestCase):
     def test_get_connections(self):
         res = get_connections(ELEMENTS, COORDS)
         self.assertEqual(res, CONNECTIONS)
+
+    def test_get_graph_distance(self):
+        conn = {
+            0: {1: '1'},
+            1: {0: '1'},
+            2: {3: '1'},
+            3: {2: '1', 4: '1', 5: '1'},
+            4: {3: '1', 5: '1'},
+            5: {3: '1', 4: '1'},
+        }
+        inf = numpy.inf
+        expected = numpy.array([
+            [0, 1, inf, inf, inf, inf],
+            [1, 0, inf, inf, inf, inf],
+            [inf, inf, 0, 1, 2, 2],
+            [inf, inf, 1, 0, 1, 1],
+            [inf, inf, 2, 1, 0, 1],
+            [inf, inf, 2, 1, 1, 0],
+        ])
+        res = get_graph_distance(conn)
+        try:
+            numpy.testing.assert_equal(res, expected)
+        except AssertionError as e:
+            self.fail(e)
 
     def test_get_connections_disjoint(self):
         coords2 = numpy.array(COORDS) + 1
