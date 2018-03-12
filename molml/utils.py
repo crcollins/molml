@@ -170,7 +170,7 @@ def get_graph_distance(connections):
 
 
 def get_depth_threshold_mask_connections(connections, min_depth=0,
-                                         max_depth=1):
+                                         max_depth=numpy.inf):
     """
     Get the depth threshold mask from connections.
 
@@ -183,7 +183,7 @@ def get_depth_threshold_mask_connections(connections, min_depth=0,
     min_depth : int, default=0
         The minimum depth to allow in the masking
 
-    max_depth : int, default=1
+    max_depth : int, default=numpy.inf
         The maximum depth to allow in the masking
 
     Returns
@@ -193,6 +193,8 @@ def get_depth_threshold_mask_connections(connections, min_depth=0,
         away.
     """
     if max_depth < 1:
+        max_depth = numpy.inf
+    if not min_depth and max_depth is numpy.inf:
         V = len(connections)
         return numpy.ones((V, V)).astype(bool)
     dist = get_graph_distance(connections)
