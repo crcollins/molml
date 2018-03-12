@@ -4,7 +4,7 @@ import json
 
 import numpy
 
-from molml.utils import get_connections
+from molml.utils import get_connections, get_depth_threshold_mask_connections
 from molml.utils import get_graph_distance
 from molml.utils import LazyValues, SMOOTHING_FUNCTIONS
 from molml.utils import get_coulomb_matrix, get_element_pairs
@@ -339,6 +339,99 @@ class UtilsTest(unittest.TestCase):
             4: {}
         }
         self.assertEqual(res, expected)
+
+    def test_get_depth_threshold_mask_connections_all(self):
+        conn = {
+            0: {1: '1'},
+            1: {0: '1'},
+            2: {3: '1'},
+            3: {2: '1'},
+        }
+        res = get_depth_threshold_mask_connections(conn, max_depth=0)
+        try:
+            numpy.testing.assert_equal(res,
+                                       numpy.ones((len(conn), len(conn))))
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_get_depth_threshold_mask_connections_disjoint(self):
+        conn = {
+            0: {1: '1'},
+            1: {0: '1'},
+            2: {3: '1'},
+            3: {2: '1'},
+        }
+        res = get_depth_threshold_mask_connections(conn, min_depth=numpy.inf)
+        expected = numpy.array([
+            [False, False, True, True],
+            [False, False, True, True],
+            [True, True, False, False],
+            [True, True, False, False],
+        ])
+        try:
+            numpy.testing.assert_equal(res, expected)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_get_depth_threshold_mask_connections_max(self):
+        conn = {
+            0: {1: '1'},
+            1: {0: '1', 2: '1'},
+            2: {1: '1', 3: '1'},
+            3: {2: '1'},
+        }
+        res = get_depth_threshold_mask_connections(conn, max_depth=2)
+        expected = numpy.array([
+            [True, True, True, False],
+            [True, True, True, True],
+            [True, True, True, True],
+            [False, True, True, True],
+        ])
+        try:
+            numpy.testing.assert_equal(res, expected)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_get_depth_threshold_mask_connections_min(self):
+        conn = {
+            0: {1: '1'},
+            1: {0: '1', 2: '1'},
+            2: {1: '1', 3: '1'},
+            3: {2: '1'},
+        }
+        res = get_depth_threshold_mask_connections(conn, min_depth=2)
+        expected = numpy.array([
+            [False, False, True, True],
+            [False, False, False, True],
+            [True, False, False, False],
+            [True, True, False, False],
+        ])
+        try:
+            numpy.testing.assert_equal(res, expected)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_get_depth_threshold_mask_connections_both(self):
+        conn = {
+            0: {1: '1'},
+            1: {0: '1', 2: '1'},
+            2: {1: '1', 3: '1'},
+            3: {2: '1', 4: '1'},
+            4: {3: '1'},
+        }
+        res = get_depth_threshold_mask_connections(conn, min_depth=2,
+                                                   max_depth=2)
+        expected = numpy.array([
+            [False, False, True, False, False],
+            [False, False, False, True, False],
+            [True, False, False, False, True],
+            [False, True, False, False, False],
+            [False, False, True, False, False],
+        ])
+        try:
+            numpy.testing.assert_equal(res, expected)
+        except AssertionError as e:
+            self.fail(e)
 
 
 class LazyValuesTest(unittest.TestCase):
