@@ -12,12 +12,11 @@ from itertools import product
 import numpy
 from scipy.spatial.distance import cdist
 
-from .base import BaseFeature, SetMergeMixin
+from .base import BaseFeature, SetMergeMixin, EncodedFeature
 from .utils import get_depth_threshold_mask_connections, get_coulomb_matrix
-from .utils import ELE_TO_NUM, get_smoothing_function, get_spacing_function
 from .utils import get_element_pairs, cosine_decay, needs_reversal
 from .utils import get_index_mapping, get_angles
-from .utils import get_graph_distance
+from .utils import get_graph_distance, ELE_TO_NUM
 from .constants import ELECTRONEGATIVITY, BOND_LENGTHS
 
 
@@ -387,7 +386,7 @@ class Autocorrelation(BaseFeature):
         return res
 
 
-class EncodedAngle(SetMergeMixin, BaseFeature):
+class EncodedAngle(SetMergeMixin, EncodedFeature):
     r"""
     A smoothed histogram of atomic angles.
 
@@ -456,11 +455,10 @@ class EncodedAngle(SetMergeMixin, BaseFeature):
                  smoothing="norm", slope=20., min_depth=0, max_depth=0,
                  form=3, r_cut=6., add_unknown=False):
         super(EncodedAngle, self).__init__(input_type=input_type,
-                                           n_jobs=n_jobs)
+                                           n_jobs=n_jobs, segments=segments,
+                                           smoothing=smoothing, slope=slope,
+                                           start=0., end=numpy.pi)
         self._groups = None
-        self.segments = segments
-        self.smoothing = smoothing
-        self.slope = slope
         self.min_depth = min_depth
         self.max_depth = max_depth
         self.form = form
@@ -504,6 +502,34 @@ class EncodedAngle(SetMergeMixin, BaseFeature):
     def f_c(self, R):
         return cosine_decay(R, r_cut=self.r_cut)
 
+    def _iterator(self, data, get_index, both):
+        mat = get_depth_threshold_mask_connections(data.connections,
+                                                   min_depth=self.min_depth,
+                                                   max_depth=self.max_depth)
+        distances = cdist(data.coords, data.coords)
+        f_c = self.f_c(distances)
+        angles = get_angles(data.coords)
+        for i, ele1 in enumerate(data.elements):
+            for j, ele2 in enumerate(data.elements):
+                if i == j or not mat[i, j]:
+                    continue
+                if not f_c[i, j]:
+                    continue
+                for k, ele3 in enumerate(data.elements):
+                    if j == k or not mat[j, k]:
+                        continue
+                    if i > k and not both:
+                        continue
+                    if not f_c[i, k] or not f_c[j, k]:
+                        continue
+                    F = f_c[i, j] * f_c[j, k] * f_c[i, k]
+                    eles = ele1, ele2, ele3
+                    try:
+                        idx = get_index(eles)
+                    except KeyError:
+                        idx = None
+                    yield idx, angles[i, j, k], F
+
     def _para_transform(self, X, y=None):
         """
         A single instance of the transform procedure.
@@ -527,48 +553,15 @@ class EncodedAngle(SetMergeMixin, BaseFeature):
             If the transformer has not been fit.
         """
         self.check_fit()
-
-        smoothing_func = get_smoothing_function(self.smoothing)
-
         data = self.convert_input(X)
         get_index, length, both = get_index_mapping(self._groups,
                                                     self.form,
                                                     self.add_unknown)
-        vector = numpy.zeros((length, self.segments))
-
-        theta = numpy.linspace(0., numpy.pi, self.segments)
-        mat = get_depth_threshold_mask_connections(data.connections,
-                                                   min_depth=self.min_depth,
-                                                   max_depth=self.max_depth)
-
-        distances = cdist(data.coords, data.coords)
-        f_c = self.f_c(distances)
-        angles = get_angles(data.coords)
-        for i, ele1 in enumerate(data.elements):
-            for j, ele2 in enumerate(data.elements):
-                if i == j or not mat[i, j]:
-                    continue
-                if not f_c[i, j]:
-                    continue
-                for k, ele3 in enumerate(data.elements):
-                    if j == k or not mat[j, k]:
-                        continue
-                    if i > k and not both:
-                        continue
-                    if not f_c[i, k] or not f_c[j, k]:
-                        continue
-                    F = f_c[i, j] * f_c[j, k] * f_c[i, k]
-                    diff = theta - angles[i, j, k]
-                    value = smoothing_func(self.slope * diff)
-                    eles = ele1, ele2, ele3
-                    try:
-                        vector[get_index(eles)] += value * F
-                    except KeyError:
-                        pass
-        return vector.flatten().tolist()
+        iterator = self._iterator(data, get_index, both)
+        return self.encode_values(iterator, length)
 
 
-class EncodedBond(SetMergeMixin, BaseFeature):
+class EncodedBond(SetMergeMixin, EncodedFeature):
     """
     A smoothed histogram of atomic distances.
 
@@ -648,20 +641,17 @@ class EncodedBond(SetMergeMixin, BaseFeature):
     LABELS = ("_element_pairs", )
 
     def __init__(self, input_type='list', n_jobs=1, segments=100,
-                 smoothing="norm", start=0.2, end=6.0, slope=20.,
-                 min_depth=0, max_depth=0, spacing="linear", form=2,
+                 smoothing='norm', start=0.2, end=6.0, slope=20.,
+                 min_depth=0, max_depth=0, spacing='linear', form=2,
                  add_unknown=False):
         super(EncodedBond, self).__init__(input_type=input_type,
-                                          n_jobs=n_jobs)
+                                          n_jobs=n_jobs, segments=segments,
+                                          smoothing=smoothing, start=start,
+                                          end=end, slope=slope,
+                                          spacing=spacing)
         self._element_pairs = None
-        self.segments = segments
-        self.smoothing = smoothing
-        self.start = start
-        self.end = end
-        self.slope = slope
         self.min_depth = min_depth
         self.max_depth = max_depth
-        self.spacing = spacing
         self.form = form
         self.add_unknown = add_unknown
 
@@ -684,6 +674,24 @@ class EncodedBond(SetMergeMixin, BaseFeature):
         """
         data = self.convert_input(X)
         return get_element_pairs(data.elements)
+
+    def _iterator(self, data, get_index, both):
+        mat = get_depth_threshold_mask_connections(data.connections,
+                                                   max_depth=self.max_depth,
+                                                   min_depth=self.min_depth)
+        distances = cdist(data.coords, data.coords)
+        for i, ele1 in enumerate(data.elements):
+            for j, ele2 in enumerate(data.elements):
+                if i > j and not both:
+                    continue
+                if i == j or not mat[i, j]:
+                    continue
+                eles = (ele1, ele2)
+                try:
+                    idx = get_index(eles)
+                except KeyError:
+                    idx = None
+                yield idx, distances[i, j], 1.
 
     def _para_transform(self, X, y=None):
         """
@@ -708,39 +716,12 @@ class EncodedBond(SetMergeMixin, BaseFeature):
             If the transformer has not been fit.
         """
         self.check_fit()
-
-        smoothing_func = get_smoothing_function(self.smoothing)
-        theta_func = get_spacing_function(self.spacing)
-
+        data = self.convert_input(X)
         get_index, length, both = get_index_mapping(self._element_pairs,
                                                     self.form,
                                                     self.add_unknown)
-        data = self.convert_input(X)
-
-        vector = numpy.zeros((length, self.segments))
-
-        theta = numpy.linspace(theta_func(self.start), theta_func(self.end),
-                               self.segments)
-        mat = get_depth_threshold_mask_connections(data.connections,
-                                                   max_depth=self.max_depth,
-                                                   min_depth=self.min_depth)
-
-        distances = cdist(data.coords, data.coords)
-        for i, ele1 in enumerate(data.elements):
-            for j, ele2 in enumerate(data.elements):
-                if i > j and not both:
-                    continue
-                if i == j or not mat[i, j]:
-                    continue
-
-                diff = theta - theta_func(distances[i, j])
-                value = smoothing_func(self.slope * diff)
-                eles = (ele1, ele2)
-                try:
-                    vector[get_index(eles)] += value
-                except KeyError:
-                    pass
-        return vector.flatten().tolist()
+        iterator = self._iterator(data, get_index, both)
+        return self.encode_values(iterator, length)
 
 
 class CoulombMatrix(BaseFeature):

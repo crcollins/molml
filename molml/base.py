@@ -12,6 +12,7 @@ import json
 import numpy
 from pathos.multiprocessing import ProcessingPool as Pool
 
+from .utils import get_smoothing_function, get_spacing_function
 from .utils import LazyValues
 from .io import read_file_data
 
@@ -486,3 +487,98 @@ class InputTypeMixin(object):
                 raise ValueError(string % (transformer.input_type,
                                            self.__class__.__name__,
                                            self.input_type))
+
+
+class EncodedFeature(BaseFeature):
+    """
+    This is a generalized class to handle all kinds of encoding feature
+    representations. These approaches seem to be a fairly general way of
+    making lists of scalar values more effective to use in machine learning
+    models. Essentially, it can be viewed as kernel smoothed histograms over
+    the values of interest.
+
+    Parameters
+    ----------
+    input_type : string, default='list'
+        Specifies the format the input values will be (must be one of 'list'
+        or 'filename').
+
+    n_jobs : int, default=1
+        Specifies the number of processes to create when generating the
+        features. Positive numbers specify a specifc amount, and numbers less
+        than 1 will use the number of cores the computer has.
+
+    segments : int, default=100
+        The number of bins/segments to use when generating the histogram.
+        Empirically, it has been found that values beyond 50-100 have little
+        benefit.
+
+    smoothing : string or callable, default='norm'
+        A string or callable to use to smooth the histogram values. If a
+        callable is given, it must take just a single argument that is a float.
+        For a list of supported default functions look at SMOOTHING_FUNCTIONS.
+
+    start : float, default=0.2
+        The starting point for the histgram sampling in angstroms.
+
+    end : float, default=6.0
+        The ending point for the histogram sampling in angstroms.
+
+    slope : float, default=20.
+        A parameter to tune the smoothing values. This is applied as a
+        multiplication before calling the smoothing function.
+
+    spacing : string, default="linear"
+        The histogram interval spacing type. Must be one of ("linear",
+        "inverse", or "log"). Linear spacing is normal spacing. Inverse takes
+        and evaluates the distances as 1/r and the start and end points are
+        1/x. For log spacing, the distances are evaluated as numpy.log(r)
+        and the start and end points are numpy.log(x).
+
+    References
+    ----------
+    Collins, C.; Gordon, G.; von Lilienfeld, O. A.; Yaron, D. Constant Size
+    Molecular Descriptors For Use With Machine Learning. arXiv:1701.06649
+    """
+    def __init__(self, input_type='list', n_jobs=1, segments=100,
+                 smoothing='norm', slope=20., start=0.2, end=6.,
+                 spacing='linear'):
+        super(EncodedFeature, self).__init__(input_type=input_type,
+                                             n_jobs=n_jobs)
+        self.segments = segments
+        self.smoothing = smoothing
+        self.slope = slope
+        self.start = start
+        self.end = end
+        self.spacing = spacing
+
+    def encode_values(self, iterator, length):
+        smoothing_func = get_smoothing_function(self.smoothing)
+        theta_func = get_spacing_function(self.spacing)
+        vector = numpy.zeros((length, self.segments))
+        theta = numpy.linspace(theta_func(self.start), theta_func(self.end),
+                               self.segments)
+
+        for idx, value, other in iterator:
+            if idx is None:
+                continue
+            diff = theta - theta_func(value)
+            value = smoothing_func(self.slope * diff)
+            vector[idx] += value * other
+        return vector.flatten().tolist()
+
+    def encode_atom_values(self, iterator, atoms, length):
+        smoothing_func = get_smoothing_function(self.smoothing)
+        theta_func = get_spacing_function(self.spacing)
+        vector = numpy.zeros((atoms, length, self.segments))
+        theta = numpy.linspace(theta_func(self.start), theta_func(self.end),
+                               self.segments)
+
+        for idx, value, other in iterator:
+            if idx is None:
+                continue
+            diff = theta - theta_func(value)
+            value = smoothing_func(self.slope * diff)
+            i, j = idx
+            vector[i, j] += value * other
+        return vector.reshape(atoms, -1)
