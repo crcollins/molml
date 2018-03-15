@@ -567,10 +567,10 @@ class EncodedFeature(BaseFeature):
             vector[idx] += value * scaling
         return vector.flatten().tolist()
 
-    def encode_atom_values(self, iterator, atoms, length):
+    def encode_atom_values(self, iterator, n_atoms, length):
         smoothing_func = get_smoothing_function(self.smoothing)
         theta_func = get_spacing_function(self.spacing)
-        vector = numpy.zeros((atoms, length, self.segments))
+        vector = numpy.zeros((n_atoms, length, self.segments))
         theta = numpy.linspace(theta_func(self.start), theta_func(self.end),
                                self.segments)
 
@@ -581,4 +581,4 @@ class EncodedFeature(BaseFeature):
             value = smoothing_func(self.slope * diff)
             i, j = idx
             vector[i, j] += value * scaling
-        return vector.reshape(atoms, -1)
+        return vector.reshape(n_atoms, -1)
