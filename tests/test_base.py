@@ -9,6 +9,7 @@ except ImportError:
 import numpy
 
 from molml.base import BaseFeature, SetMergeMixin, InputTypeMixin, _func_star
+from molml.base import EncodedFeature
 
 from .constants import METHANE_ELEMENTS, METHANE_COORDS, METHANE_PATH
 from .constants import METHANE, METHANE_NUMBERS
@@ -399,6 +400,40 @@ class TestInputTypeMixin(unittest.TestCase):
         trans = BaseFeature(input_type="filename")
         a = Feature(transformer=trans)
         self.assertEqual("filename", a.input_type)
+
+
+class TestEncodedFeature(unittest.TestCase):
+
+    def test_encode_values(self):
+        a = EncodedFeature(segments=5)
+        data = [(0, 3, 1), (None, 1, 1), (1, 3, 2)]
+        res = a.encode_values(data, 2)
+        expected = [
+            0, 1.997889e-159, 5.399097e-2, 8.363952e-210, 0,
+            0, 3.995779e-159, 1.079819e-1, 1.672790e-209, 0]
+        try:
+            numpy.testing.assert_array_almost_equal(
+                res,
+                expected)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_encode_atom_values(self):
+        a = EncodedFeature(segments=5)
+        data = [((0, 1), 3, 1), ((1, 0), 3, 2), (None, 1, 1)]
+        res = a.encode_atom_values(data, 2, 2)
+
+        expected = numpy.zeros((2, 10))
+        expected = numpy.array([
+            [0, 0, 0, 0, 0, 0, 1.997889e-159, 5.399097e-002, 8.363952e-210, 0],
+            [0, 3.995779e-159, 1.079819e-1, 1.672790e-209, 0, 0, 0, 0, 0, 0],
+        ])
+        try:
+            numpy.testing.assert_array_almost_equal(
+                res,
+                expected)
+        except AssertionError as e:
+            self.fail(e)
 
 
 if __name__ == '__main__':
