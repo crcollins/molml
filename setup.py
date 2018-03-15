@@ -21,7 +21,7 @@ except ImportError:
 
 setup(
     name='molml',
-    version='0.6.0',
+    version='0.7.0',
     description='An interface between molecules and machine learning',
     long_description=LONG_DESCRIPTION,
     author='Chris Collins',

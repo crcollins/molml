@@ -8,4 +8,4 @@ are usable with machine learning. This is done using an API similar to
 scikit-learn to keep things simple and straightforward. For documentation,
 look at the docstrings.
 """
-__version__ = "0.6.0"
+__version__ = "0.7.0"
