@@ -559,12 +559,12 @@ class EncodedFeature(BaseFeature):
         theta = numpy.linspace(theta_func(self.start), theta_func(self.end),
                                self.segments)
 
-        for idx, value, other in iterator:
+        for idx, value, scaling in iterator:
             if idx is None:
                 continue
             diff = theta - theta_func(value)
             value = smoothing_func(self.slope * diff)
-            vector[idx] += value * other
+            vector[idx] += value * scaling
         return vector.flatten().tolist()
 
     def encode_atom_values(self, iterator, atoms, length):
@@ -574,11 +574,11 @@ class EncodedFeature(BaseFeature):
         theta = numpy.linspace(theta_func(self.start), theta_func(self.end),
                                self.segments)
 
-        for idx, value, other in iterator:
+        for idx, value, scaling in iterator:
             if idx is None:
                 continue
             diff = theta - theta_func(value)
             value = smoothing_func(self.slope * diff)
             i, j = idx
-            vector[i, j] += value * other
+            vector[i, j] += value * scaling
         return vector.reshape(atoms, -1)
