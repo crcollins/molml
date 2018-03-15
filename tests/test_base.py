@@ -34,6 +34,12 @@ class TestFeature1(BaseFeature):
         self.data = data
         self.value = value
 
+    def fit(self, X, y=None):
+        self.data = [1]
+
+    def _para_transform(self, X):
+        return [1]
+
 
 class TestFeature2(BaseFeature):
     '''
@@ -309,6 +315,25 @@ class BaseFeatureTest(unittest.TestCase):
             'transformer': base + '.TestFeature1'
         }
         self.assertEqual(data, expected)
+
+    def test_transform(self):
+        a = TestFeature1()
+        a.fit([1])
+        res = a.transform([1, 2, 3])
+        expected = numpy.array([[1], [1], [1]])
+        try:
+            numpy.testing.assert_array_almost_equal(res, expected)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_fit_transform(self):
+        a = TestFeature1()
+        res = a.fit_transform([1, 2, 3])
+        expected = numpy.array([[1], [1], [1]])
+        try:
+            numpy.testing.assert_array_almost_equal(res, expected)
+        except AssertionError as e:
+            self.fail(e)
 
 
 class TestSetMergeMixin(unittest.TestCase):
