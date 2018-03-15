@@ -553,6 +553,30 @@ class EncodedFeature(BaseFeature):
         self.spacing = spacing
 
     def encode_values(self, iterator, length):
+        '''
+        Encodes an iterable of values into a single uniform length list.
+
+        Parameters
+        ----------
+            iterator : iterable
+                The collection of values to encode. Each item in the iterable
+                must contain values for (idx, value, scaling). Where idx is an
+                integer value to indicate which encoding bucket the values go
+                in, value is the value to encode, and scaling is a factor that
+                gets multiplied by the final encoded subvector before getting
+                added to the total. If idx is None, then the value will be
+                skipped.
+
+            length : int
+                The number of encoding subvectors to create. In terms of
+                EncodedBonds, this would be the number of element pairs.
+
+        Returns
+        -------
+            vector : list
+                The final concatenated vector of all the subvectors. This will
+                have a length of length * segments.
+        '''
         smoothing_func = get_smoothing_function(self.smoothing)
         theta_func = get_spacing_function(self.spacing)
         vector = numpy.zeros((length, self.segments))
@@ -568,6 +592,35 @@ class EncodedFeature(BaseFeature):
         return vector.flatten().tolist()
 
     def encode_atom_values(self, iterator, n_atoms, length):
+        '''
+        Encodes an iterable of values into a uniform length array. This allows
+        for double indexed encodings to be used. The first index in this case
+        will be retained in the returned array.
+
+        Parameters
+        ----------
+            iterator : iterable
+                The collection of values to encode. Each item in the iterable
+                must contain values for (idx, value, scaling). Where idx is a
+                tuple of integer values (atom_idx, bucket_idx) indicating
+                which encoding bucket the values go in, value is the value to
+                encode, and scaling is a factor that gets multiplied by the
+                final encoded subvector before getting added to the total. If
+                idx is None, then the value will be skipped.
+
+            n_atoms : int
+                The number of atoms to consider in the encoding.
+
+            length : int
+                The number of encoding subvectors to create. In terms of
+                EncodedBonds, this would be the number of element pairs.
+
+        Returns
+        -------
+            vector : array
+                The final concatenated vector of all the subvectors. This will
+                have a shape of (n_atoms, length * segments).
+        '''
         smoothing_func = get_smoothing_function(self.smoothing)
         theta_func = get_spacing_function(self.spacing)
         vector = numpy.zeros((n_atoms, length, self.segments))
