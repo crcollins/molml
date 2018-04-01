@@ -26,6 +26,7 @@ SMOOTHING_FUNCTIONS = {
     "expit": expit,
     "tanh": lambda x: (numpy.tanh(x)+1) / 2,
     "norm": scipy.stats.norm.pdf,
+    "circ": scipy.stats.vonmises.pdf,
     "expit_pdf": scipy.stats.logistic.pdf,
     "spike": lambda x: (numpy.abs(x) < 1.).astype(float),
     "lerp": lerp_smooth,
