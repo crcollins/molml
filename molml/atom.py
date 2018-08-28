@@ -769,7 +769,7 @@ class BehlerParrinello(SetMergeMixin, BaseFeature):
         .. math::
 
             G^2_i = 2^{1-\zeta} \sum_{i,k \neq i}
-                        (1 - \lambda \cos(\Theta_{ijk}))^\zeta
+                        (1 + \lambda \cos(\Theta_{ijk}))^\zeta
                         \exp(-\eta (R_{ij}^2 + R_{ik}^2 + R_{jk}^2))
                         f_c(R_{ij}) f_c(R_{ik}) f_c(R_{jk})
 
@@ -795,7 +795,7 @@ class BehlerParrinello(SetMergeMixin, BaseFeature):
         F_c_R = self.f_c(R)
 
         R2 = self.eta * R ** 2
-        new_Theta = (1 - self.lambda_ * numpy.cos(Theta)) ** self.zeta
+        new_Theta = (1 + self.lambda_ * Theta) ** self.zeta
 
         get_index, length, _ = get_index_mapping(self._element_pairs,
                                                  2,
