@@ -254,12 +254,14 @@ class LocalEncodedBond(SetMergeMixin, EncodedFeature):
         interactions. A value of 0 signifies that all interactions are
         included.
 
-    spacing : string, default="linear"
+    spacing : string or callable, default='linear'
         The histogram interval spacing type. Must be one of ("linear",
         "inverse", or "log"). Linear spacing is normal spacing. Inverse takes
         and evaluates the distances as 1/r and the start and end points are
         1/x. For log spacing, the distances are evaluated as numpy.log(r)
-        and the start and end points are numpy.log(x).
+        and the start and end points are numpy.log(x). If the value is
+        callable, then it should take a float or vector of floats and return
+        a similar mapping like the other methods.
 
     form : int, default=1
         The histogram splitting style to use. This value changes the scaling

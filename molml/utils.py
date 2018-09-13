@@ -1,5 +1,5 @@
 """
-A collection of asssorted utility functions.
+A collection of assorted utility functions.
 """
 from builtins import range
 import importlib
@@ -38,20 +38,22 @@ SPACING_FUNCTIONS = {
 }
 
 
-def get_smoothing_function(key):
-    try:
-        return SMOOTHING_FUNCTIONS[key]
-    except KeyError:
-        msg = "The value '%s' is not a valid smoothing type."
-        raise KeyError(msg % key)
+def get_dict_func_getter(d, label=''):
+    def func(key):
+        try:
+            if callable(key):
+                return key
+            return d[key]
+        except KeyError:
+            msg = "The value '%s' is not a valid %s type."
+            raise KeyError(msg % (label, key))
+    return func
 
 
-def get_spacing_function(key):
-    try:
-        return SPACING_FUNCTIONS[key]
-    except KeyError:
-        msg = "The value '%s' is not a valid spacing type."
-        raise KeyError(msg % key)
+get_smoothing_function = get_dict_func_getter(SMOOTHING_FUNCTIONS,
+                                              label='smoothing')
+get_spacing_function = get_dict_func_getter(SPACING_FUNCTIONS,
+                                            label='spacing')
 
 
 def get_bond_type(element1, element2, dist):

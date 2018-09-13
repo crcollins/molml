@@ -515,8 +515,9 @@ class EncodedFeature(BaseFeature):
 
     smoothing : string or callable, default='norm'
         A string or callable to use to smooth the histogram values. If a
-        callable is given, it must take just a single argument that is a float.
-        For a list of supported default functions look at SMOOTHING_FUNCTIONS.
+        callable is given, it must take just a single argument that is a float
+        (or vector of floats). For a list of supported default functions look
+        at SMOOTHING_FUNCTIONS.
 
     start : float, default=0.2
         The starting point for the histgram sampling in angstroms.
@@ -528,12 +529,14 @@ class EncodedFeature(BaseFeature):
         A parameter to tune the smoothing values. This is applied as a
         multiplication before calling the smoothing function.
 
-    spacing : string, default="linear"
+    spacing : string or callable, default='linear'
         The histogram interval spacing type. Must be one of ("linear",
         "inverse", or "log"). Linear spacing is normal spacing. Inverse takes
         and evaluates the distances as 1/r and the start and end points are
         1/x. For log spacing, the distances are evaluated as numpy.log(r)
-        and the start and end points are numpy.log(x).
+        and the start and end points are numpy.log(x). If the value is
+        callable, then it should take a float or vector of floats and return
+        a similar mapping like the other methods.
 
     References
     ----------

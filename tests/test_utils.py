@@ -4,6 +4,7 @@ import json
 
 import numpy
 
+from molml.utils import get_dict_func_getter
 from molml.utils import get_connections, get_depth_threshold_mask_connections
 from molml.utils import get_graph_distance
 from molml.utils import LazyValues, SMOOTHING_FUNCTIONS
@@ -85,6 +86,19 @@ class UtilsTest(unittest.TestCase):
                     expected)
             except AssertionError as e:
                 self.fail(e)
+
+    def test_get_dict_func_getter(self):
+        f = get_dict_func_getter(SMOOTHING_FUNCTIONS, 'smoothing')
+        self.assertAlmostEqual(f('norm')(3), 0.0044318484119380075)
+
+    def test_get_dict_func_getter_fails(self):
+        f = get_dict_func_getter(SMOOTHING_FUNCTIONS, 'smoothing')
+        with self.assertRaises(KeyError):
+            self.assertAlmostEqual(f('not_real')(3), 0.00)
+
+    def test_get_dict_func_getter_callable(self):
+        f = get_dict_func_getter(SMOOTHING_FUNCTIONS, 'smoothing')
+        self.assertAlmostEqual(f(lambda x: x)(3), 3)
 
     def test_get_coulomb_matrix(self):
         res = get_coulomb_matrix([1, 1], [[0.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
