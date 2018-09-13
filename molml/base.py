@@ -590,10 +590,7 @@ class EncodedFeature(BaseFeature):
             if idx is None:
                 continue
             diff = theta - theta_func(value)
-            if self.smoothing == 'circ':
-                value = smoothing_func(diff, self.slope)
-            else:
-                value = smoothing_func(self.slope * diff)
+            value = smoothing_func(diff, self.slope)
             vector[idx] += value * scaling
         return vector.flatten().tolist()
 
@@ -637,10 +634,7 @@ class EncodedFeature(BaseFeature):
             if idx is None:
                 continue
             diff = theta - theta_func(value)
-            if self.smoothing == 'circ':
-                value = smoothing_func(diff, self.slope)
-            else:
-                value = smoothing_func(self.slope * diff)
+            value = smoothing_func(diff, self.slope)
             i, j = idx
             vector[i, j] += value * scaling
         return vector.reshape(n_atoms, -1)

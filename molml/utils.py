@@ -20,16 +20,20 @@ def lerp_smooth(x):
     return numpy.maximum(-numpy.abs(x / span) + 1, 0)
 
 
+def multi_beta(f):
+    return lambda x, beta: f(beta * x)
+
+
 SMOOTHING_FUNCTIONS = {
-    "norm_cdf": scipy.stats.norm.cdf,
-    "zero_one": lambda x: (x > 0.).astype(float),
-    "expit": expit,
-    "tanh": lambda x: (numpy.tanh(x)+1) / 2,
-    "norm": scipy.stats.norm.pdf,
+    "norm_cdf": multi_beta(scipy.stats.norm.cdf),
+    "zero_one": lambda x, beta: (beta * x > 0.).astype(float),
+    "expit": multi_beta(expit),
+    "tanh": lambda x, beta: (numpy.tanh(beta * x) + 1) / 2,
+    "norm": multi_beta(scipy.stats.norm.pdf),
     "circ": scipy.stats.vonmises.pdf,
-    "expit_pdf": scipy.stats.logistic.pdf,
-    "spike": lambda x: (numpy.abs(x) < 1.).astype(float),
-    "lerp": lerp_smooth,
+    "expit_pdf": multi_beta(scipy.stats.logistic.pdf),
+    "spike": lambda x, beta: (numpy.abs(beta * x) < 1.).astype(float),
+    "lerp": multi_beta(lerp_smooth),
 }
 SPACING_FUNCTIONS = {
     "log": lambda x: numpy.log(x),

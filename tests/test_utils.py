@@ -40,29 +40,36 @@ UNIT_CELL = [
 
 class UtilsTest(unittest.TestCase):
 
-    def test_smoothing_zero_one(self):
-        f = SMOOTHING_FUNCTIONS['zero_one']
-        values = numpy.array([-1000., -1., -0.5, 0, 0.5, 1., 1000.])
-        expected = numpy.array([0., 0., 0., 0., 1., 1., 1.])
-        self.assertTrue((f(values) == expected).all())
+    def test_smoothing_functions(self):
+        # These are mostly sanity checks for the functions
+        expected = {
+            "norm_cdf": numpy.array([0., 0.158655, 0.308538, 0.5, 0.691462,
+                                     0.841345, 1.]),
+            "zero_one": numpy.array([0., 0., 0., 0., 1., 1., 1.]),
+            "expit": numpy.array([0., 0.268941, 0.377541, 0.5, 0.622459,
+                                  0.731059, 1.]),
+            "tanh": numpy.array([0., 0.11920292, 0.26894142, 0.5, 0.73105858,
+                                 0.88079708, 1.]),
+            "norm": numpy.array([0., 0.241971, 0.352065, 0.398942, 0.352065,
+                                 0.241971, 0.]),
+            "circ": numpy.array([0.220598, 0.215781, 0.302338, 0.34171,
+                                 0.302338, 0.215781, 0.220598]),
+            "expit_pdf": numpy.array([0., 0.196612, 0.235004, 0.25, 0.235004,
+                                      0.196612, 0.]),
+            "spike": numpy.array([0., 0., 1., 1., 1., 0., 0.]),
+        }
 
-    def test_smoothing_tanh(self):
-        f = SMOOTHING_FUNCTIONS['tanh']
         values = numpy.array([-1000., -1., -0.5, 0, 0.5, 1., 1000.])
-        expected = numpy.array([0., 0.11920292, 0.26894142, 0.5,
-                                0.73105858, 0.88079708, 1.])
-        try:
-            numpy.testing.assert_array_almost_equal(
-                f(values),
-                expected)
-        except AssertionError as e:
-            self.fail(e)
-
-    def test_smoothing_spike(self):
-        f = SMOOTHING_FUNCTIONS['spike']
-        values = numpy.array([-1000., -1., -0.5, 0, 0.5, 1., 1000.])
-        expected = numpy.array([0., 0., 1., 1., 1., 0., 0.])
-        self.assertTrue((f(values) == expected).all())
+        for key, expected_value in expected.items():
+            with numpy.warnings.catch_warnings():
+                numpy.warnings.filterwarnings('ignore', 'overflow')
+                res = SMOOTHING_FUNCTIONS[key](values, 1.)
+            try:
+                numpy.testing.assert_array_almost_equal(
+                    res,
+                    expected_value)
+            except AssertionError as e:
+                self.fail(e)
 
     def test_smoothing_lerp(self):
         f = SMOOTHING_FUNCTIONS['lerp']
@@ -82,22 +89,22 @@ class UtilsTest(unittest.TestCase):
         for off, expected in pairs:
             try:
                 numpy.testing.assert_array_almost_equal(
-                    f(theta - off),
+                    f(theta - off, 1.),
                     expected)
             except AssertionError as e:
                 self.fail(e)
 
     def test_get_dict_func_getter(self):
-        f = get_dict_func_getter(SMOOTHING_FUNCTIONS, 'smoothing')
-        self.assertAlmostEqual(f('norm')(3), 0.0044318484119380075)
+        f = get_dict_func_getter({'norm': lambda x: x})
+        self.assertAlmostEqual(f('norm')(3), 3)
 
     def test_get_dict_func_getter_fails(self):
-        f = get_dict_func_getter(SMOOTHING_FUNCTIONS, 'smoothing')
+        f = get_dict_func_getter({})
         with self.assertRaises(KeyError):
             self.assertAlmostEqual(f('not_real')(3), 0.00)
 
     def test_get_dict_func_getter_callable(self):
-        f = get_dict_func_getter(SMOOTHING_FUNCTIONS, 'smoothing')
+        f = get_dict_func_getter({})
         self.assertAlmostEqual(f(lambda x: x)(3), 3)
 
     def test_get_coulomb_matrix(self):
