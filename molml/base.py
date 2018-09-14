@@ -555,86 +555,53 @@ class EncodedFeature(BaseFeature):
         self.end = end
         self.spacing = spacing
 
-    def encode_values(self, iterator, length):
+    def encode_values(self, iterator, lengths, saved_lengths=0):
         '''
-        Encodes an iterable of values into a single uniform length list.
-
-        Parameters
-        ----------
-            iterator : iterable
-                The collection of values to encode. Each item in the iterable
-                must contain values for (idx, value, scaling). Where idx is an
-                integer value to indicate which encoding bucket the values go
-                in, value is the value to encode, and scaling is a factor that
-                gets multiplied by the final encoded subvector before getting
-                added to the total. If idx is None, then the value will be
-                skipped.
-
-            length : int
-                The number of encoding subvectors to create. In terms of
-                EncodedBonds, this would be the number of element pairs.
-
-        Returns
-        -------
-            vector : list
-                The final concatenated vector of all the subvectors. This will
-                have a length of length * segments.
-        '''
-        smoothing_func = get_smoothing_function(self.smoothing)
-        theta_func = get_spacing_function(self.spacing)
-        vector = numpy.zeros((length, self.segments))
-        theta = numpy.linspace(theta_func(self.start), theta_func(self.end),
-                               self.segments)
-
-        for idx, value, scaling in iterator:
-            if idx is None:
-                continue
-            diff = theta - theta_func(value)
-            value = smoothing_func(diff, self.slope)
-            vector[idx] += value * scaling
-        return vector.flatten().tolist()
-
-    def encode_atom_values(self, iterator, n_atoms, length):
-        '''
-        Encodes an iterable of values into a uniform length array. This allows
-        for double indexed encodings to be used. The first index in this case
-        will be retained in the returned array.
+        Encodes an iterable of values into a uniform length array. These
+        values can then be indexed to allow binning them in different sections
+        of the array. After the values are processed, the array can by
+        flattened down to a desired number of axes.
 
         Parameters
         ----------
             iterator : iterable
                 The collection of values to encode. Each item in the iterable
                 must contain values for (idx, value, scaling). Where idx is a
-                tuple of integer values (atom_idx, bucket_idx) indicating
-                which encoding bucket the values go in, value is the value to
-                encode, and scaling is a factor that gets multiplied by the
-                final encoded subvector before getting added to the total. If
-                idx is None, then the value will be skipped.
+                tuple of integer values indicating which encoding bucket the
+                values go in, value is the value to encode, and scaling is a
+                factor that gets multiplied by the final encoded subvector
+                before getting added to the total (This is mostly used to mask
+                values and scale their influence with distance. If idx is None,
+                then the value will be skipped.
 
-            n_atoms : int
-                The number of atoms to consider in the encoding.
-
-            length : int
-                The number of encoding subvectors to create. In terms of
+            length : tuple of ints
+                The number of encoding axes to create. In terms of
                 EncodedBonds, this would be the number of element pairs.
+
+            saved_lengths : ints
+                The number of axis components to retain. The order that they
+                get saved is the same order that is given in lengths. For
+                example, when doing atom encodings, this should be 1 to retain
+                the atom axis.
 
         Returns
         -------
             vector : array
                 The final concatenated vector of all the subvectors. This will
-                have a shape of (n_atoms, length * segments).
+                have a shape of (lengthn_atoms, length * segments).
         '''
         smoothing_func = get_smoothing_function(self.smoothing)
         theta_func = get_spacing_function(self.spacing)
-        vector = numpy.zeros((n_atoms, length, self.segments))
+        vector = numpy.zeros(tuple(lengths) + (self.segments, ))
         theta = numpy.linspace(theta_func(self.start), theta_func(self.end),
                                self.segments)
 
-        for idx, value, scaling in iterator:
-            if idx is None:
+        for idxs, value, scaling in iterator:
+            if idxs is None:
                 continue
             diff = theta - theta_func(value)
             value = smoothing_func(diff, self.slope)
-            i, j = idx
-            vector[i, j] += value * scaling
-        return vector.reshape(n_atoms, -1)
+            vector[tuple(idxs)] += value * scaling
+
+        reshape = tuple(lengths)[:saved_lengths] + (-1, )
+        return vector.reshape(*reshape)

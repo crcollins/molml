@@ -526,7 +526,7 @@ class EncodedAngle(SetMergeMixin, EncodedFeature):
                     F = f_c[i, j] * f_c[j, k] * f_c[i, k]
                     eles = ele1, ele2, ele3
                     try:
-                        idx = get_index(eles)
+                        idx = (get_index(eles), )
                     except KeyError:
                         idx = None
                     yield idx, angles[i, j, k], F
@@ -559,7 +559,7 @@ class EncodedAngle(SetMergeMixin, EncodedFeature):
                                                     self.form,
                                                     self.add_unknown)
         iterator = self._iterator(data, get_index, both)
-        return self.encode_values(iterator, length)
+        return self.encode_values(iterator, (length, ))
 
 
 class EncodedBond(SetMergeMixin, EncodedFeature):
@@ -692,7 +692,7 @@ class EncodedBond(SetMergeMixin, EncodedFeature):
                     continue
                 eles = (ele1, ele2)
                 try:
-                    idx = get_index(eles)
+                    idx = (get_index(eles), )
                 except KeyError:
                     idx = None
                 yield idx, distances[i, j], 1.
@@ -725,7 +725,7 @@ class EncodedBond(SetMergeMixin, EncodedFeature):
                                                     self.form,
                                                     self.add_unknown)
         iterator = self._iterator(data, get_index, both)
-        return self.encode_values(iterator, length)
+        return self.encode_values(iterator, (length, ))
 
 
 class CoulombMatrix(BaseFeature):

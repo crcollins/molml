@@ -360,7 +360,8 @@ class LocalEncodedBond(SetMergeMixin, EncodedFeature):
         get_index, length, _ = get_index_mapping(self._elements, self.form,
                                                  self.add_unknown)
         iterator = self._iterator(data, get_index)
-        return self.encode_atom_values(iterator, len(data.elements), length)
+        return self.encode_values(iterator, (len(data.elements), length),
+                                  saved_lengths=1)
 
 
 class LocalEncodedAngle(SetMergeMixin, EncodedFeature):
@@ -524,7 +525,8 @@ class LocalEncodedAngle(SetMergeMixin, EncodedFeature):
                                                     self.add_unknown)
 
         iterator = self._iterator(data, get_index, both)
-        return self.encode_atom_values(iterator, len(data.elements), length)
+        return self.encode_values(iterator, (len(data.elements), length),
+                                  saved_lengths=1)
 
 
 class LocalCoulombMatrix(BaseFeature):

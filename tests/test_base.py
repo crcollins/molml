@@ -406,8 +406,8 @@ class TestEncodedFeature(unittest.TestCase):
 
     def test_encode_values(self):
         a = EncodedFeature(segments=5)
-        data = [(0, 3, 1), (None, 1, 1), (1, 3, 2)]
-        res = a.encode_values(data, 2)
+        data = [((0, ), 3, 1), (None, 1, 1), ((1, ), 3, 2)]
+        res = a.encode_values(data, (2, ))
         expected = [
             0, 1.997889e-159, 5.399097e-2, 8.363952e-210, 0,
             0, 3.995779e-159, 1.079819e-1, 1.672790e-209, 0]
@@ -418,10 +418,10 @@ class TestEncodedFeature(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
-    def test_encode_atom_values(self):
+    def test_encode_values_saved_length(self):
         a = EncodedFeature(segments=5)
         data = [((0, 1), 3, 1), ((1, 0), 3, 2), (None, 1, 1)]
-        res = a.encode_atom_values(data, 2, 2)
+        res = a.encode_values(data, (2, 2), saved_lengths=1)
 
         expected = numpy.zeros((2, 10))
         expected = numpy.array([
