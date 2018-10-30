@@ -1,10 +1,12 @@
 import unittest
 import os
 import json
+import warnings
 
 import numpy
 
 from molml.utils import get_dict_func_getter
+from molml.utils import get_bond_type
 from molml.utils import get_connections, get_depth_threshold_mask_connections
 from molml.utils import get_graph_distance
 from molml.utils import LazyValues, SMOOTHING_FUNCTIONS
@@ -360,6 +362,13 @@ class UtilsTest(unittest.TestCase):
             4: {}
         }
         self.assertEqual(res, expected)
+
+    def test_get_bond_type_warn(self):
+        with warnings.catch_warnings(record=True) as w:
+            get_bond_type('Fake', 'H', 1)
+            get_bond_type('H', 'Not Real', 1)
+            get_bond_type('Fake', 'Not Real', 1)
+            self.assertEqual(len(w), 3)
 
     def test_get_depth_threshold_mask_connections_all(self):
         conn = {

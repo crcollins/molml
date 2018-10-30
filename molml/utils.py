@@ -80,6 +80,12 @@ def get_bond_type(element1, element2, dist):
     key : str
         The type of the bond
     """
+    bad_eles = [x for x in (element1, element2) if x not in BOND_LENGTHS]
+    if len(bad_eles):
+        msg = "The following elements are not in BOND_LENGTHS: %s" % bad_eles
+        warnings.warn(msg)
+        return
+
     for key in TYPE_ORDER[::-1]:
         try:
             cutoff = BOND_LENGTHS[element1][key] + BOND_LENGTHS[element2][key]
