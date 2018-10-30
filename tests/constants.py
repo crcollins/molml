@@ -11,6 +11,13 @@ METHANE_ELEMENTS = METHANE_VALS.elements.tolist()
 METHANE_NUMBERS = METHANE_VALS.numbers.tolist()
 METHANE_COORDS = METHANE_VALS.coords
 METHANE = (METHANE_ELEMENTS, METHANE_COORDS)
+METHANE_CONNECTIONS = {
+    0: {1: "1", 2: "1", 3: "1", 4: "1"},
+    1: {0: "1"},
+    2: {0: "1"},
+    3: {0: "1"},
+    4: {0: "1"},
+}
 
 BIG_PATH = os.path.join(DATA_PATH, "big.out")
 BIG_VALS = read_file_data(BIG_PATH)

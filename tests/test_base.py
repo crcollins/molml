@@ -12,7 +12,7 @@ from molml.base import BaseFeature, SetMergeMixin, InputTypeMixin, _func_star
 from molml.base import EncodedFeature
 
 from .constants import METHANE_ELEMENTS, METHANE_COORDS, METHANE_PATH
-from .constants import METHANE, METHANE_NUMBERS
+from .constants import METHANE, METHANE_NUMBERS, METHANE_CONNECTIONS
 
 
 METHANE_ATOMS = numpy.array([[1, 4]])
@@ -123,30 +123,17 @@ class BaseFeatureTest(unittest.TestCase):
     def test_convert_input_list(self):
         a = BaseFeature(input_type="list")
         data = a.convert_input(METHANE)
-        compare_connections = {
-            0: {1: "1", 2: "1", 3: "1", 4: "1"},
-            1: {0: "1"},
-            2: {0: "1"},
-            3: {0: "1"},
-            4: {0: "1"},
-        }
-        self.assertEqual(data.connections, compare_connections)
-        self.assertEqual(data.elements.tolist(), METHANE[0])
-        self.assertEqual(data.coords.tolist(), METHANE[1].tolist())
+        self.assertEqual(data.connections, METHANE_CONNECTIONS)
+        self.assertEqual(data.elements.tolist(), METHANE_ELEMENTS)
+        self.assertEqual(data.coords.tolist(), METHANE_COORDS.tolist())
 
     def test_convert_input_list_connections(self):
         a = BaseFeature(input_type="list")
-        connections = {
-            0: {1: "1", 2: "1", 3: "1", 4: "1"},
-            1: {0: "1"},
-            2: {0: "1"},
-            3: {0: "1"},
-            4: {0: "1"},
-        }
-        data = a.convert_input([METHANE[0], METHANE[1], connections])
-        self.assertEqual(data.connections, connections)
-        self.assertEqual(data.elements.tolist(), METHANE[0])
-        self.assertEqual(data.coords.tolist(), METHANE[1].tolist())
+        data = a.convert_input([METHANE_ELEMENTS, METHANE_COORDS,
+                                METHANE_CONNECTIONS])
+        self.assertEqual(data.connections, METHANE_CONNECTIONS)
+        self.assertEqual(data.elements.tolist(), METHANE_ELEMENTS)
+        self.assertEqual(data.coords.tolist(), METHANE_COORDS.tolist())
 
     def test_convert_input_filename(self):
         a = BaseFeature(input_type="filename")
@@ -155,14 +142,7 @@ class BaseFeatureTest(unittest.TestCase):
             path = base_path + ending
             data = a.convert_input(path)
             self.assertEqual(data.elements.tolist(), METHANE_ELEMENTS)
-            compare_connections = {
-                0: {1: "1", 2: "1", 3: "1", 4: "1"},
-                1: {0: "1"},
-                2: {0: "1"},
-                3: {0: "1"},
-                4: {0: "1"},
-            }
-            self.assertEqual(data.connections, compare_connections)
+            self.assertEqual(data.connections, METHANE_CONNECTIONS)
             try:
                 numpy.testing.assert_array_almost_equal(
                     data.coords, METHANE_COORDS)
