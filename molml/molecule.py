@@ -16,7 +16,7 @@ from .base import BaseFeature, SetMergeMixin, EncodedFeature
 from .utils import get_depth_threshold_mask_connections, get_coulomb_matrix
 from .utils import get_element_pairs, cosine_decay, needs_reversal
 from .utils import get_index_mapping, get_angles
-from .utils import get_graph_distance, ELE_TO_NUM
+from .utils import get_graph_distance
 from .constants import ELECTRONEGATIVITY, BOND_LENGTHS
 
 
@@ -1050,8 +1050,7 @@ class BagOfBonds(BaseFeature):
 
         bags = {key: [0 for i in range(value)]
                 for key, value in self._bag_sizes.items()}
-        numbers = [ELE_TO_NUM[x] for x in elements]
-        coulomb_matrix = get_coulomb_matrix(numbers, coords)
+        coulomb_matrix = get_coulomb_matrix(data.numbers, coords)
 
         ele_array = numpy.array(elements)
         for ele1, ele2 in bags.keys():
