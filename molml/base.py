@@ -169,11 +169,15 @@ class BaseFeature(object):
         connections = None
         if self.input_type == "list":
             try:
-                elements, coords = X
+                first, coords = X
             except ValueError:
-                elements, coords, connections = X
-            values = LazyValues(elements=elements, coords=coords,
-                                connections=connections)
+                first, coords, connections = X
+            if len(first) and isinstance(first[0], str):
+                values = LazyValues(elements=first, coords=coords,
+                                    connections=connections)
+            else:
+                values = LazyValues(numbers=first, coords=coords,
+                                    connections=connections)
         elif self.input_type == "filename":
             values = read_file_data(X)
         elif type(self.input_type) in (list, tuple):

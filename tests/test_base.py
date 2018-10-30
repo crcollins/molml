@@ -127,6 +127,13 @@ class BaseFeatureTest(unittest.TestCase):
         self.assertEqual(data.elements.tolist(), METHANE_ELEMENTS)
         self.assertEqual(data.coords.tolist(), METHANE_COORDS.tolist())
 
+    def test_convert_input_list_numbers(self):
+        a = BaseFeature(input_type="list")
+        data = a.convert_input([METHANE_NUMBERS, METHANE_COORDS])
+        self.assertEqual(data.numbers.tolist(), METHANE_NUMBERS)
+        self.assertEqual(data.connections, METHANE_CONNECTIONS)
+        self.assertEqual(data.coords.tolist(), METHANE_COORDS.tolist())
+
     def test_convert_input_list_connections(self):
         a = BaseFeature(input_type="list")
         data = a.convert_input([METHANE_ELEMENTS, METHANE_COORDS,

@@ -10,9 +10,6 @@ import numpy
 import scipy.io
 from scipy.constants import physical_constants, angstrom
 
-from molml.utils import NUM_TO_ELE
-
-
 BOHR_TO_ANGSTROMS = physical_constants['Bohr radius'][0] / angstrom
 
 
@@ -37,7 +34,7 @@ def convert_input(Xin):
     '''
     new = []
     for z, r in Xin:
-        temp = [(NUM_TO_ELE[int(x)], y) for x, y in zip(z, r) if x]
+        temp = [(int(x), y) for x, y in zip(z, r) if x]
         zs, rs = zip(*temp)
         new.append((numpy.array(zs), numpy.array(rs)))
     return new
