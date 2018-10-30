@@ -1,7 +1,9 @@
 """
 A collection of functions for loading molecule data from different file types.
+
+Note: Functions in this file should be agnostic to the elements/numbers. This
+should be deferred to the LazyValues object.
 """
-from .constants import ELE_TO_NUM
 from .utils import LazyValues
 
 
@@ -61,16 +63,14 @@ def read_out_data(path):
         An object storing all the data
     """
     elements = []
-    numbers = []
     coords = []
     with open(path, 'r') as f:
         for line in f:
             ele, x, y, z = line.strip().split()
             point = (float(x), float(y), float(z))
             elements.append(ele)
-            numbers.append(ELE_TO_NUM[ele])
             coords.append(point)
-    return LazyValues(elements=elements, numbers=numbers, coords=coords)
+    return LazyValues(elements=elements, coords=coords)
 
 
 def read_xyz_data(path):
@@ -96,7 +96,6 @@ def read_xyz_data(path):
         An object storing all the data
     """
     elements = []
-    numbers = []
     coords = []
     with open(path, 'r') as f:
         for i, line in enumerate(f):
@@ -105,9 +104,8 @@ def read_xyz_data(path):
             ele, x, y, z = line.strip().split()
             point = (float(x), float(y), float(z))
             elements.append(ele)
-            numbers.append(ELE_TO_NUM[ele])
             coords.append(point)
-    return LazyValues(elements=elements, numbers=numbers, coords=coords)
+    return LazyValues(elements=elements, coords=coords)
 
 
 def read_mol2_data(path):
@@ -136,7 +134,6 @@ def read_mol2_data(path):
         An object storing all the data
     """
     elements = []
-    numbers = []
     coords = []
     with open(path, 'r') as f:
         start = False
@@ -151,9 +148,8 @@ def read_mol2_data(path):
             vals = line.split()
             ele = vals[5].split('.')[0]
             elements.append(ele)
-            numbers.append(ELE_TO_NUM[ele])
             coords.append([float(x) for x in vals[2:5]])
-    return LazyValues(elements=elements, numbers=numbers, coords=coords)
+    return LazyValues(elements=elements, coords=coords)
 
 
 def read_cry_data(path):
