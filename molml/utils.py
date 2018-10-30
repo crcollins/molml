@@ -2,6 +2,7 @@
 A collection of assorted utility functions.
 """
 from builtins import range
+from collections import Counter
 import importlib
 import json
 import warnings
@@ -448,23 +449,18 @@ def get_element_pairs(elements):
     value : list
         All the element pairs in the molecule
     """
-    counts = {}
-    for ele in elements:
-        if ele not in counts:
-            counts[ele] = 0
-        counts[ele] += 1
-
+    # This is like computing set(combinations(sorted(elements), 2))
+    # We do this because it scales with elements instead of atoms.
+    counts = Counter(elements)
     pairs = {}
-    for i, x in enumerate(counts):
-        for j, y in enumerate(counts):
+    order = sorted(counts)
+    for i, x in enumerate(order):
+        for j, y in enumerate(order):
             if i > j:
                 continue
-            if x == y and counts[x] == 1:
+            if x == y and counts[x] < 2:
                 continue
-            if x > y:
-                pairs[y, x] = 1
-            else:
-                pairs[x, y] = 1
+            pairs[x, y] = 1
     return list(pairs.keys())
 
 
