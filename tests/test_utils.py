@@ -9,7 +9,7 @@ from molml.utils import get_dict_func_getter
 from molml.utils import get_bond_type
 from molml.utils import get_connections, get_depth_threshold_mask_connections
 from molml.utils import get_graph_distance
-from molml.utils import LazyValues, SMOOTHING_FUNCTIONS
+from molml.utils import LazyValues, get_smoothing_function
 from molml.utils import get_coulomb_matrix, get_element_pairs
 from molml.utils import deslugify, _get_form_indices, get_index_mapping
 from molml.utils import sort_chain, needs_reversal
@@ -65,7 +65,7 @@ class UtilsTest(unittest.TestCase):
         for key, expected_value in expected.items():
             with numpy.warnings.catch_warnings():
                 numpy.warnings.filterwarnings('ignore', 'overflow')
-                res = SMOOTHING_FUNCTIONS[key](values, 1.)
+                res = get_smoothing_function(key)(values, 1.)
             try:
                 numpy.testing.assert_array_almost_equal(
                     res,
@@ -74,7 +74,7 @@ class UtilsTest(unittest.TestCase):
                 self.fail(e)
 
     def test_smoothing_lerp(self):
-        f = SMOOTHING_FUNCTIONS['lerp']
+        f = get_smoothing_function('lerp')
         # Note: this is slightly different from the others because lerp
         # depends on the spacing between the first two bins
         theta = numpy.linspace(1, 3, 3)
