@@ -171,3 +171,29 @@ To include coverage information, make sure that `coverage` is installed and then
 
     $ nosetests --with-coverage --cover-package=molml --cover-erase
 
+Citation
+========
+
+Currently, there is not a dedicated publication for MolML. Instead, feel free to cite the work that spawned this library.
+
+
+    @article{collins2018constant,
+        title={Constant size descriptors for accurate machine learning models of molecular properties},
+        author={Collins, Christopher R and Gordon, Geoffrey J and von Lilienfeld, O Anatole and Yaron, David J},
+        journal={The Journal of Chemical Physics},
+        volume={148},
+        number={24},
+        pages={241718},
+        year={2018},
+        publisher={AIP Publishing}
+    }
+
+
+In addition, each feature extraction method has its own main reference listed in the docstring. These can also be accessed as follows:
+
+```python
+    >>> from molml.features import CoulombMatrix
+    >>> print(CoulombMatrix().get_citation())
+    Rupp, M.; Tkatchenko, A.; Muller, K.-R.; von Lilienfeld, O. A. Fast and Accurate Modeling of Molecular Atomization Energies with Machine Learning. Phys. Rev. Lett. 2012, 108, 058301.
+    Hansen, K.; Montavon, G.; Biegler, F.; Fazli, S.; Rupp, M.; Scheffler, M.; von Lilienfeld, O. A.; Tkatchenko, A.; Muller, K.-R. Assessment and Validation of Machine Learning Methods for Predicting Molecular Atomization Energies. J. Chem. Theory Comput. 2013, 9, 3404-3419.
+```
