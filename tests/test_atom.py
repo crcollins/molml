@@ -465,6 +465,12 @@ class LocalCoulombMatrixTest(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
+    def test_get_local_coulomb_labels(self):
+        a = LocalCoulombMatrix(max_occupancy=2)
+        labels = a.get_local_coulomb_labels()
+        expected = ['local-coul-0', 'local-coul-1']
+        self.assertEqual(labels, expected)
+
 
 class BehlerParrinelloTest(unittest.TestCase):
 

@@ -581,7 +581,7 @@ class LocalCoulombMatrix(BaseFeature):
     Descriptors for the Gaussian Approximation Potential. arXiv 1611.05126
     """
     ATTRIBUTES = None
-    LABELS = None
+    LABELS = (('get_local_coulomb_labels', None), )
 
     def __init__(self, input_type='list', n_jobs=1, max_occupancy=4, r_cut=10.,
                  alpha=6, use_reduced=False, use_decay=False):
@@ -643,6 +643,9 @@ class LocalCoulombMatrix(BaseFeature):
             else:
                 vectors.append(mat[sorting].flatten())
         return numpy.array(vectors)
+
+    def get_local_coulomb_labels(self):
+        return ['local-coul-%d' % i for i in range(self.max_occupancy)]
 
 
 class BehlerParrinello(SetMergeMixin, BaseFeature):
