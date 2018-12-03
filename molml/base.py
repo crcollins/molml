@@ -568,6 +568,12 @@ class EncodedFeature(BaseFeature):
         self.end = end
         self.spacing = spacing
 
+    def _get_theta_info(self):
+        theta_func = get_spacing_function(self.spacing)
+        theta = numpy.linspace(theta_func(self.start), theta_func(self.end),
+                               self.segments)
+        return theta, theta_func
+
     def encode_values(self, iterator, lengths, saved_lengths=0):
         '''
         Encodes an iterable of values into a uniform length array. These
@@ -604,10 +610,8 @@ class EncodedFeature(BaseFeature):
                 have a shape of (lengthn_atoms, length * segments).
         '''
         smoothing_func = get_smoothing_function(self.smoothing)
-        theta_func = get_spacing_function(self.spacing)
         vector = numpy.zeros(tuple(lengths) + (self.segments, ))
-        theta = numpy.linspace(theta_func(self.start), theta_func(self.end),
-                               self.segments)
+        theta, theta_func = self._get_theta_info()
 
         for idxs, value, scaling in iterator:
             if idxs is None:
@@ -618,3 +622,12 @@ class EncodedFeature(BaseFeature):
 
         reshape = tuple(lengths)[:saved_lengths] + (-1, )
         return vector.reshape(*reshape)
+
+    def get_encoded_labels(self, groups):
+        theta, theta_func = self._get_theta_info()
+        labels = []
+        for group in groups:
+            name = '-'.join(group)
+            for x in theta:
+                labels.append('%s_%s' % (name, x))
+        return labels

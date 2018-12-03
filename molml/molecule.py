@@ -450,7 +450,7 @@ class EncodedAngle(SetMergeMixin, EncodedFeature):
         A list of all the groups (element chains) in the fit molecules.
     """
     ATTRIBUTES = ("_groups", )
-    LABELS = ("_groups", )
+    LABELS = (("get_encoded_labels", "_groups"), )
 
     def __init__(self, input_type='list', n_jobs=1, segments=40,
                  smoothing="norm", slope=20., min_depth=0, max_depth=0,
@@ -642,7 +642,7 @@ class EncodedBond(SetMergeMixin, EncodedFeature):
     Molecular Descriptors For Use With Machine Learning. arXiv:1701.06649
     """
     ATTRIBUTES = ("_element_pairs", )
-    LABELS = ("_element_pairs", )
+    LABELS = (("get_encoded_labels", "_element_pairs"), )
 
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing='norm', start=0.2, end=6.0, slope=20.,

@@ -446,6 +446,15 @@ class TestEncodedFeature(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
+    def test_get_encoded_labels(self):
+        a = EncodedFeature(segments=3, start=1., end=3.)
+        labels = a.get_encoded_labels([('A', 'B'), ('C', 'D')])
+        expected = [
+            'A-B_1.0', 'A-B_2.0', 'A-B_3.0',
+            'C-D_1.0', 'C-D_2.0', 'C-D_3.0',
+        ]
+        self.assertEqual(labels, expected)
+
 
 if __name__ == '__main__':
     unittest.main()

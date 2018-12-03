@@ -278,7 +278,7 @@ class LocalEncodedBond(SetMergeMixin, EncodedFeature):
         A set of all the elements in the fit molecules.
     """
     ATTRIBUTES = ("_elements", )
-    LABELS = ("_elements", )
+    LABELS = (("get_encoded_labels", "_elements"), )
 
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing='norm', start=0.2, end=6.0, slope=20., min_depth=0,
@@ -424,7 +424,7 @@ class LocalEncodedAngle(SetMergeMixin, EncodedFeature):
         A set of all the element pairs in the fit molecules.
     """
     ATTRIBUTES = ("_pairs", )
-    LABELS = ("_pairs", )
+    LABELS = (("get_encoded_labels", "_pairs"), )
 
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing='norm', slope=20., min_depth=0, max_depth=0,
