@@ -6,6 +6,7 @@ based on the atoms in the molecule. This means that every molecule will
 result in an array of values (n_atoms, n_features).
 """
 from builtins import range
+from itertools import product
 
 import numpy
 from scipy.spatial.distance import cdist
@@ -646,7 +647,18 @@ class LocalCoulombMatrix(BaseFeature):
         return numpy.array(vectors)
 
     def get_local_coulomb_labels(self):
-        return ['local-coul-%d' % i for i in range(self.max_occupancy)]
+        idxs = []
+
+        vals = list(range(self.max_occupancy + 1))
+        if self.use_reduced:
+            for i in vals:
+                idxs.append((0, i))
+            for i in vals[1:]:
+                idxs.append((i, i))
+        else:
+            for pair in product(vals, vals):
+                idxs.append(pair)
+        return ['local-coul_%d-%d' % (i, j) for i, j in idxs]
 
 
 class BehlerParrinello(SetMergeMixin, BaseFeature):

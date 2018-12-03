@@ -466,10 +466,23 @@ class LocalCoulombMatrixTest(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
-    def test_get_local_coulomb_labels(self):
-        a = LocalCoulombMatrix(max_occupancy=2)
-        labels = a.get_local_coulomb_labels()
-        expected = ['local-coul-0', 'local-coul-1']
+    def test_get_labels(self):
+        a = LocalCoulombMatrix(max_occupancy=1)
+        X = a.fit_transform([METHANE])
+        labels = a.get_labels()
+        self.assertEqual(X.shape[2], len(labels))
+        expected = (
+            'local-coul_0-0', 'local-coul_0-1',
+            'local-coul_1-0', 'local-coul_1-1'
+        )
+        self.assertEqual(labels, expected)
+
+    def test_get_labels_reduced(self):
+        a = LocalCoulombMatrix(max_occupancy=1, use_reduced=True)
+        X = a.fit_transform([METHANE])
+        labels = a.get_labels()
+        self.assertEqual(X.shape[2], len(labels))
+        expected = ('local-coul_0-0', 'local-coul_0-1', 'local-coul_1-1')
         self.assertEqual(labels, expected)
 
 
