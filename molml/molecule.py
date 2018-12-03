@@ -69,7 +69,7 @@ class Connectivity(SetMergeMixin, BaseFeature):
     Molecular Descriptors For Use With Machine Learning. arXiv:1701.06649
     """
     ATTRIBUTES = ("_base_chains", "_idf_values")
-    LABELS = ("_base_chains", )
+    LABELS = (("get_chain_labels", "_base_chains"), )
 
     def __init__(self, input_type='list', n_jobs=1, depth=1,
                  use_bond_order=False, use_coordination=False,
@@ -296,6 +296,9 @@ class Connectivity(SetMergeMixin, BaseFeature):
                     unknown += value
             vector.append(unknown)
         return vector
+
+    def get_chain_labels(self, chains):
+        return ['-'.join(x) for x in chains]
 
 
 class Autocorrelation(BaseFeature):
