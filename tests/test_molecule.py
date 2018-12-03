@@ -763,6 +763,19 @@ class CoulombMatrixTest(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
+    def test_get_coulomb_labels(self):
+        a = CoulombMatrix()
+        labels = a.get_coulomb_labels(2)
+        expected = [
+            'coul-0-0', 'coul-0-1',
+            'coul-1-0', 'coul-1-1',
+        ]
+        self.assertEqual(labels, expected)
+        a = CoulombMatrix(eigen=True)
+        labels = a.get_coulomb_labels(2)
+        expected = ['coul-0', 'coul-1']
+        self.assertEqual(labels, expected)
+
 
 class BagOfBondsTest(unittest.TestCase):
 
@@ -841,6 +854,16 @@ class BagOfBondsTest(unittest.TestCase):
         a = BagOfBonds()
         with self.assertRaises(ValueError):
             a.transform(ALL_DATA)
+
+    def test_get_bob_labels(self):
+        bags = {('A', 'B'): 2, ('C', 'D'): 3}
+        a = BagOfBonds()
+        labels = a.get_bob_labels(bags)
+        expected = [
+            'A-B_0', 'A-B_1',
+            'C-D_0', 'C-D_1', 'C-D_2',
+        ]
+        self.assertEqual(labels, expected)
 
 
 if __name__ == '__main__':

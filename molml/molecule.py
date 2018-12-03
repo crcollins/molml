@@ -792,7 +792,7 @@ class CoulombMatrix(BaseFeature):
     Atomization Energies. J. Chem. Theory Comput. 2013, 9, 3404-3419.
     """
     ATTRIBUTES = ("_max_size", )
-    LABELS = None
+    LABELS = (("get_coulomb_labels", "_max_size"), )
 
     def __init__(self, input_type='list', n_jobs=1, sort=False, eigen=False,
                  drop_values=False):
@@ -894,6 +894,15 @@ class CoulombMatrix(BaseFeature):
                            mode="constant")
         return values.reshape(-1)
 
+    def get_coulomb_labels(self, max_size):
+        if self.eigen:
+            return ['coul-%d' % i for i in range(max_size)]
+        labels = []
+        for i in range(max_size):
+            for j in range(max_size):
+                labels.append('coul-%d-%d' % (i, j))
+        return labels
+
 
 class BagOfBonds(BaseFeature):
     """
@@ -935,7 +944,7 @@ class BagOfBonds(BaseFeature):
     Chemical Space. J. Phys. Chem. Lett. 2015, 6, 2326-2331.
     """
     ATTRIBUTES = ("_bag_sizes", )
-    LABELS = ("_bag_sizes", )
+    LABELS = (("get_bob_labels", "_bag_sizes"), )
 
     def __init__(self, input_type='list', n_jobs=1, drop_values=False):
         super(BagOfBonds, self).__init__(input_type=input_type, n_jobs=n_jobs)
@@ -1080,3 +1089,10 @@ class BagOfBonds(BaseFeature):
             bags[ele1, ele2][:len(values)] = values
         order = sorted(bags)
         return sum((bags[key] for key in order), [])
+
+    def get_bob_labels(self, bag_sizes):
+        labels = []
+        for bag, size in sorted(bag_sizes.items()):
+            name = '-'.join(bag)
+            labels.extend(['%s_%d' % (name, i) for i in range(size)])
+        return labels
