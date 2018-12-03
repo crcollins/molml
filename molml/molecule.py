@@ -54,6 +54,10 @@ class Connectivity(SetMergeMixin, BaseFeature):
         Specifies whether or not to include an extra UNKNOWN count in the
         feature vector.
 
+    do_tfidf : boolean, default=False
+        Apply weighting to counts based on their inverse document (molecule)
+        frequency.
+
     Attributes
     ----------
     _base_chains : set, tuples
