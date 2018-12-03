@@ -639,7 +639,8 @@ class LocalCoulombMatrix(BaseFeature):
             if self.use_reduced:
                 # skip the first value in the diag because it is already in
                 # the first row
-                vectors.append(mat[sorting[0]].tolist() + numpy.diag(mat)[1:])
+                diag = numpy.diag(mat)[1:].tolist()
+                vectors.append(mat[sorting[0]].tolist() + diag)
             else:
                 vectors.append(mat[sorting].flatten())
         return numpy.array(vectors)
