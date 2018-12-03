@@ -204,7 +204,16 @@ class BaseFeature(object):
         if self.LABELS is None:
             return tuple()
 
-        values = [tuple(sorted(getattr(self, x))) for x in self.LABELS]
+        values = []
+        for x in self.LABELS:
+            try:
+                func_name, data_name = x
+                func = getattr(self, func_name)
+                data = getattr(self, data_name)
+                temp = func(data)
+            except (TypeError, ValueError):
+                temp = sorted(getattr(self, x))
+            values.append(tuple(temp))
         return sum(values, tuple())
 
     def check_fit(self):

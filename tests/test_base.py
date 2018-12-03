@@ -80,6 +80,28 @@ class TestFeature3(BaseFeature):
     ATTRIBUTES = None
 
 
+class TestFeature4(BaseFeature):
+    '''
+    Some example doc string.
+
+    References
+    ----------
+    Doe, J. Nature. (2016).
+
+    Smith, J. Science. (2010).
+    '''
+    LABELS = (('func', 'labels'), )
+    ATTRIBUTES = ('data1', 'data2')
+
+    def __init__(self, value=None):
+        self.labels = ('A', 'B', 'C')
+        self.data1 = value
+        self.data2 = value
+
+    def func(self, labels):
+        return labels
+
+
 #################################################
 class OtherTest(unittest.TestCase):
 
@@ -221,6 +243,8 @@ class BaseFeatureTest(unittest.TestCase):
         self.assertEqual(b.get_labels(), ('A', 'B', 'C', 'CC', 'DD'))
         c = TestFeature3()
         self.assertEqual(c.get_labels(), tuple())
+        d = TestFeature4()
+        self.assertEqual(d.get_labels(), ('A', 'B', 'C'))
 
     def test_check_fit(self):
         a = TestFeature1(data=1)
