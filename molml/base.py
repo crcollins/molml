@@ -209,8 +209,11 @@ class BaseFeature(object):
             try:
                 func_name, data_name = x
                 func = getattr(self, func_name)
-                data = getattr(self, data_name)
-                temp = func(data)
+                if data_name is None:
+                    temp = func()
+                else:
+                    data = getattr(self, data_name)
+                    temp = func(data)
             except (TypeError, ValueError):
                 temp = sorted(getattr(self, x))
             values.append(tuple(temp))
