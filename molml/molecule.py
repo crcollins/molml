@@ -364,7 +364,7 @@ class Autocorrelation(BaseFeature):
         if properties is None:
             properties = sorted(self.functions.keys())
         self.properties = properties
-        self._labels = ['%s%s' % pair for pair in
+        self._labels = ['%s_%s' % pair for pair in
                         product(self.properties, self.depths)]
 
     def fit(self, X, y=None):
