@@ -709,7 +709,7 @@ class BehlerParrinello(SetMergeMixin, BaseFeature):
     High-Dimensional Potential-Energy Surfaces. Phys. Rev. Lett. 98, 146401.
     """
     ATTRIBUTES = ("_elements", "_element_pairs")
-    LABELS = ("_elements", "_element_pairs")
+    LABELS = ("_elements", ("get_chain_labels", "_element_pairs"))
 
     def __init__(self, input_type='list', n_jobs=1, r_cut=6.0, r_s=1., eta=1.,
                  lambda_=1., zeta=1.):
@@ -917,3 +917,6 @@ class BehlerParrinello(SetMergeMixin, BaseFeature):
         g1 = self.g_1(R, data.elements)
         g2 = self.g_2(Theta, R, data.elements)
         return numpy.hstack([g1, g2])
+
+    def get_chain_labels(self, chains):
+        return ['-'.join(x) for x in chains]
