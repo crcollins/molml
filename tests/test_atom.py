@@ -265,6 +265,17 @@ class LocalEncodedBondTest(unittest.TestCase):
         m = a.fit_transform([METHANE])
         self.assertEqual(m.shape, (1, 5, 100))
 
+    def test_get_labels(self):
+        a = LocalEncodedBond(segments=2, start=0., end=1.)
+        m = a.fit_transform([METHANE])
+        labels = a.get_labels()
+        self.assertEqual(m.shape[2], len(labels))
+        expected = (
+            'C_0.0', 'C_1.0',
+            'H_0.0', 'H_1.0',
+        )
+        self.assertEqual(labels, expected)
+
 
 class LocalEncodedAngleTest(unittest.TestCase):
 
@@ -351,6 +362,17 @@ class LocalEncodedAngleTest(unittest.TestCase):
         a = LocalEncodedAngle(form=0)
         m = a.fit_transform([METHANE])
         self.assertEqual(m.shape, (1, 5, 100))
+
+    def test_get_labels(self):
+        a = LocalEncodedAngle(segments=2)
+        m = a.fit_transform([METHANE])
+        labels = a.get_labels()
+        self.assertEqual(m.shape[2], len(labels))
+        expected = (
+            'C-H_0.0', 'C-H_3.14159265359',
+            'H-H_0.0', 'H-H_3.14159265359',
+        )
+        self.assertEqual(labels, expected)
 
 
 class LocalCoulombMatrixTest(unittest.TestCase):
@@ -566,6 +588,14 @@ class BehlerParrinelloTest(unittest.TestCase):
                 expected)
         except AssertionError as e:
             self.fail(e)
+
+    def test_get_labels(self):
+        a = BehlerParrinello()
+        m = a.fit_transform([METHANE])
+        labels = a.get_labels()
+        self.assertEqual(m[0].shape[1], len(labels))
+        expected = ('C', 'H', 'C-H', 'H-H')
+        self.assertEqual(labels, expected)
 
 
 if __name__ == '__main__':

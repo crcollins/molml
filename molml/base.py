@@ -629,7 +629,7 @@ class EncodedFeature(BaseFeature):
     def get_encoded_labels(self, groups):
         theta, theta_func = self._get_theta_info()
         labels = []
-        for group in groups:
+        for group in sorted(groups):
             name = '-'.join(group)
             for x in theta:
                 labels.append('%s_%s' % (name, x))

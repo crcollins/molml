@@ -148,6 +148,30 @@ class ConnectivityTest(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
+    def test_get_labels(self):
+        a = Connectivity(depth=2)
+        X = a.fit_transform([METHANE])
+        labels = a.get_labels()
+        self.assertEqual(X.shape[1], len(labels))
+        expected = ('C-H', )
+        self.assertEqual(labels, expected)
+
+    def test_get_label_coordination(self):
+        a = Connectivity(depth=1, use_coordination=True)
+        X = a.fit_transform([METHANE])
+        labels = a.get_labels()
+        self.assertEqual(X.shape[1], len(labels))
+        expected = ('C4', 'H1')
+        self.assertEqual(labels, expected)
+
+    def test_get_label_bond_order(self):
+        a = Connectivity(depth=3, use_bond_order=True)
+        X = a.fit_transform([METHANE])
+        labels = a.get_labels()
+        self.assertEqual(X.shape[1], len(labels))
+        expected = ('H-C-1_C-H-1', )
+        self.assertEqual(labels, expected)
+
 
 class AutocorrelationTest(unittest.TestCase):
 
@@ -240,6 +264,17 @@ class AutocorrelationTest(unittest.TestCase):
             [104],
         ])
         self.assertTrue((a.fit_transform(ALL_DATA) == expected).all())
+
+    def test_get_labels(self):
+        a = Autocorrelation(depths=[1, 2], properties=['I', 'EN'])
+        X = a.fit_transform([METHANE])
+        labels = a.get_labels()
+        self.assertEqual(X.shape[1], len(labels))
+        expected = (
+            'EN_1', 'EN_2',
+            'I_1', 'I_2',
+        )
+        self.assertEqual(labels, expected)
 
 
 class EncodedBondTest(unittest.TestCase):
@@ -479,6 +514,17 @@ class EncodedBondTest(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
+    def test_get_labels(self):
+        a = EncodedBond(segments=2, start=0., end=1.)
+        X = a.fit_transform([METHANE])
+        labels = a.get_labels()
+        self.assertEqual(X.shape[1], len(labels))
+        expected = (
+            'C-H_0.0', 'C-H_1.0',
+            'H-H_0.0', 'H-H_1.0',
+        )
+        self.assertEqual(labels, expected)
+
 
 class EncodedAngleTest(unittest.TestCase):
 
@@ -645,6 +691,19 @@ class EncodedAngleTest(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
+    def test_get_labels(self):
+        a = EncodedAngle(segments=2)
+        X = a.fit_transform([METHANE])
+        labels = a.get_labels()
+        self.assertEqual(X.shape[1], len(labels))
+        expected = (
+            'C-H-C_0.0', 'C-H-C_3.14159265359',
+            'C-H-H_0.0', 'C-H-H_3.14159265359',
+            'H-C-H_0.0', 'H-C-H_3.14159265359',
+            'H-H-H_0.0', 'H-H-H_3.14159265359',
+        )
+        self.assertEqual(labels, expected)
+
 
 class CoulombMatrixTest(unittest.TestCase):
 
@@ -763,17 +822,26 @@ class CoulombMatrixTest(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
-    def test_get_coulomb_labels(self):
+    def test_get_labels(self):
         a = CoulombMatrix()
-        labels = a.get_coulomb_labels(2)
-        expected = [
-            'coul-0-0', 'coul-0-1',
-            'coul-1-0', 'coul-1-1',
-        ]
+        X = a.fit_transform([METHANE])
+        labels = a.get_labels()
+        self.assertEqual(X.shape[1], len(labels))
+        expected = (
+            'coul-0-0', 'coul-0-1', 'coul-0-2', 'coul-0-3', 'coul-0-4',
+            'coul-1-0', 'coul-1-1', 'coul-1-2', 'coul-1-3', 'coul-1-4',
+            'coul-2-0', 'coul-2-1', 'coul-2-2', 'coul-2-3', 'coul-2-4',
+            'coul-3-0', 'coul-3-1', 'coul-3-2', 'coul-3-3', 'coul-3-4',
+            'coul-4-0', 'coul-4-1', 'coul-4-2', 'coul-4-3', 'coul-4-4',
+        )
         self.assertEqual(labels, expected)
+
+    def test_get_labels_eigen(self):
         a = CoulombMatrix(eigen=True)
-        labels = a.get_coulomb_labels(2)
-        expected = ['coul-0', 'coul-1']
+        X = a.fit_transform([METHANE])
+        labels = a.get_labels()
+        self.assertEqual(X.shape[1], len(labels))
+        expected = ('coul-0', 'coul-1', 'coul-2', 'coul-3', 'coul-4')
         self.assertEqual(labels, expected)
 
 
@@ -855,14 +923,16 @@ class BagOfBondsTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             a.transform(ALL_DATA)
 
-    def test_get_bob_labels(self):
-        bags = {('A', 'B'): 2, ('C', 'D'): 3}
+    def test_get_labels(self):
         a = BagOfBonds()
-        labels = a.get_bob_labels(bags)
-        expected = [
-            'A-B_0', 'A-B_1',
-            'C-D_0', 'C-D_1', 'C-D_2',
-        ]
+        X = a.fit_transform([METHANE])
+        labels = a.get_labels()
+        self.assertEqual(X.shape[1], len(labels))
+        expected = (
+            'C-H_0', 'C-H_1', 'C-H_2', 'C-H_3',
+            'H-H_0', 'H-H_1', 'H-H_2',
+            'H-H_3', 'H-H_4', 'H-H_5',
+        )
         self.assertEqual(labels, expected)
 
 

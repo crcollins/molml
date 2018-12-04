@@ -817,7 +817,7 @@ class BehlerParrinello(SetMergeMixin, BaseFeature):
         R2 = self.eta * R ** 2
         new_Theta = (1 + self.lambda_ * Theta) ** self.zeta
 
-        get_index, length, _ = get_index_mapping(self._element_pairs,
+        get_index, length, _ = get_index_mapping(sorted(self._element_pairs),
                                                  2,
                                                  False)
 
@@ -919,4 +919,4 @@ class BehlerParrinello(SetMergeMixin, BaseFeature):
         return numpy.hstack([g1, g2])
 
     def get_chain_labels(self, chains):
-        return ['-'.join(x) for x in chains]
+        return ['-'.join(x) for x in sorted(chains)]

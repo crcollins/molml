@@ -298,7 +298,9 @@ class Connectivity(SetMergeMixin, BaseFeature):
         return vector
 
     def get_chain_labels(self, chains):
-        return ['-'.join(x) for x in chains]
+        if self.use_bond_order:
+            return ['_'.join(['-'.join(y) for y in x]) for x in sorted(chains)]
+        return ['-'.join(x) for x in sorted(chains)]
 
 
 class Autocorrelation(BaseFeature):
