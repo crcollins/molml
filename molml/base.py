@@ -632,5 +632,5 @@ class EncodedFeature(BaseFeature):
         for group in groups:
             name = '-'.join(group)
             for x in theta:
-                labels.append('%s_%s' % (name, x))
+                labels.append('%s_%s' % (name, round(x, 5)))
         return labels

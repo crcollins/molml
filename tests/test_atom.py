@@ -366,8 +366,8 @@ class LocalEncodedAngleTest(unittest.TestCase):
         labels = a.get_labels()
         self.assertEqual(m.shape[2], len(labels))
         expected = (
-            'C-H_0.0', 'C-H_3.14159265359',
-            'H-H_0.0', 'H-H_3.14159265359',
+            'C-H_0.0', 'C-H_3.14159',
+            'H-H_0.0', 'H-H_3.14159',
         )
         self.assertEqual(labels, expected)
 

@@ -694,10 +694,10 @@ class EncodedAngleTest(unittest.TestCase):
         labels = a.get_labels()
         self.assertEqual(X.shape[1], len(labels))
         expected = (
-            'C-H-C_0.0', 'C-H-C_3.14159265359',
-            'C-H-H_0.0', 'C-H-H_3.14159265359',
-            'H-C-H_0.0', 'H-C-H_3.14159265359',
-            'H-H-H_0.0', 'H-H-H_3.14159265359',
+            'C-H-C_0.0', 'C-H-C_3.14159',
+            'C-H-H_0.0', 'C-H-H_3.14159',
+            'H-C-H_0.0', 'H-C-H_3.14159',
+            'H-H-H_0.0', 'H-H-H_3.14159',
         )
         self.assertEqual(labels, expected)
 
