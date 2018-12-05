@@ -492,6 +492,17 @@ class EncodedAngle(SetMergeMixin, EncodedFeature):
         value : list
             All the elements in the molecule
         """
+        # The creation of these triples could be done in several different
+        # ways. Other approaches include filtering "impossible" duplicates
+        # such as C-H-C in methane, or creating only the all combinations of
+        # element triples. Loosely, this is something like:
+        # combinations(sum([[ele]*min(num) for
+        #              ele, num in Counter(elements)], []), 3).
+        # In all the tests that were done, these approaches, while they might
+        # be more "correct", perform significantly worse than the procedure
+        # here (in terms of predictions). Similar issues arise in
+        # _para_transform if i == k is removed.
+
         data = self.convert_input(X)
         pairs = get_element_pairs(data.elements)
         res = []
