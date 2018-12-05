@@ -61,15 +61,13 @@ class ShellTest(unittest.TestCase):
     def test_fit(self):
         a = Shell(depth=1)
         a.fit(ALL_DATA)
-        self.assertEqual(a._elements,
-                         set(['N', 'C', 'O', 'H']))
+        self.assertEqual(a._elements, ('C', 'H', 'N', 'O'))
 
     def test_fit_use_coordination(self):
         a = Shell(depth=1, use_coordination=True)
         a.fit(ALL_DATA)
-        self.assertEqual(a._elements,
-                         set(['H0', 'H1', 'O2', 'C4', 'N1', 'C3', 'C2', 'N2',
-                              'N3', 'C1', 'O1', 'O0']))
+        self.assertEqual(a._elements, ('C1', 'C2', 'C3', 'C4', 'H0', 'H1',
+                                       'N1', 'N2', 'N3', 'O0', 'O1', 'O2'))
 
     def test_transform(self):
         a = Shell()
@@ -188,8 +186,7 @@ class LocalEncodedBondTest(unittest.TestCase):
     def test_fit(self):
         a = LocalEncodedBond()
         a.fit(ALL_DATA)
-        self.assertEqual(a._elements,
-                         set(['N', 'C', 'O', 'H']))
+        self.assertEqual(a._elements, ('C', 'H', 'N', 'O'))
 
     def test_transform(self):
         a = LocalEncodedBond()
@@ -282,9 +279,9 @@ class LocalEncodedAngleTest(unittest.TestCase):
     def test_fit(self):
         a = LocalEncodedAngle()
         a.fit(ALL_DATA)
-        expected = set([('C', 'C'), ('C', 'H'), ('C', 'N'), ('C', 'O'),
-                        ('H', 'H'), ('H', 'N'), ('H', 'O'), ('N', 'N'),
-                        ('N', 'O'), ('O', 'O')])
+        expected = (('C', 'C'), ('C', 'H'), ('C', 'N'), ('C', 'O'),
+                    ('H', 'H'), ('H', 'N'), ('H', 'O'), ('N', 'N'),
+                    ('N', 'O'), ('O', 'O'))
         self.assertEqual(a._pairs, expected)
 
     def test_transform(self):
@@ -513,10 +510,10 @@ class BehlerParrinelloTest(unittest.TestCase):
     def test_fit(self):
         a = BehlerParrinello()
         a.fit(ALL_DATA)
-        eles = set(['H', 'C', 'O', 'N'])
-        pairs = set([('H', 'O'), ('C', 'H'), ('H', 'N'), ('C', 'C'),
-                     ('H', 'H'), ('O', 'O'), ('C', 'N'), ('N', 'O'),
-                     ('C', 'O'), ('N', 'N')])
+        eles = ('C', 'H', 'N', 'O')
+        pairs = (('C', 'C'), ('C', 'H'), ('C', 'N'), ('C', 'O'),
+                 ('H', 'H'), ('H', 'N'), ('H', 'O'), ('N', 'N'),
+                 ('N', 'O'), ('O', 'O'))
         self.assertEqual(a._elements, eles)
         self.assertEqual(a._element_pairs, pairs)
 

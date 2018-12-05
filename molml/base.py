@@ -215,7 +215,7 @@ class BaseFeature(object):
                     data = getattr(self, data_name)
                     temp = func(data)
             except (TypeError, ValueError):
-                temp = sorted(getattr(self, x))
+                temp = getattr(self, x)
             values.append(tuple(temp))
         return sum(values, tuple())
 
@@ -462,10 +462,10 @@ class SetMergeMixin(object):
                                                   for xx, yy in zip(x, y)),
                                res)
             for attr, vals in zip(self.ATTRIBUTES, temp):
-                setattr(self, attr, set(vals))
+                setattr(self, attr, tuple(sorted(set(vals))))
         else:
             vals = self.reduce(lambda x, y: set(x) | set(y), res)
-            setattr(self, self.ATTRIBUTES[0], set(vals))
+            setattr(self, self.ATTRIBUTES[0], tuple(sorted(set(vals))))
         return self
 
 
@@ -629,7 +629,7 @@ class EncodedFeature(BaseFeature):
     def get_encoded_labels(self, groups):
         theta, theta_func = self._get_theta_info()
         labels = []
-        for group in sorted(groups):
+        for group in groups:
             name = '-'.join(group)
             for x in theta:
                 labels.append('%s_%s' % (name, x))

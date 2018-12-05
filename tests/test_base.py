@@ -253,9 +253,9 @@ class BaseFeatureTest(unittest.TestCase):
 
     def test_get_labels(self):
         a = TestFeature1()
-        self.assertEqual(a.get_labels(), ('A', 'B', 'C'))
+        self.assertEqual(a.get_labels(), ('C', 'B', 'A'))
         b = TestFeature2()
-        self.assertEqual(b.get_labels(), ('A', 'B', 'C', 'CC', 'DD'))
+        self.assertEqual(b.get_labels(), ('A', 'B', 'C', 'DD', 'CC'))
         c = TestFeature3()
         self.assertEqual(c.get_labels(), tuple())
         d = TestFeature4()
@@ -378,8 +378,8 @@ class TestSetMergeMixin(unittest.TestCase):
 
         a = TestFeature(input_type="filename")
         a.fit([METHANE_PATH, METHANE_PATH])
-        self.assertEqual({1, 2, 3}, a.test1)
-        self.assertEqual({2, 3, 4}, a.test2)
+        self.assertEqual((1, 2, 3), a.test1)
+        self.assertEqual((2, 3, 4), a.test2)
 
     def test_fit(self):
         class TestFeature(SetMergeMixin, BaseFeature):
@@ -393,7 +393,7 @@ class TestSetMergeMixin(unittest.TestCase):
 
         a = TestFeature(input_type="filename")
         a.fit([METHANE_PATH, METHANE_PATH])
-        self.assertEqual({1, 2, 3}, a.test1)
+        self.assertEqual((1, 2, 3), a.test1)
 
 
 class Feature(InputTypeMixin, BaseFeature):

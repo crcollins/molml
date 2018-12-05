@@ -60,7 +60,7 @@ class Connectivity(SetMergeMixin, BaseFeature):
 
     Attributes
     ----------
-    _base_chains : set, tuples
+    _base_chains : tuple, tuples
         All the chains that are in the fit molecules.
 
     References
@@ -248,7 +248,7 @@ class Connectivity(SetMergeMixin, BaseFeature):
     def fit(self, X, y=None):
         res = self.map(self._para_fit, X)
         vals = self.reduce(lambda x, y: set(x) | set(y), res)
-        self._base_chains = set(vals)
+        self._base_chains = tuple(sorted(vals))
 
         if self.do_tfidf:
             self._idf_values = self._idf(res)
@@ -283,7 +283,7 @@ class Connectivity(SetMergeMixin, BaseFeature):
         tallies = self._tally_chains(chains, data.elements, data.connections)
 
         vector = []
-        for x in sorted(self._base_chains):
+        for x in self._base_chains:
             value = tallies.get(x, 0)
             if self.do_tfidf:
                 value *= self._idf_values[x]
@@ -299,8 +299,8 @@ class Connectivity(SetMergeMixin, BaseFeature):
 
     def get_chain_labels(self, chains):
         if self.use_bond_order:
-            return ['_'.join(['-'.join(y) for y in x]) for x in sorted(chains)]
-        return ['-'.join(x) for x in sorted(chains)]
+            return ['_'.join(['-'.join(y) for y in x]) for x in chains]
+        return ['-'.join(x) for x in chains]
 
 
 class Autocorrelation(BaseFeature):
@@ -367,8 +367,8 @@ class Autocorrelation(BaseFeature):
             depths = list(range(4))
         self.depths = depths
         if properties is None:
-            properties = sorted(self.functions.keys())
-        self.properties = properties
+            properties = self.functions.keys()
+        self.properties = sorted(properties, key=lambda x: str(x))
         self._labels = ['%s_%s' % pair for pair in
                         product(self.properties, self.depths)]
 
@@ -455,8 +455,8 @@ class EncodedAngle(SetMergeMixin, EncodedFeature):
 
     Attributes
     ----------
-    _groups : set, tuples
-        A list of all the groups (element chains) in the fit molecules.
+    _groups : tuple, tuples
+        A tuple of all the groups (element chains) in the fit molecules.
     """
     ATTRIBUTES = ("_groups", )
     LABELS = (("get_encoded_labels", "_groups"), )
@@ -653,8 +653,8 @@ class EncodedBond(SetMergeMixin, EncodedFeature):
 
     Attributes
     ----------
-    _element_pairs : set, tuples
-        A list of all the element pairs in the fit molecules.
+    _element_pairs : tuple, tuples
+        A tuple of all the element pairs in the fit molecules.
 
     References
     ----------
@@ -1041,7 +1041,8 @@ class BagOfBonds(BaseFeature):
             Returns the instance itself.
         """
         bags = self.map(self._para_fit, X)
-        self._bag_sizes = self.reduce(self._max_merge_dict, bags)
+        d = self.reduce(self._max_merge_dict, bags)
+        self._bag_sizes = tuple(sorted(d.items()))
         return self
 
     def _para_transform(self, X):
@@ -1077,8 +1078,7 @@ class BagOfBonds(BaseFeature):
         temp = sorted(zip(data.elements, data.coords), key=lambda x: x[0])
         elements, coords = zip(*temp)
 
-        bags = {key: [0 for i in range(value)]
-                for key, value in self._bag_sizes.items()}
+        bags = {k: [0 for i in range(v)] for k, v in self._bag_sizes}
         coulomb_matrix = get_coulomb_matrix(data.numbers, coords)
 
         ele_array = numpy.array(elements)
@@ -1103,12 +1103,12 @@ class BagOfBonds(BaseFeature):
                 values = values[:len(bags[ele1, ele2])]
 
             bags[ele1, ele2][:len(values)] = values
-        order = sorted(bags)
+        order = [x[0] for x in self._bag_sizes]
         return sum((bags[key] for key in order), [])
 
     def get_bob_labels(self, bag_sizes):
         labels = []
-        for bag, size in sorted(bag_sizes.items()):
+        for bag, size in bag_sizes:
             name = '-'.join(bag)
             labels.extend(['%s_%d' % (name, i) for i in range(size)])
         return labels

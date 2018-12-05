@@ -31,14 +31,12 @@ class ConnectivityTest(unittest.TestCase):
     def test_fit_atom(self):
         a = Connectivity(depth=1)
         a.fit(ALL_DATA)
-        self.assertEqual(a._base_chains,
-                         set([('N',), ('C',), ('O',), ('H',)]))
+        self.assertEqual(a._base_chains, (('C',), ('H',), ('N',), ('O',)))
 
     def test_fit_atom_separated(self):
         a = Connectivity(depth=1)
         a.fit([METHANE2])
-        self.assertEqual(a._base_chains,
-                         set([('C',), ('H',)]))
+        self.assertEqual(a._base_chains, (('C',), ('H',)))
         self.assertTrue(
             (a.transform([METHANE2]) == numpy.array([[1, 4]])).all())
 
@@ -46,63 +44,62 @@ class ConnectivityTest(unittest.TestCase):
         a = Connectivity(depth=2)
         a.fit(ALL_DATA)
         self.assertEqual(a._base_chains,
-                         set([('H', 'O'), ('C', 'H'), ('H', 'N'), ('C', 'C'),
-                              ('H', 'H'), ('O', 'O'), ('C', 'N'), ('C', 'O')]))
+                         (('C', 'C'), ('C', 'H'), ('C', 'N'), ('C', 'O'),
+                          ('H', 'H'), ('H', 'N'), ('H', 'O'), ('O', 'O')))
 
     def test_fit_angle(self):
         a = Connectivity(depth=3)
         a.fit(ALL_DATA)
         self.assertEqual(a._base_chains,
-                         set([('H', 'N', 'H'), ('C', 'N', 'H'),
-                              ('C', 'C', 'O'), ('N', 'C', 'N'),
-                              ('C', 'O', 'C'), ('C', 'N', 'C'),
-                              ('H', 'C', 'H'), ('C', 'O', 'H'),
-                              ('C', 'C', 'C'), ('C', 'C', 'H'),
-                              ('H', 'C', 'O'), ('N', 'C', 'O'),
-                              ('H', 'C', 'N'), ('C', 'C', 'N')]))
+                         (('C', 'C', 'C'), ('C', 'C', 'H'),
+                          ('C', 'C', 'N'), ('C', 'C', 'O'),
+                          ('C', 'N', 'C'), ('C', 'N', 'H'),
+                          ('C', 'O', 'C'), ('C', 'O', 'H'),
+                          ('H', 'C', 'H'), ('H', 'C', 'N'),
+                          ('H', 'C', 'O'), ('H', 'N', 'H'),
+                          ('N', 'C', 'N'), ('N', 'C', 'O')))
 
     def test_fit_dihedral(self):
         # This is to test the double order flipping (CCCH vs HCCC)
         a = Connectivity(depth=4)
         a.fit(ALL_DATA)
         self.assertEqual(a._base_chains,
-                         set([('N', 'C', 'N', 'C'), ('C', 'C', 'C', 'O'),
-                              ('H', 'C', 'O', 'C'), ('H', 'C', 'C', 'N'),
-                              ('H', 'C', 'N', 'C'), ('N', 'C', 'C', 'O'),
-                              ('C', 'C', 'C', 'N'), ('H', 'C', 'C', 'H'),
-                              ('C', 'C', 'N', 'C'), ('O', 'C', 'N', 'C'),
-                              ('C', 'C', 'O', 'C'), ('C', 'C', 'C', 'H'),
-                              ('C', 'C', 'C', 'C'), ('H', 'C', 'C', 'O'),
-                              ('C', 'C', 'N', 'H'), ('N', 'C', 'O', 'H'),
-                              ('C', 'C', 'O', 'H'), ('N', 'C', 'N', 'H')]))
+                         (('C', 'C', 'C', 'C'), ('C', 'C', 'C', 'H'),
+                          ('C', 'C', 'C', 'N'), ('C', 'C', 'C', 'O'),
+                          ('C', 'C', 'N', 'C'), ('C', 'C', 'N', 'H'),
+                          ('C', 'C', 'O', 'C'), ('C', 'C', 'O', 'H'),
+                          ('H', 'C', 'C', 'H'), ('H', 'C', 'C', 'N'),
+                          ('H', 'C', 'C', 'O'), ('H', 'C', 'N', 'C'),
+                          ('H', 'C', 'O', 'C'), ('N', 'C', 'C', 'O'),
+                          ('N', 'C', 'N', 'C'), ('N', 'C', 'N', 'H'),
+                          ('N', 'C', 'O', 'H'), ('O', 'C', 'N', 'C')))
 
     def test_fit_atom_bond(self):
         # This should be the exact same thing as doing it with
         # use_bond_order=False
         a = Connectivity(depth=1, use_bond_order=True)
         a.fit(ALL_DATA)
-        self.assertEqual(a._base_chains,
-                         set([('N',), ('C',), ('O',), ('H',)]))
+        self.assertEqual(a._base_chains, (('C',), ('H',), ('N',), ('O',)))
 
     def test_fit_bond_bond(self):
         a = Connectivity(depth=2, use_bond_order=True)
         a.fit(ALL_DATA)
         self.assertEqual(a._base_chains,
-                         set([(('H', 'N', '1'),), (('C', 'N', '3'),),
-                              (('H', 'O', '1'),), (('H', 'H', '1'),),
-                              (('C', 'H', '1'),), (('O', 'O', '1'),),
-                              (('C', 'N', '2'),), (('C', 'O', '1'),),
-                              (('C', 'C', '3'),), (('C', 'N', 'Ar'),),
-                              (('C', 'C', '1'),), (('C', 'O', 'Ar'),),
-                              (('C', 'C', '2'),), (('C', 'C', 'Ar'),)]))
+                         ((('C', 'C', '1'),), (('C', 'C', '2'),),
+                          (('C', 'C', '3'),), (('C', 'C', 'Ar'),),
+                          (('C', 'H', '1'),), (('C', 'N', '2'),),
+                          (('C', 'N', '3'),), (('C', 'N', 'Ar'),),
+                          (('C', 'O', '1'),), (('C', 'O', 'Ar'),),
+                          (('H', 'H', '1'),), (('H', 'N', '1'),),
+                          (('H', 'O', '1'),), (('O', 'O', '1'),)))
 
     def test_fit_atom_coordination(self):
         a = Connectivity(depth=1, use_coordination=True)
         a.fit(ALL_DATA)
         self.assertEqual(a._base_chains,
-                         set([('C1',), ('N3',), ('N2',), ('O2',), ('N1',),
-                              ('O1',), ('C4',), ('H0',), ('H1',), ('O0',),
-                              ('C3',), ('C2',)]))
+                         (('C1',), ('C2',), ('C3',), ('C4',), ('H0',),
+                          ('H1',), ('N1',), ('N2',), ('N3',), ('O0',),
+                          ('O1',), ('O2',)))
 
     def test_transform(self):
         a = Connectivity()
@@ -240,9 +237,9 @@ class AutocorrelationTest(unittest.TestCase):
                                         [2 for x in data.numbers]])
         a.fit(ALL_DATA)
         expected = numpy.array([
-            [8, 32],
-            [8, 32],
-            [104, 416],
+            [32, 8],
+            [32, 8],
+            [416, 104],
         ])
         self.assertTrue((a.transform(ALL_DATA) == expected).all())
 
@@ -283,9 +280,9 @@ class EncodedBondTest(unittest.TestCase):
         a = EncodedBond()
         a.fit(ALL_DATA)
         self.assertEqual(a._element_pairs,
-                         set([('H', 'O'), ('O', 'O'), ('N', 'O'), ('C', 'O'),
-                              ('C', 'H'), ('H', 'N'), ('H', 'H'), ('C', 'C'),
-                              ('C', 'N'), ('N', 'N')]))
+                         (('C', 'C'), ('C', 'H'), ('C', 'N'), ('C', 'O'),
+                          ('H', 'H'), ('H', 'N'), ('H', 'O'), ('N', 'N'),
+                          ('N', 'O'), ('O', 'O')))
 
     def test_transform(self):
         a = EncodedBond()
@@ -531,20 +528,20 @@ class EncodedAngleTest(unittest.TestCase):
     def test_fit(self):
         a = EncodedAngle()
         a.fit(ALL_DATA)
-        expected = set([('C', 'N', 'C'), ('C', 'C', 'C'), ('H', 'H', 'H'),
-                        ('H', 'O', 'O'), ('O', 'N', 'O'), ('H', 'N', 'N'),
-                        ('C', 'H', 'H'), ('C', 'O', 'H'), ('C', 'H', 'C'),
-                        ('N', 'C', 'N'), ('O', 'O', 'O'), ('H', 'O', 'N'),
-                        ('H', 'N', 'O'), ('O', 'H', 'O'), ('H', 'H', 'N'),
-                        ('C', 'C', 'N'), ('H', 'N', 'H'), ('C', 'H', 'N'),
-                        ('H', 'C', 'O'), ('N', 'O', 'O'), ('N', 'N', 'N'),
-                        ('C', 'C', 'H'), ('C', 'O', 'O'), ('C', 'N', 'N'),
-                        ('H', 'O', 'H'), ('H', 'H', 'O'), ('C', 'C', 'O'),
-                        ('N', 'H', 'N'), ('C', 'H', 'O'), ('O', 'C', 'O'),
-                        ('H', 'C', 'N'), ('C', 'O', 'C'), ('N', 'O', 'N'),
-                        ('N', 'N', 'O'), ('C', 'N', 'O'), ('C', 'O', 'N'),
-                        ('H', 'C', 'H'), ('C', 'N', 'H'), ('N', 'H', 'O'),
-                        ('N', 'C', 'O')])
+        expected = (('C', 'C', 'C'), ('C', 'C', 'H'), ('C', 'C', 'N'),
+                    ('C', 'C', 'O'), ('C', 'H', 'C'), ('C', 'H', 'H'),
+                    ('C', 'H', 'N'), ('C', 'H', 'O'), ('C', 'N', 'C'),
+                    ('C', 'N', 'H'), ('C', 'N', 'N'), ('C', 'N', 'O'),
+                    ('C', 'O', 'C'), ('C', 'O', 'H'), ('C', 'O', 'N'),
+                    ('C', 'O', 'O'), ('H', 'C', 'H'), ('H', 'C', 'N'),
+                    ('H', 'C', 'O'), ('H', 'H', 'H'), ('H', 'H', 'N'),
+                    ('H', 'H', 'O'), ('H', 'N', 'H'), ('H', 'N', 'N'),
+                    ('H', 'N', 'O'), ('H', 'O', 'H'), ('H', 'O', 'N'),
+                    ('H', 'O', 'O'), ('N', 'C', 'N'), ('N', 'C', 'O'),
+                    ('N', 'H', 'N'), ('N', 'H', 'O'), ('N', 'N', 'N'),
+                    ('N', 'N', 'O'), ('N', 'O', 'N'), ('N', 'O', 'O'),
+                    ('O', 'C', 'O'), ('O', 'H', 'O'), ('O', 'N', 'O'),
+                    ('O', 'O', 'O'))
         self.assertEqual(a._groups, expected)
 
     def test_transform(self):
@@ -850,27 +847,27 @@ class BagOfBondsTest(unittest.TestCase):
     def test_fit(self):
         a = BagOfBonds()
         a.fit([METHANE])
-        expected_results = {
-            ('C', 'H'): 4,
-            ('H', 'H'): 6,
-        }
+        expected_results = (
+            (('C', 'H'), 4),
+            (('H', 'H'), 6),
+        )
         self.assertEqual(a._bag_sizes, expected_results)
 
     def test_fit_multi_mol(self):
         a = BagOfBonds()
         a.fit(ALL_DATA)
-        expected_results = {
-            ('H', 'O'): 60,
-            ('C', 'H'): 375,
-            ('H', 'N'): 75,
-            ('C', 'C'): 300,
-            ('H', 'H'): 105,
-            ('O', 'O'): 6,
-            ('C', 'N'): 125,
-            ('N', 'O'): 20,
-            ('C', 'O'): 100,
-            ('N', 'N'): 10,
-        }
+        expected_results = (
+            (('C', 'C'), 300),
+            (('C', 'H'), 375),
+            (('C', 'N'), 125),
+            (('C', 'O'), 100),
+            (('H', 'H'), 105),
+            (('H', 'N'), 75),
+            (('H', 'O'), 60),
+            (('N', 'N'), 10),
+            (('N', 'O'), 20),
+            (('O', 'O'), 6),
+        )
         self.assertEqual(a._bag_sizes, expected_results)
 
     def test_transform(self):

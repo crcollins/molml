@@ -51,7 +51,7 @@ class Shell(SetMergeMixin, BaseFeature):
 
     Attributes
     ----------
-    _elements : set
+    _elements : tuple
         All the elements/types that are in the fit molecules.
 
     References
@@ -190,12 +190,11 @@ class Shell(SetMergeMixin, BaseFeature):
         data = self.convert_input(X)
 
         vectors = []
-        order = sorted(self._elements)
         for atom in range(len(data.elements)):
             limits = self._loop_depth(atom, data.connections)
             tallies = self._tally_limits(limits, data.elements,
                                          data.connections)
-            vec = [tallies.get(x, 0) for x in order]
+            vec = [tallies.get(x, 0) for x in self._elements]
             if self.add_unknown:
                 unknown = 0
                 for key, value in tallies.items():
@@ -275,8 +274,8 @@ class LocalEncodedBond(SetMergeMixin, EncodedFeature):
 
     Attributes
     ----------
-    _elements : set
-        A set of all the elements in the fit molecules.
+    _elements : tuple
+        A tuple of all the elements in the fit molecules.
     """
     ATTRIBUTES = ("_elements", )
     LABELS = (("get_encoded_labels", "_elements"), )
@@ -421,8 +420,8 @@ class LocalEncodedAngle(SetMergeMixin, EncodedFeature):
 
     Attributes
     ----------
-    _pairs : set
-        A set of all the element pairs in the fit molecules.
+    _pairs : tuple
+        A tuple of all the element pairs in the fit molecules.
     """
     ATTRIBUTES = ("_pairs", )
     LABELS = (("get_encoded_labels", "_pairs"), )
@@ -697,10 +696,10 @@ class BehlerParrinello(SetMergeMixin, BaseFeature):
 
     Attributes
     ----------
-    _elements : set
+    _elements : tuple
         A set of all the elements in the molecules.
 
-    _element_pairs : set
+    _element_pairs : tuple
         A set of all the element pairs in the molecules.
 
     References
@@ -776,7 +775,7 @@ class BehlerParrinello(SetMergeMixin, BaseFeature):
         elements = numpy.array(elements)
 
         totals = []
-        for ele in sorted(self._elements):
+        for ele in self._elements:
             idxs = numpy.where(elements == ele)[0]
             total = values[:, idxs].sum(1)
             totals.append(total)
@@ -817,9 +816,7 @@ class BehlerParrinello(SetMergeMixin, BaseFeature):
         R2 = self.eta * R ** 2
         new_Theta = (1 + self.lambda_ * Theta) ** self.zeta
 
-        get_index, length, _ = get_index_mapping(sorted(self._element_pairs),
-                                                 2,
-                                                 False)
+        get_index, length, _ = get_index_mapping(self._element_pairs, 2, False)
 
         n = R.shape[0]
         values = numpy.zeros((n, length))
@@ -919,4 +916,4 @@ class BehlerParrinello(SetMergeMixin, BaseFeature):
         return numpy.hstack([g1, g2])
 
     def get_chain_labels(self, chains):
-        return ['-'.join(x) for x in sorted(chains)]
+        return ['-'.join(x) for x in chains]
