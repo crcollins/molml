@@ -198,8 +198,6 @@ class BaseFeature(object):
         -------
         values : tuple
             All of the labels of the resulting features.
-            Note: These may not be a one-to-one mapping, but rather the order
-            in which they occur.
         """
         if self.LABELS is None:
             return tuple()
