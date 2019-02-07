@@ -1,7 +1,7 @@
 import numpy as np
 
-from molml.features import Connectivity
-from molml.constants import BOND_LENGTHS
+from molml.features import Connectivity, Autocorrelation
+from molml.constants import BOND_LENGTHS, ELE_TO_NUM
 
 # Currently, there are two recommended ways to work with elements that are not
 # included in molml/constants.py. In this example, we will look at an iron
@@ -42,3 +42,15 @@ if __name__ == '__main__':
         6: {0: '1'},
     }
     print(feat.fit_transform([(elements, coords, connections)]))
+
+    # Other potential constant additions would be ELECTRONEGATIVITY or
+    # ELE_TO_NUM.
+    # NOTE: ELE_TO_NUM is a bidict mapping element symbols to atomic numbers,
+    # meaning ELE_TO_NUM.inv can be used for atomic number to element symbols.
+    ELE_TO_NUM['Fe'] = 26
+    numbers = [ELE_TO_NUM[x] for x in elements]
+    assert elements == [ELE_TO_NUM.inv[x] for x in numbers]
+    BOND_LENGTHS['Fe'] = {'1': 1.32}
+
+    feat2 = Autocorrelation(properties=('Z', 'R'))
+    print(feat2.fit_transform([(elements, coords)]))
