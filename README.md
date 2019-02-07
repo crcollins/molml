@@ -125,6 +125,7 @@ MolML works with both Python 2 and Python 3. It has been tested with the version
     numpy>=1.9.1
     scipy>=0.15.1
     pathos>=0.2.0
+    bidict>=0.17.5
     future  # For python 2
 
 
