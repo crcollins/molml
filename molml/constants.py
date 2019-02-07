@@ -1,4 +1,6 @@
-ELE_TO_NUM = {
+from bidict import bidict
+
+ELE_TO_NUM = bidict({
     'H': 1,
     'C': 6,
     'N': 7,
@@ -7,9 +9,7 @@ ELE_TO_NUM = {
     'P': 15,
     'S': 16,
     'Cl': 17,
-}
-NUM_TO_ELE = {y: x for x, y in ELE_TO_NUM.items()}
-
+})
 TYPE_ORDER = ['1', 'Ar', '2', '3']
 BOND_LENGTHS = {
     "C": {

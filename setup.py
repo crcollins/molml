@@ -34,6 +34,7 @@ setup(
     install_requires=[
         'pathos',
         'future',
+        'bidict',
     ],
     classifiers=[
                     "Intended Audience :: Developers",

@@ -13,7 +13,7 @@ from scipy.spatial.distance import cdist
 from scipy.special import expit
 import scipy.stats
 
-from .constants import ELE_TO_NUM, NUM_TO_ELE, TYPE_ORDER, BOND_LENGTHS
+from .constants import ELE_TO_NUM, TYPE_ORDER, BOND_LENGTHS
 
 
 def lerp_smooth(x):
@@ -386,7 +386,7 @@ class LazyValues(object):
     def elements(self):
         if self._elements is None:
             if self._numbers is not None:
-                temp = [NUM_TO_ELE[x] for x in self._numbers]
+                temp = [ELE_TO_NUM.inv[x] for x in self._numbers]
                 self._elements = numpy.array(temp)
             else:
                 raise ValueError("No numbers to convert to elements.")
