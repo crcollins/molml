@@ -327,9 +327,8 @@ class Autocorrelation(BaseFeature):
         features. Positive numbers specify a specifc amount, and numbers less
         than 1 will use the number of cores the computer has.
 
-    depths : list/tuple, default=None
+    depths : list/tuple, default=(0, 1, 2, 3)
         A list of depths to use for computing the autocorrelations functions.
-        If this value is None, [0, 1, 2, 3] will be used.
 
     properties : list/tuple, default=None
         A list/tuple of properties to use. Each of these properties should be
@@ -351,7 +350,7 @@ class Autocorrelation(BaseFeature):
     ATTRIBUTES = None
     LABELS = ('_labels', )
 
-    def __init__(self, input_type='list', n_jobs=1, depths=None,
+    def __init__(self, input_type='list', n_jobs=1, depths=(0, 1, 2, 3),
                  properties=None):
         super(Autocorrelation, self).__init__(input_type=input_type,
                                               n_jobs=n_jobs)
@@ -363,8 +362,6 @@ class Autocorrelation(BaseFeature):
             'I': lambda data: [1 for x in data.numbers],
             'R': lambda data: [BOND_LENGTHS[x]['1'] for x in data.elements],
         }
-        if depths is None:
-            depths = list(range(4))
         self.depths = depths
         if properties is None:
             properties = self.functions.keys()
