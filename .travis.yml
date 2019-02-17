@@ -29,7 +29,7 @@ before_install:
 install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy nose
   - pip install -q coveralls coverage future pathos
-  - pip install .
+  - pip install -e .
 
 script: 
   - nosetests --cover-branches --with-coverage --cover-package=molml --cover-erase
