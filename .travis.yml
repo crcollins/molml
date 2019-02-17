@@ -13,6 +13,7 @@ notifications:
 cache: pip
 
 before_install:
+  - sudo apt-get install pypandoc
   - pip install -U pip
 
 install:
