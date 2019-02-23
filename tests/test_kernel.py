@@ -51,7 +51,7 @@ class AtomKernelTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             a.transform(ALL)
 
-    def test_transfrom_features(self):
+    def test_transform_features(self):
         trans = Shell(input_type="filename")
         feats = trans.fit_transform(ALL)
         a = AtomKernel()
