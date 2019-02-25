@@ -29,29 +29,32 @@ class FragmentMapTest(unittest.TestCase):
         trans = Connectivity(input_type="filename")
         a = FragmentMap(transformer=trans, filename_to_label='identity',
                         label_to_filename=(DATA_PATH, ))
-        self.assertEqual(a.filename_to_label(METHANE_PATH), METHANE_PATH)
+        func = a._get_filename_to_label()
+        self.assertEqual(func(METHANE_PATH), METHANE_PATH)
 
     def test_callable_filename_to_label(self):
         trans = Connectivity(input_type="filename")
         a = FragmentMap(transformer=trans, filename_to_label=lambda x: x[-5:],
                         label_to_filename=(DATA_PATH, ))
-        self.assertEqual(a.filename_to_label(METHANE_PATH), METHANE_PATH[-5:])
+        func = a._get_filename_to_label()
+        self.assertEqual(func(METHANE_PATH), METHANE_PATH[-5:])
 
     def test_invalid_filename_to_label(self):
         trans = Connectivity(input_type="filename")
+        a = FragmentMap(transformer=trans, filename_to_label='bad')
         with self.assertRaises(KeyError):
-            FragmentMap(transformer=trans, filename_to_label='bad')
+            a.fit([ALL])
 
     def test_label_to_filename(self):
         trans = Connectivity(input_type="filename")
         a = FragmentMap(transformer=trans, label_to_filename=(DATA_PATH, ))
-        self.assertEqual(a.label_to_filename('methane'), METHANE_PATH)
+        self.assertEqual(a._get_label_to_filename()('methane'), METHANE_PATH)
 
     def test_label_to_filename_not_found(self):
         trans = Connectivity(input_type="filename")
         a = FragmentMap(transformer=trans, label_to_filename=(DATA_PATH, ))
         with self.assertRaises(ValueError):
-            a.label_to_filename('not real')
+            a._get_label_to_filename()('not real')
 
     def test_callable_label_to_filename(self):
         trans = Connectivity(input_type="filename")
@@ -60,7 +63,7 @@ class FragmentMapTest(unittest.TestCase):
             return os.path.join(DATA_PATH, x)
 
         a = FragmentMap(transformer=trans, label_to_filename=func)
-        self.assertEqual(a.label_to_filename('test'),
+        self.assertEqual(a._get_label_to_filename()('test'),
                          os.path.join(DATA_PATH, 'test'))
 
     def test_invalid_label_to_filename(self):

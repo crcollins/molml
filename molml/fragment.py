@@ -109,18 +109,8 @@ class FragmentMap(BaseFeature):
         if transformer is None:
             raise ValueError('transformer can not be None.')
         self.transformer = transformer
-
-        if callable(filename_to_label):
-            self.filename_to_label = filename_to_label
-        else:
-            self.filename_to_label = self.LABEL_FUNCTIONS[filename_to_label]
-
-        if callable(label_to_filename):
-            self.label_to_filename = label_to_filename
-        else:
-            self.label_to_filename = partial(_glob_search,
-                                             search_dirs=label_to_filename)
-
+        self.filename_to_label = filename_to_label
+        self.label_to_filename = label_to_filename
         self._x_fragments = None
         self._length = None
 
@@ -132,15 +122,29 @@ class FragmentMap(BaseFeature):
         self._length = max(len(x) for x in X)
         return self
 
+    def _get_filename_to_label(self):
+        if callable(self.filename_to_label):
+            return self.filename_to_label
+        else:
+            return self.LABEL_FUNCTIONS[self.filename_to_label]
+
+    def _get_label_to_filename(self):
+        if callable(self.label_to_filename):
+            return self.label_to_filename
+        else:
+            return partial(_glob_search, search_dirs=self.label_to_filename)
+
     def convert_input(self, X):
         if self.input_type == 'filename':
-            labels = [self.filename_to_label(x) for x in X]
+            func = self._get_filename_to_label()
+            labels = [func(x) for x in X]
             filenames = X
         elif self.input_type == 'label':
             filenames = []
+            func = self._get_label_to_filename()
             for x in X:
                 try:
-                    filenames.append(self.label_to_filename(x))
+                    filenames.append(func(x))
                 except ValueError:
                     pass
             labels = X
