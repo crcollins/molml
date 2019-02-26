@@ -160,7 +160,6 @@ class FragmentMap(BaseFeature):
     def _para_transform(self, X):
         self.check_fit()
         _, labels = self.convert_input(X)
-        # Still needs zero padding
         return numpy.array([self._lookup(x) for x in labels])
 
     def get_mapping_labels(self):
