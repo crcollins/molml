@@ -212,7 +212,10 @@ class BaseFeature(object):
                 else:
                     data = getattr(self, data_name)
                     temp = func(data)
-            except (TypeError, ValueError):
+            except (TypeError, ValueError) as e:
+                if len(x) == 2:
+                    # Error in calling the function
+                    raise e
                 temp = getattr(self, x)
             values.append(tuple(temp))
         return sum(values, tuple())
