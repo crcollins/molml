@@ -350,24 +350,29 @@ class Autocorrelation(BaseFeature):
     ATTRIBUTES = None
     LABELS = ('_labels', )
 
+    FUNCTIONS = {
+        'Z': lambda data: data.numbers,
+        'EN': lambda data: [ELECTRONEGATIVITY[x] for x in data.elements],
+        'CN': lambda data: [len(value) for key, value in
+                            data.connections.items()],
+        'I': lambda data: [1 for x in data.numbers],
+        'R': lambda data: [BOND_LENGTHS[x]['1'] for x in data.elements],
+    }
+
     def __init__(self, input_type='list', n_jobs=1, depths=(0, 1, 2, 3),
                  properties=None):
         super(Autocorrelation, self).__init__(input_type=input_type,
                                               n_jobs=n_jobs)
-        self.functions = {
-            'Z': lambda data: data.numbers,
-            'EN': lambda data: [ELECTRONEGATIVITY[x] for x in data.elements],
-            'CN': lambda data: [len(value) for key, value in
-                                data.connections.items()],
-            'I': lambda data: [1 for x in data.numbers],
-            'R': lambda data: [BOND_LENGTHS[x]['1'] for x in data.elements],
-        }
         self.depths = depths
-        if properties is None:
-            properties = self.functions.keys()
-        self.properties = sorted(properties, key=lambda x: str(x))
+        self.properties = properties
         self._labels = ['%s_%s' % pair for pair in
-                        product(self.properties, self.depths)]
+                        product(self._get_properties(), self.depths)]
+
+    def _get_properties(self):
+        properties = self.properties
+        if properties is None:
+            properties = self.FUNCTIONS.keys()
+        return sorted(properties, key=lambda x: str(x))
 
     def fit(self, X, y=None):
         """No fitting is required because it is defined by the parameters."""
@@ -380,11 +385,11 @@ class Autocorrelation(BaseFeature):
         D = get_graph_distance(data.connections)
 
         res = []
-        for prop in self.properties:
+        for prop in self._get_properties():
             if callable(prop):
                 p = prop(data)
             else:
-                p = self.functions[prop](data)
+                p = self.FUNCTIONS[prop](data)
 
             P = numpy.outer(p, p)
             for d in self.depths:
