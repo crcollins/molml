@@ -13,6 +13,7 @@ from functools import partial
 from builtins import range
 
 import numpy
+import six
 
 from .base import BaseFeature
 
@@ -166,7 +167,9 @@ class FragmentMap(BaseFeature):
         try:
             labels = self.transformer.get_labels()
         except AttributeError:
-            labels = [str(x) for x in range(self._x_fragments.shape[1])]
+            # Hack to get length of features
+            length = len(six.next(six.itervalues(self._x_fragments)))
+            labels = [str(x) for x in range(length)]
 
         final_labels = []
         for i in range(self._length):

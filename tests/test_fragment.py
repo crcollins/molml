@@ -2,6 +2,7 @@ import os
 import unittest
 
 import numpy
+from sklearn.pipeline import Pipeline
 
 from molml.fragment import FragmentMap
 from molml.molecule import Connectivity
@@ -129,6 +130,15 @@ class FragmentMapTest(unittest.TestCase):
         labels = a.get_labels()
         self.assertEqual(res.shape[1] * res.shape[2], len(labels))
         expected = ('0_C', '0_H', '0_O', '1_C', '1_H', '1_O', )
+        self.assertEqual(labels, expected)
+
+    def test_get_labels_no_labels(self):
+        trans = Pipeline([('Con', Connectivity(input_type="filename"))])
+        a = FragmentMap(transformer=trans)
+        res = a.fit_transform([ALL])
+        labels = a.get_labels()
+        self.assertEqual(res.shape[1] * res.shape[2], len(labels))
+        expected = ('0_0', '0_1', '0_2', '1_0', '1_1', '1_2', )
         self.assertEqual(labels, expected)
 
 
