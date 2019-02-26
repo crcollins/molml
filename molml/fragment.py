@@ -93,11 +93,8 @@ class FragmentMap(BaseFeature):
     _x_fragments : dict, str->numpy.array
         Dictionary mapping label strings to their corresponding feature
         vectors.
-
-    _length : int
-        The allowed number of fragments allowed in each conversion.
     """
-    ATTRIBUTES = ('_x_fragments', '_length')
+    ATTRIBUTES = ('_x_fragments', )
     LABELS = (('get_mapping_labels', None), )
     LABEL_FUNCTIONS = {
         'identity': lambda x: x,
@@ -113,14 +110,12 @@ class FragmentMap(BaseFeature):
         self.filename_to_label = filename_to_label
         self.label_to_filename = label_to_filename
         self._x_fragments = None
-        self._length = None
 
     def fit(self, X, y=None):
         unique_values = set(numpy.reshape(X, -1))
         filenames, labels = self.convert_input(unique_values)
         x_ligands = self.transformer.fit_transform(filenames)
         self._x_fragments = {x: y for x, y in zip(labels, x_ligands)}
-        self._length = max(len(x) for x in X)
         return self
 
     def _get_filename_to_label(self):
@@ -169,9 +164,4 @@ class FragmentMap(BaseFeature):
             # Hack to get length of features
             length = len(six.next(six.itervalues(self._x_fragments)))
             labels = [str(x) for x in range(length)]
-
-        final_labels = []
-        for i in range(self._length):
-            temp = ['%d_%s' % (i, x) for x in labels]
-            final_labels.extend(temp)
-        return final_labels
+        return labels

@@ -89,7 +89,6 @@ class FragmentMapTest(unittest.TestCase):
         trans = Connectivity(input_type="filename")
         a = FragmentMap(transformer=trans)
         a.fit([ALL])
-        self.assertEqual(2, a._length)
         expected = {'mid': [2, 3, 4], 'methane': [1, 4, 0]}
         simplified = {x: y.tolist() for x, y in a._x_fragments.items()}
         self.assertEqual(expected, simplified)
@@ -128,8 +127,8 @@ class FragmentMapTest(unittest.TestCase):
         a = FragmentMap(transformer=trans)
         res = a.fit_transform([ALL])
         labels = a.get_labels()
-        self.assertEqual(res.shape[1] * res.shape[2], len(labels))
-        expected = ('0_C', '0_H', '0_O', '1_C', '1_H', '1_O', )
+        self.assertEqual(res.shape[2], len(labels))
+        expected = ('C', 'H', 'O')
         self.assertEqual(labels, expected)
 
     def test_get_labels_no_labels(self):
@@ -137,8 +136,8 @@ class FragmentMapTest(unittest.TestCase):
         a = FragmentMap(transformer=trans)
         res = a.fit_transform([ALL])
         labels = a.get_labels()
-        self.assertEqual(res.shape[1] * res.shape[2], len(labels))
-        expected = ('0_0', '0_1', '0_2', '1_0', '1_1', '1_2', )
+        self.assertEqual(res.shape[2], len(labels))
+        expected = ('0', '1', '2')
         self.assertEqual(labels, expected)
 
 
