@@ -49,7 +49,9 @@ class FragmentMapTest(unittest.TestCase):
     def test_label_to_filename(self):
         trans = Connectivity(input_type="filename")
         a = FragmentMap(transformer=trans, label_to_filename=(DATA_PATH, ))
-        self.assertEqual(a._get_label_to_filename()('methane'), METHANE_PATH)
+        # The paths are sorted when searching
+        path = METHANE_PATH.replace('.out', '.cry')
+        self.assertEqual(a._get_label_to_filename()('methane'), path)
 
     def test_label_to_filename_not_found(self):
         trans = Connectivity(input_type="filename")

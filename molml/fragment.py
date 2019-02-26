@@ -24,7 +24,7 @@ __all__ = ("FragmentMap", )
 def _glob_search(label, search_dirs):
     for d in search_dirs:
         string = os.path.join(d, label + '.*')
-        found = glob.glob(string)
+        found = sorted(glob.glob(string))
         if found:
             return found[0]
     else:
