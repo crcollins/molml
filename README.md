@@ -30,7 +30,9 @@ Features
             - Local Coulomb Matrix
             - Behler-Parrinello
         - Kernel
-            - Atom Kernel
+            - Atom/Summation Kernel
+        - Fragment
+            - FragmentMap
         - Crystal
             - Generallized Crystal
             - Ewald Sum Matrix
