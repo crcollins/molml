@@ -162,18 +162,16 @@ class Connectivity(SetMergeMixin, BaseFeature):
         Returns
         -------
         labelled : list
-            The new labelled chain if use_bond_order is set
+            The new labelled chain
         """
-        if self.use_bond_order and len(labelled) > 1:
-            temp = []
-            for i, x in enumerate(chain[:-1]):
-                idx1 = x
-                idx2 = chain[i + 1]
-                symbol1 = labelled[i]
-                symbol2 = labelled[i + 1]
-                temp.append((symbol1, symbol2, connections[idx1][idx2]))
-            labelled = temp
-        return labelled
+        temp = []
+        for i, x in enumerate(chain[:-1]):
+            idx1 = x
+            idx2 = chain[i + 1]
+            symbol1 = labelled[i]
+            symbol2 = labelled[i + 1]
+            temp.append((symbol1, symbol2, connections[idx1][idx2]))
+        return temp
 
     def _tally_chains(self, chains, nodes, connections=None):
         """
@@ -205,8 +203,10 @@ class Connectivity(SetMergeMixin, BaseFeature):
             if needs_reversal(labelled):
                 labelled = labelled[::-1]
                 chain = chain[::-1]
-            labelled = self._convert_to_bond_order(chain, labelled,
-                                                   connections)
+
+            if self.use_bond_order and len(labelled) > 1:
+                labelled = self._convert_to_bond_order(chain, labelled,
+                                                       connections)
 
             labelled = tuple(labelled)
             if labelled not in results:
