@@ -193,12 +193,13 @@ class Connectivity(SetMergeMixin, BaseFeature):
         results : dict, labelled_chain->int
             Totals of the number of each type of chain
         """
+        if self.use_coordination:
+            extra = tuple(str(len(v)) for k, v in sorted(connections.items()))
+            nodes = [x + y for x, y in zip(nodes, extra)]
+
         results = {}
         for chain in chains:
             labelled = tuple(nodes[x] for x in chain)
-            if self.use_coordination:
-                extra = tuple(str(len(connections[x])) for x in chain)
-                labelled = tuple(x + y for x, y in zip(labelled, extra))
 
             if needs_reversal(labelled):
                 labelled = labelled[::-1]
