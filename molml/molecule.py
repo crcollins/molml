@@ -306,7 +306,7 @@ class Connectivity(SetMergeMixin, BaseFeature):
 
 class ConnectivityTree(SetMergeMixin, BaseFeature):
     """
-    A collection of feature types based on the connectivity tree of atoms.
+    A collection of feature types based on a connectivity tree of atoms.
 
     Parameters
     ----------
@@ -331,11 +331,17 @@ class ConnectivityTree(SetMergeMixin, BaseFeature):
         (C1 vs C2 vs C3 vs C4).
 
     preserve_paths : boolean, default=False
-        Include information about the path.
+        Include the local index to the parent node in each tuple. This helps
+        to differentiate elements at the same depth, but with different
+        parents.
+        Note: for depth<3, this option does nothing.
 
-    reduce_depths : boolean, default=True
-        Reduce all elements in the same depth to single numbered values. This
-        is similar to tallying up all the values across atoms from Shell.
+    use_parent_element : boolean, default=True
+        Include the parent nodes element type. This helps to differentiate
+        elements with different parent elements, but not to the same extreme as
+        `preserve_paths`.
+        Note: this does nothing if `use_bond_order` is set as they are
+        redundant.
 
     add_unknown : boolean, default=False
         Specifies whether or not to include an extra UNKNOWN count in the
