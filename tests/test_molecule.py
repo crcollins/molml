@@ -4,6 +4,7 @@ import numpy
 
 from molml.molecule import BagOfBonds, Connectivity, Autocorrelation
 from molml.molecule import CoulombMatrix, EncodedBond, EncodedAngle
+from molml.molecule import ConnectivityTree
 
 from .constants import METHANE, BIG, MID, ALL_DATA
 
@@ -167,6 +168,231 @@ class ConnectivityTest(unittest.TestCase):
         labels = a.get_labels()
         self.assertEqual(X.shape[1], len(labels))
         expected = ('H-C-1_C-H-1', )
+        self.assertEqual(labels, expected)
+
+
+class ConnectivityTreeTest(unittest.TestCase):
+    maxDiff = None
+
+    def test_fit_depth_1(self):
+        a = ConnectivityTree(depth=1, use_parent_element=False)
+        a.fit(ALL_DATA)
+        base = ('C', 'H', 'N', 'O')
+        self.assertEqual(a._base_trees, tuple(((0, x, 1), ) for x in base))
+
+    def test_fit_depth_1_separated(self):
+        a = ConnectivityTree(depth=1)
+        a.fit([METHANE2])
+        self.assertTrue(
+            (a.transform([METHANE2]) == numpy.array([[1, 4]])).all())
+
+    def test_fit_depth_2(self):
+        a = ConnectivityTree(depth=2, use_parent_element=False)
+        a.fit(ALL_DATA)
+        expected = (
+            ((0, 'C', 1), (1, 'C', 1)),
+            ((0, 'C', 1), (1, 'C', 1), (1, 'H', 1), (1, 'N', 1)),
+            ((0, 'C', 1), (1, 'C', 1), (1, 'N', 1), (1, 'O', 1)),
+            ((0, 'C', 1), (1, 'C', 1), (1, 'O', 1)),
+            ((0, 'C', 1), (1, 'C', 2), (1, 'H', 1)),
+            ((0, 'C', 1), (1, 'C', 2), (1, 'O', 1)),
+            ((0, 'C', 1), (1, 'H', 3), (1, 'O', 1)), ((0, 'H', 1),),
+            ((0, 'H', 1), (1, 'H', 1)),
+            ((0, 'H', 1), (1, 'O', 1)),
+            ((0, 'N', 1), (1, 'C', 1), (1, 'H', 2)), ((0, 'O', 1),),
+            ((0, 'O', 1), (1, 'C', 1), (1, 'H', 1)),
+            ((0, 'O', 1), (1, 'O', 1)),
+        )
+        self.assertEqual(a._base_trees[::2], expected)
+
+    def test_fit_depth_2_parent_element(self):
+        a = ConnectivityTree(depth=2, use_parent_element=True)
+        a.fit(ALL_DATA)
+        expected = (
+            ((0, 'Root', 'C', 1), (1, 'C', 'C', 1)),
+            ((0, 'Root', 'C', 1), (1, 'C', 'C', 1), (1, 'C', 'H', 1),
+             (1, 'C', 'N', 1)),
+            ((0, 'Root', 'C', 1), (1, 'C', 'C', 1), (1, 'C', 'N', 1),
+             (1, 'C', 'O', 1)),
+            ((0, 'Root', 'C', 1), (1, 'C', 'C', 1), (1, 'C', 'O', 1)),
+            ((0, 'Root', 'C', 1), (1, 'C', 'C', 2), (1, 'C', 'H', 1)),
+            ((0, 'Root', 'C', 1), (1, 'C', 'C', 2), (1, 'C', 'O', 1)),
+            ((0, 'Root', 'C', 1), (1, 'C', 'H', 3), (1, 'C', 'O', 1)),
+            ((0, 'Root', 'H', 1),),
+            ((0, 'Root', 'H', 1), (1, 'H', 'H', 1)),
+            ((0, 'Root', 'H', 1), (1, 'H', 'O', 1)),
+            ((0, 'Root', 'N', 1), (1, 'N', 'C', 1), (1, 'N', 'H', 2)),
+            ((0, 'Root', 'O', 1),),
+            ((0, 'Root', 'O', 1), (1, 'O', 'C', 1), (1, 'O', 'H', 1)),
+            ((0, 'Root', 'O', 1), (1, 'O', 'O', 1)),
+        )
+        self.assertEqual(a._base_trees[::2], expected)
+
+    def test_fit_depth_2_parent_element_bond_order(self):
+        a = ConnectivityTree(depth=2, use_parent_element=True,
+                             use_bond_order=True)
+        a.fit(ALL_DATA)
+        expected = (
+            ((0, 'H', 1),),
+            ((1, 'C_1_C', 1), (1, 'C_2_C', 2)),
+            ((1, 'C_1_O', 1),),
+            ((1, 'C_1_O', 2),),
+            ((1, 'C_2_C', 1), (1, 'C_Ar_C', 1), (1, 'N_Ar_C', 1)),
+            ((1, 'C_2_C', 1), (1, 'N_3_C', 1)),
+            ((1, 'C_2_N', 1), (1, 'H_1_N', 2)),
+            ((1, 'C_3_N', 1),),
+            ((1, 'C_Ar_C', 1), (1, 'H_1_C', 1), (1, 'N_Ar_C', 1)),
+            ((1, 'C_Ar_C', 1), (1, 'N_Ar_C', 1), (1, 'O_Ar_C', 1)),
+            ((1, 'C_Ar_C', 2), (1, 'H_1_C', 1)),
+            ((1, 'C_Ar_N', 2),),
+            ((1, 'H_1_C', 3), (1, 'O_1_C', 1)),
+            ((1, 'H_1_H', 1),),
+            ((1, 'O_1_H', 1),)
+        )
+        self.assertEqual(a._base_trees[::2], expected)
+
+    def test_fit_depth_3(self):
+        a = ConnectivityTree(depth=3, use_parent_element=False,
+                             preserve_paths=False)
+        a.fit(ALL_DATA)
+        expected = (
+            ((0, 'C', 1), (1, 'C', 1), (1, 'H', 1), (1, 'N', 1), (2, 'C', 3)),
+            ((0, 'C', 1), (1, 'C', 1), (1, 'N', 2), (2, 'C', 3), (2, 'H', 2)),
+            ((0, 'C', 1), (1, 'C', 2), (1, 'H', 1), (2, 'C', 2), (2, 'H', 2)),
+            ((0, 'C', 1), (1, 'C', 2), (1, 'O', 1), (2, 'C', 3), (2, 'H', 1),
+             (2, 'N', 1)),
+            ((0, 'C', 1), (1, 'C', 3), (2, 'C', 2), (2, 'H', 2), (2, 'N', 1)),
+            ((0, 'H', 1),),
+            ((0, 'H', 1), (1, 'C', 1), (2, 'H', 3)),
+            ((0, 'N', 1), (1, 'C', 1), (2, 'C', 1)),
+            ((0, 'O', 1), (1, 'C', 1), (2, 'C', 1))
+        )
+        self.assertEqual(a._base_trees[::5], expected)
+
+    def test_fit_depth_3_preserve_paths(self):
+        a = ConnectivityTree(depth=3, use_parent_element=False,
+                             preserve_paths=True)
+        a.fit(ALL_DATA)
+        expected = (
+            ((0, -1, 'C', 1), (1, 0, 'C', 1), (1, 1, 'C', 1), (1, 4, 'C', 1),
+             (2, 1, 'C', 1), (2, 1, 'H', 1), (2, 4, 'C', 1), (2, 6, 'H', 1),
+             (2, 6, 'N', 1)),
+            ((0, -1, 'C', 1), (1, 0, 'C', 1), (1, 1, 'C', 1), (1, 4, 'H', 1),
+             (2, 1, 'C', 1), (2, 1, 'H', 1), (2, 4, 'C', 1), (2, 4, 'H', 1)),
+            ((0, -1, 'C', 1), (1, 0, 'C', 1), (1, 1, 'C', 1), (2, 1, 'C', 2),
+             (2, 4, 'H', 1)),
+            ((0, -1, 'C', 1), (1, 0, 'H', 1), (1, 1, 'C', 1), (1, 2, 'C', 1),
+             (2, 2, 'C', 2), (2, 5, 'C', 2)),
+            ((0, -1, 'C', 1), (1, 0, 'N', 1), (1, 1, 'C', 1), (2, 2, 'C', 2)),
+            ((0, -1, 'C', 1), (1, 0, 'O', 1), (1, 1, 'C', 1), (1, 3, 'N', 1),
+             (2, 1, 'H', 1), (2, 3, 'C', 1), (2, 3, 'H', 1), (2, 6, 'C', 1)),
+            ((0, -1, 'H', 1), (1, 0, 'C', 1), (2, 1, 'H', 2), (2, 1, 'O', 1)),
+            ((0, -1, 'N', 1), (1, 0, 'C', 1), (1, 1, 'C', 1), (2, 1, 'C', 1),
+             (2, 1, 'N', 1), (2, 4, 'C', 1), (2, 4, 'H', 1)),
+            ((0, -1, 'O', 1), (1, 0, 'C', 1), (1, 1, 'C', 1), (2, 1, 'C', 2),
+             (2, 4, 'C', 2)),
+            ((0, -1, 'O', 1), (1, 0, 'O', 1))
+        )
+        self.assertEqual(a._base_trees[::5], expected)
+
+    def test_fit_depth_1_use_bond_order(self):
+        # This should be the exact same thing as doing it with
+        # use_bond_order=False
+        a = ConnectivityTree(depth=1, use_parent_element=False,
+                             use_bond_order=True)
+        a.fit(ALL_DATA)
+        base = ('C', 'H', 'N', 'O')
+        self.assertEqual(a._base_trees, tuple(((0, x, 1), ) for x in base))
+
+    def test_fit_depth_2_use_bond_order(self):
+        a = ConnectivityTree(depth=2, use_parent_element=False,
+                             use_bond_order=True)
+        a.fit(ALL_DATA)
+        expected = (
+            ((0, 'H', 1),),
+            ((1, 'C_1_O', 1), (1, 'C_Ar_O', 1)),
+            ((1, 'C_2_C', 1), (1, 'N_3_C', 1)),
+            ((1, 'C_Ar_C', 1),),
+            ((1, 'C_Ar_C', 2), (1, 'H_1_C', 1)),
+            ((1, 'H_1_C', 4),)
+        )
+        self.assertEqual(a._base_trees[::5], expected)
+
+    def test_fit_depth_1_coordination(self):
+        a = ConnectivityTree(depth=1, use_coordination=True)
+        a.fit(ALL_DATA)
+
+        bases = ('C1', 'C2', 'C3', 'C4', 'H0', 'H1',
+                 'N1', 'N2', 'N3', 'O0', 'O1', 'O2')
+        expected = tuple(((0, 'Root', x, 1), ) for x in bases)
+        self.assertEqual(a._base_trees, expected)
+
+    def test_transform(self):
+        a = ConnectivityTree()
+        a.fit(ALL_DATA)
+        self.assertTrue((a.transform(ALL_DATA) == ALL_ATOM).all())
+
+    def test_small_to_large_transform(self):
+        a = ConnectivityTree()
+        a.fit([METHANE])
+        self.assertTrue((a.transform(ALL_DATA) == ALL_ATOM[:, :2]).all())
+
+    def test_large_to_small_transform(self):
+        a = ConnectivityTree()
+        a.fit([BIG])
+        self.assertTrue((a.transform(ALL_DATA) == ALL_ATOM).all())
+
+    def test_transform_before_fit(self):
+        a = ConnectivityTree()
+        with self.assertRaises(ValueError):
+            a.transform(ALL_DATA)
+
+    def test_fit_transform(self):
+        a = ConnectivityTree()
+        self.assertTrue((a.fit_transform(ALL_DATA) == ALL_ATOM).all())
+
+    def test_unknown(self):
+        a = ConnectivityTree(add_unknown=True)
+        expected_results = numpy.array([[1,  4, 0],
+                                        [2,  3, 4],
+                                        [25, 15, 9]])
+        a.fit([METHANE])
+        self.assertTrue((a.transform(ALL_DATA) == expected_results).all())
+
+    def test_tfidf(self):
+        a = ConnectivityTree(do_tfidf=True)
+        expected = numpy.array([[0., 0.,  0., 0.],
+                                [0., 0., 0., 1.62186043],
+                                [0., 0., 5.49306144, 1.62186043]])
+        a.fit(ALL_DATA)
+        try:
+            m = a.transform(ALL_DATA)
+            numpy.testing.assert_array_almost_equal(m, expected)
+        except AssertionError as e:
+            self.fail(e)
+
+    def test_get_labels(self):
+        a = ConnectivityTree(depth=2)
+        X = a.fit_transform([METHANE])
+        labels = a.get_labels()
+        self.assertEqual(X.shape[1], len(labels))
+        expected = ('0-Root-C-1__1-C-H-4', '0-Root-H-1__1-H-C-1')
+        self.assertEqual(labels, expected)
+
+    def test_get_labels_coordination(self):
+        a = ConnectivityTree(depth=1, use_coordination=True)
+        X = a.fit_transform([METHANE])
+        labels = a.get_labels()
+        self.assertEqual(X.shape[1], len(labels))
+        expected = ('0-Root-C4-1', '0-Root-H1-1')
+        self.assertEqual(labels, expected)
+
+    def test_get_labels_bond_order(self):
+        a = ConnectivityTree(depth=3, use_bond_order=True)
+        X = a.fit_transform([METHANE])
+        labels = a.get_labels()
+        self.assertEqual(X.shape[1], len(labels))
+        expected = ('1-C_1_H-1__2-H_1_C-3', '1-H_1_C-1__1-H_1_H-3')
         self.assertEqual(labels, expected)
 
 
