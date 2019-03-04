@@ -355,7 +355,7 @@ class ConnectivityTree(SetMergeMixin, BaseFeature):
 
     def __init__(self, input_type='list', n_jobs=1, depth=1,
                  use_bond_order=False, use_coordination=False,
-                 preserve_paths=False, reduce_depths=True,
+                 preserve_paths=False, use_parent_element=True,
                  add_unknown=False, do_tfidf=False):
         super(ConnectivityTree, self).__init__(input_type=input_type,
                                                n_jobs=n_jobs)
@@ -363,7 +363,7 @@ class ConnectivityTree(SetMergeMixin, BaseFeature):
         self.use_bond_order = use_bond_order
         self.use_coordination = use_coordination
         self.preserve_paths = preserve_paths
-        self.reduce_depths = reduce_depths
+        self.use_parent_element = use_parent_element
         self.add_unknown = add_unknown
         self.do_tfidf = do_tfidf
         self._base_trees = None
@@ -431,16 +431,13 @@ class ConnectivityTree(SetMergeMixin, BaseFeature):
             new_trees.append(new_tree)
         return new_trees
 
-    def _convert_to_bond_order(self, tree, labelled, connections):
+    def _convert_to_bond_order(self, labelled, connections):
         """
         Convert a tree based on elements into one that includes bond order.
 
         Parameters
         ----------
-        tree : list of tuples
-            Bla
-
-        labelled : tuple
+        labelled : tuple of tuples
             Elements corresponding to the tree indices
 
         connections : dict, key->list of keys
@@ -453,9 +450,10 @@ class ConnectivityTree(SetMergeMixin, BaseFeature):
         """
         temp = []
         # We drop the root the the tree because it does not have a parent
-        for i, (ele, p_idx, rel_p_idx, depth) in enumerate(labelled[1:]):
-            conn = connections[tree[i+1][0]][p_idx]
-            temp.append((ele + '_' + conn,  p_idx, rel_p_idx, depth))
+        for idx, ele, p_idx, rel_p_idx, depth in labelled[1:]:
+            conn = connections[idx][p_idx]
+            new_ele = '%s_%s_%s' % (ele, conn, labelled[rel_p_idx][1])
+            temp.append((idx, new_ele,  p_idx, rel_p_idx, depth))
         return temp
 
     def _tally_trees(self, trees, nodes, connections=None):
@@ -482,24 +480,37 @@ class ConnectivityTree(SetMergeMixin, BaseFeature):
             extra = tuple(str(len(v)) for k, v in sorted(connections.items()))
             nodes = [x + y for x, y in zip(nodes, extra)]
 
+        # Add a hack to label the parents of root node separately
+        nodes = list(nodes) + ['Root']
+
         results = {}
         for tree in trees:
 
-            labelled = [(nodes[idx], a, b, c) for (idx, a, b, c) in tree]
+            labelled = [(idx, nodes[idx], a, b, c) for (idx, a, b, c) in tree]
 
             if self.use_bond_order and len(labelled) > 1:
-                labelled = self._convert_to_bond_order(tree, labelled,
+                labelled = self._convert_to_bond_order(labelled,
                                                        connections)
-            if self.preserve_paths:
-                labelled = [(depth, rel_idx, nodes[p_idx], ele) for
-                            (ele, p_idx, rel_idx, depth) in labelled]
-            else:
-                labelled = [(depth, ele) for (ele, _, _, depth) in labelled]
 
-            if self.reduce_depths:
-                labelled = sorted(Counter(labelled).items())
+            labelled = [(depth, rel_idx, nodes[p_idx], ele) for
+                        (idx, ele, p_idx, rel_idx, depth) in labelled]
 
-            labelled = tuple(labelled)
+            # Order matters for the sorting
+            select_idxs = (0, )
+            if self.preserve_paths and self.depth > 2:
+                select_idxs += (1, )
+            if self.use_parent_element and not self.use_bond_order:
+                select_idxs += (2, )
+            select_idxs += (3, )
+
+            labelled = [tuple(x[i] for i in select_idxs) for x in labelled]
+            # labelled is now one of these three states:
+            # [(depth, ele), ...],
+            # [(depth, p_ele, ele), ...],
+            # [(depth, rel_idx, p_ele, ele), ...]
+
+            items = sorted(Counter(labelled).items())
+            labelled = tuple(x + (y, ) for x, y in items)
             if labelled not in results:
                 results[labelled] = 0
             results[labelled] += 1
@@ -589,9 +600,7 @@ class ConnectivityTree(SetMergeMixin, BaseFeature):
         return vector
 
     def get_tree_labels(self, trees):
-        if self.use_bond_order:
-            return ['_'.join(['-'.join(y) for y in x]) for x in trees]
-        return ['-'.join(x) for x in trees]
+        return ['-'.join(str(y) for y in x) for x in trees]
 
 
 class Autocorrelation(BaseFeature):
