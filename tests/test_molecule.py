@@ -153,7 +153,7 @@ class ConnectivityTest(unittest.TestCase):
         expected = ('C-H', )
         self.assertEqual(labels, expected)
 
-    def test_get_label_coordination(self):
+    def test_get_labels_coordination(self):
         a = Connectivity(depth=1, use_coordination=True)
         X = a.fit_transform([METHANE])
         labels = a.get_labels()
@@ -161,7 +161,7 @@ class ConnectivityTest(unittest.TestCase):
         expected = ('C4', 'H1')
         self.assertEqual(labels, expected)
 
-    def test_get_label_bond_order(self):
+    def test_get_labels_bond_order(self):
         a = Connectivity(depth=3, use_bond_order=True)
         X = a.fit_transform([METHANE])
         labels = a.get_labels()
