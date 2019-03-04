@@ -355,14 +355,14 @@ class ConnectivityTree(SetMergeMixin, BaseFeature):
 
     def __init__(self, input_type='list', n_jobs=1, depth=1,
                  use_bond_order=False, use_coordination=False,
-                 preseve_paths=False, reduce_depths=True,
+                 preserve_paths=False, reduce_depths=True,
                  add_unknown=False, do_tfidf=False):
         super(ConnectivityTree, self).__init__(input_type=input_type,
                                                n_jobs=n_jobs)
         self.depth = depth
         self.use_bond_order = use_bond_order
         self.use_coordination = use_coordination
-        self.preseve_paths = preseve_paths
+        self.preserve_paths = preserve_paths
         self.reduce_depths = reduce_depths
         self.add_unknown = add_unknown
         self.do_tfidf = do_tfidf
@@ -490,7 +490,7 @@ class ConnectivityTree(SetMergeMixin, BaseFeature):
             if self.use_bond_order and len(labelled) > 1:
                 labelled = self._convert_to_bond_order(tree, labelled,
                                                        connections)
-            if self.preseve_paths:
+            if self.preserve_paths:
                 labelled = [(depth, rel_idx, nodes[p_idx], ele) for
                             (ele, p_idx, rel_idx, depth) in labelled]
             else:
