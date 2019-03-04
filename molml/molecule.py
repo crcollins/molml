@@ -606,7 +606,8 @@ class ConnectivityTree(SetMergeMixin, BaseFeature):
         return vector
 
     def get_tree_labels(self, trees):
-        return ['-'.join(str(y) for y in x) for x in trees]
+        return ['__'.join('-'.join(str(z) for z in y)
+                          for y in x) for x in trees]
 
 
 class Autocorrelation(BaseFeature):
