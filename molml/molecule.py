@@ -6,7 +6,7 @@ based on the entire molecule. All of the methods included here will produce
 one vector per molecule input.
 """
 from builtins import range
-from collections import defaultdict
+from collections import defaultdict, Counter
 from itertools import product
 
 import numpy
@@ -20,8 +20,8 @@ from .utils import get_graph_distance
 from .constants import ELECTRONEGATIVITY, BOND_LENGTHS
 
 
-__all__ = ("Connectivity", "Autocorrelation", "EncodedAngle", "EncodedBond",
-           "CoulombMatrix", "BagOfBonds")
+__all__ = ("Connectivity", "ConnectivityTree", "Autocorrelation",
+           "EncodedAngle", "EncodedBond", "CoulombMatrix", "BagOfBonds")
 
 
 class Connectivity(SetMergeMixin, BaseFeature):
@@ -302,6 +302,312 @@ class Connectivity(SetMergeMixin, BaseFeature):
         if self.use_bond_order:
             return ['_'.join(['-'.join(y) for y in x]) for x in chains]
         return ['-'.join(x) for x in chains]
+
+
+class ConnectivityTree(SetMergeMixin, BaseFeature):
+    """
+    A collection of feature types based on a connectivity tree of atoms.
+
+    Parameters
+    ----------
+    input_type : string, default='list'
+        Specifies the format the input values will be (must be one of 'list'
+        or 'filename').
+
+    n_jobs : int, default=1
+        Specifies the number of processes to create when generating the
+        features. Positive numbers specify a specifc amount, and numbers less
+        than 1 will use the number of cores the computer has.
+
+    depth : int, default=1
+        The length of the atom trees to generate for connections
+
+    use_bond_order : boolean, default=False
+        Specifies whether or not to use bond order information (C-C versus
+        C=C). Note: for depth=1, this option does nothing.
+
+    use_coordination : boolean, default=False
+        Specifies whether or not to use the coordination number of the atoms
+        (C1 vs C2 vs C3 vs C4).
+
+    preserve_paths : boolean, default=False
+        Include the local index to the parent node in each tuple. This helps
+        to differentiate elements at the same depth, but with different
+        parents.
+        Note: for depth<3, this option does nothing.
+
+    use_parent_element : boolean, default=True
+        Include the parent nodes element type. This helps to differentiate
+        elements with different parent elements, but not to the same extreme as
+        `preserve_paths`.
+        Note: this does nothing if `use_bond_order` is set as they are
+        redundant.
+
+    add_unknown : boolean, default=False
+        Specifies whether or not to include an extra UNKNOWN count in the
+        feature vector.
+
+    do_tfidf : boolean, default=False
+        Apply weighting to counts based on their inverse document (molecule)
+        frequency.
+
+    Attributes
+    ----------
+    _base_trees : tuple, tuples
+        All the trees that are in the fit molecules.
+    """
+    ATTRIBUTES = ("_base_trees", "_idf_values")
+    LABELS = (("get_tree_labels", "_base_trees"), )
+
+    def __init__(self, input_type='list', n_jobs=1, depth=1,
+                 use_bond_order=False, use_coordination=False,
+                 preserve_paths=False, use_parent_element=True,
+                 add_unknown=False, do_tfidf=False):
+        super(ConnectivityTree, self).__init__(input_type=input_type,
+                                               n_jobs=n_jobs)
+        self.depth = depth
+        self.use_bond_order = use_bond_order
+        self.use_coordination = use_coordination
+        self.preserve_paths = preserve_paths
+        self.use_parent_element = use_parent_element
+        self.add_unknown = add_unknown
+        self.do_tfidf = do_tfidf
+        self._base_trees = None
+
+        if self.do_tfidf:
+            self._idf_values = None
+        else:
+            self._idf_values = {}
+
+    def _loop_depth(self, connections):
+        """
+        Loop over the depth number expanding trees.
+
+        Parameters
+        ----------
+        connections : dict, key->list of keys
+            A dictonary edge table with all the bidirectional connections
+
+        Returns
+        -------
+        trees : list
+            A list of key tuples of all the trees in the molecule
+        """
+
+        trees = [[(x, -1, -1, 0)] for x in connections]
+        for i in range(self.depth - 1):
+            trees = self._expand_trees(trees, connections, i)
+        return trees
+
+    def _expand_trees(self, initial, connections, depth):
+        """
+        Use the connectivity information to add one more atom to each tree.
+
+        Parameters
+        ----------
+        initial : list
+            A list of key tuples of all the tree in the molecule
+
+        connections : dict, key->list of keys
+            A dictonary edge table with all the bidirectional connections
+
+        Returns
+        -------
+        results : list
+            Something
+        """
+        new_trees = []
+        for tree in initial:
+            seen = set([x[0] for x in tree])
+
+            new_tree = []
+            new_seen = set(seen)
+
+            parent_rel_idx = -1
+            for j, (item, parent, _, item_depth) in enumerate(tree):
+                new_tree.append((item, parent, parent_rel_idx, item_depth))
+                parent_rel_idx = len(new_tree) - 1
+                if item_depth < depth:
+                    continue
+                for x in connections[item]:
+                    if x in seen:
+                        continue
+                    new_seen |= {x}
+                    new_tree.append((x, item, parent_rel_idx, item_depth + 1))
+            new_trees.append(new_tree)
+        return new_trees
+
+    def _convert_to_bond_order(self, labelled, connections):
+        """
+        Convert a tree based on elements into one that includes bond order.
+
+        Parameters
+        ----------
+        labelled : tuple of tuples
+            Elements corresponding to the tree indices
+
+        connections : dict, key->list of keys
+            A dictonary edge table with all the bidirectional connections
+
+        Returns
+        -------
+        labelled : list
+            The new labelled tree
+        """
+        temp = []
+        # We drop the root the the tree because it does not have a parent
+        for idx, ele, p_idx, rel_p_idx, depth in labelled[1:]:
+            conn = connections[idx][p_idx]
+            new_ele = '%s_%s_%s' % (ele, conn, labelled[rel_p_idx][1])
+            temp.append((idx, new_ele,  p_idx, rel_p_idx, depth))
+        return temp
+
+    def _tally_trees(self, trees, nodes, connections=None):
+        """
+        Tally tree types and return a dictonary with counts of the types.
+
+        Parameters
+        ----------
+        trees : list
+            All of the trees in the molecule
+
+        nodes : list
+            All of the element labels of the atoms
+
+        connections : dict, key->list of keys
+            A dictonary edge table with all the bidirectional connections
+
+        Returns
+        -------
+        results : dict, labelled_tree->int
+            Totals of the number of each type of tree
+        """
+        if self.use_coordination:
+            extra = tuple(str(len(v)) for k, v in sorted(connections.items()))
+            nodes = [x + y for x, y in zip(nodes, extra)]
+
+        # Add a hack to label the parents of root node separately
+        nodes = list(nodes) + ['Root']
+
+        results = {}
+        for tree in trees:
+
+            labelled = [(idx, nodes[idx], a, b, c) for (idx, a, b, c) in tree]
+
+            if self.use_bond_order and len(labelled) > 1:
+                labelled = self._convert_to_bond_order(labelled,
+                                                       connections)
+
+            labelled = [(depth, rel_idx, nodes[p_idx], ele) for
+                        (idx, ele, p_idx, rel_idx, depth) in labelled]
+
+            # Order matters for the sorting
+            select_idxs = (0, )
+            if self.preserve_paths and self.depth > 2:
+                select_idxs += (1, )
+            if self.use_parent_element and not self.use_bond_order:
+                select_idxs += (2, )
+            select_idxs += (3, )
+
+            labelled = [tuple(x[i] for i in select_idxs) for x in labelled]
+            # labelled is now one of these three states:
+            # [(depth, ele), ...],
+            # [(depth, p_ele, ele), ...],
+            # [(depth, rel_idx, p_ele, ele), ...]
+
+            items = sorted(Counter(labelled).items())
+            labelled = tuple(x + (y, ) for x, y in items)
+            if labelled not in results:
+                results[labelled] = 0
+            results[labelled] += 1
+        return results
+
+    def _para_fit(self, X):
+        """
+        A single instance of the fit procedure.
+
+        This is formulated in a way that the fits can be done completely
+        parallel in a map/reduce fashion.
+
+        Parameters
+        ----------
+        X : object
+            An object to use for the fit
+
+        Returns
+        -------
+        value : list
+            All the trees in the molecule
+        """
+        data = self.convert_input(X)
+        trees = self._loop_depth(data.connections)
+        all_counts = self._tally_trees(trees, data.elements,
+                                       data.connections)
+        return list(all_counts.keys())
+
+    def _idf(self, all_keys):
+        res = defaultdict(float)
+        for mol in all_keys:
+            for key in mol:
+                res[key] += 1
+        N = len(all_keys)
+        return {key: numpy.log(N / x) for key, x in res.items()}
+
+    def fit(self, X, y=None):
+        res = self.map(self._para_fit, X)
+        vals = self.reduce(lambda x, y: set(x) | set(y), res)
+        self._base_trees = tuple(sorted(vals))
+
+        if self.do_tfidf:
+            self._idf_values = self._idf(res)
+        return self
+
+    def _para_transform(self, X, y=None):
+        """
+        A single instance of the transform procedure.
+
+        This is formulated in a way that the transformations can be done
+        completely parallel with map.
+
+        Parameters
+        ----------
+        X : object
+            An object to use for the transform
+
+        Returns
+        -------
+        value : list
+            The features extracted from the molecule
+
+        Raises
+        ------
+        ValueError
+            If the transformer has not been fit.
+        """
+        self.check_fit()
+
+        data = self.convert_input(X)
+        trees = self._loop_depth(data.connections)
+        tallies = self._tally_trees(trees, data.elements, data.connections)
+
+        vector = []
+        for x in self._base_trees:
+            value = tallies.get(x, 0)
+            if self.do_tfidf:
+                value *= self._idf_values[x]
+            vector.append(value)
+
+        if self.add_unknown:
+            unknown = 0
+            for key, value in tallies.items():
+                if key not in self._base_trees:
+                    unknown += value
+            vector.append(unknown)
+        return vector
+
+    def get_tree_labels(self, trees):
+        return ['__'.join('-'.join(str(z) for z in y)
+                          for y in x) for x in trees]
 
 
 class Autocorrelation(BaseFeature):
