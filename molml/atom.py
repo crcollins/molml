@@ -845,7 +845,7 @@ class BehlerParrinello(SetMergeMixin, BaseFeature):
         return 2 ** (1 - self.zeta) * values
 
     def calculate_Theta(self, R_vecs):
-        """
+        r"""
         Compute the angular term for all triples of atoms.
 
         .. math::

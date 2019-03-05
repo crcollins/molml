@@ -612,7 +612,7 @@ class ConnectivityTree(SetMergeMixin, BaseFeature):
 
 
 class Autocorrelation(BaseFeature):
-    """
+    r"""
     A molecular descriptor based on Autocorrelation functions for properties.
 
     This is a compact (only depends on the number of properties used and the

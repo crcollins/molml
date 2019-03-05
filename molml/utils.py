@@ -329,8 +329,8 @@ class LazyValues(object):
 
         # Connections between cells
         a = numpy.array(offsets)
-        I = numpy.linalg.inv(self.unit_cell)
-        counts = I.dot(a.T).T
+        Inv = numpy.linalg.inv(self.unit_cell)
+        counts = Inv.dot(a.T).T
         dists = cdist(counts, counts, 'chebyshev')
         for i, j in zip(*numpy.where(dists <= 1)):
             if i == j or i > j:
