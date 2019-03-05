@@ -429,7 +429,8 @@ class ConnectivityTree(SetMergeMixin, BaseFeature):
                 parent_rel_idx = len(new_tree) - 1
                 if item_depth < depth:
                     continue
-                for x in connections[item]:
+                # We sort this to fix consistency in 3.6 dicts.
+                for x in sorted(connections[item]):
                     if x in seen:
                         continue
                     new_seen |= {x}
