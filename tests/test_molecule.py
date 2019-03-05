@@ -12,6 +12,14 @@ METHANE2 = (METHANE[0], 2 * METHANE[1])
 ALL_ATOM = numpy.array([[1, 4, 0, 0],
                         [2, 3, 0, 4],
                         [25, 15, 5, 4]])
+ALL_ATOM_TREE = numpy.array([
+    [0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  4,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [1,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  1,  0,  2,  0,
+     0,  0,  0,  0,  1,  1,  0,  0,  2],
+    [0,  2,  1,  1,  2,  1,  0,  2,  5,  2,  3,  5,  1,  0,  0, 11,  0,  2,
+     2,  1,  1,  3,  0,  0,  2,  2,  0],
+])
 
 
 def assert_close_statistics(array, expected):
@@ -333,14 +341,18 @@ class ConnectivityTreeTest(unittest.TestCase):
         self.assertTrue((a.transform(ALL_DATA) == ALL_ATOM).all())
 
     def test_small_to_large_transform(self):
-        a = ConnectivityTree()
+        a = ConnectivityTree(depth=2)
         a.fit([METHANE])
-        self.assertTrue((a.transform(ALL_DATA) == ALL_ATOM[:, :2]).all())
+        idxs = numpy.where(ALL_ATOM_TREE[0] != 0)[0]
+        expected = ALL_ATOM_TREE[:, idxs]
+        self.assertTrue((a.transform(ALL_DATA) == expected).all())
 
     def test_large_to_small_transform(self):
-        a = ConnectivityTree()
+        a = ConnectivityTree(depth=2)
         a.fit([BIG])
-        self.assertTrue((a.transform(ALL_DATA) == ALL_ATOM).all())
+        idxs = numpy.where(ALL_ATOM_TREE[2] != 0)[0]
+        expected = ALL_ATOM_TREE[:, idxs]
+        self.assertTrue((a.transform(ALL_DATA) == expected).all())
 
     def test_transform_before_fit(self):
         a = ConnectivityTree()
@@ -348,8 +360,8 @@ class ConnectivityTreeTest(unittest.TestCase):
             a.transform(ALL_DATA)
 
     def test_fit_transform(self):
-        a = ConnectivityTree()
-        self.assertTrue((a.fit_transform(ALL_DATA) == ALL_ATOM).all())
+        a = ConnectivityTree(depth=2)
+        self.assertTrue((a.fit_transform(ALL_DATA) == ALL_ATOM_TREE).all())
 
     def test_unknown(self):
         a = ConnectivityTree(add_unknown=True)
