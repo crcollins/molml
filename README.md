@@ -124,7 +124,7 @@ Dependencies
 
 MolML works with both Python 2 and Python 3. It has been tested with the versions listed below, but newer versions should work.
 
-    python>=2.7/3.6
+    python>=2.7/3.5/3.6
     numpy>=1.9.1
     scipy>=0.15.1
     pathos>=0.2.0
