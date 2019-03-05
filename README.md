@@ -21,7 +21,8 @@ Features
             - Bag of Bonds
             - Encoded Bonds
             - Encoded Angles
-            - Connectivity Counts
+            - Connectivity
+            - Connectivity Tree
             - Autocorrelation
         - Atom
             - Shell
