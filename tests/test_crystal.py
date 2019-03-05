@@ -42,7 +42,7 @@ class GenerallizedCrystalTest(unittest.TestCase):
         t = Connectivity(input_type=H_INPUT)
         a = GenerallizedCrystal(transformer=t, radius=2.5)
         a.fit([H])
-        self.assertEqual(a.transformer._base_chains, (('H', ), ))
+        self.assertEqual(a.transformer.get_labels(), ('H', ))
 
     def test_transform(self):
         t = Connectivity(input_type=H_INPUT)
