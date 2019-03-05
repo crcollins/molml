@@ -180,7 +180,6 @@ class ConnectivityTest(unittest.TestCase):
 
 
 class ConnectivityTreeTest(unittest.TestCase):
-    maxDiff = None
 
     def test_fit_depth_1(self):
         a = ConnectivityTree(depth=1, use_parent_element=False)
