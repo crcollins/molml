@@ -597,7 +597,7 @@ class EncodedFeature(BaseFeature):
                 values and scale their influence with distance. If idx is None,
                 then the value will be skipped.
 
-            length : tuple of ints
+            lengths : tuple of ints
                 The number of encoding axes to create. In terms of
                 EncodedBonds, this would be the number of element pairs.
 
@@ -611,7 +611,8 @@ class EncodedFeature(BaseFeature):
         -------
             vector : array
                 The final concatenated vector of all the subvectors. This will
-                have a shape of (lengthn_atoms, length * segments).
+                have a shape of lengths[:saved_lengths]
+                + product(lengths[saved_lengths:]) * segments).
         '''
         smoothing_func = get_smoothing_function(self.smoothing)
         vector = numpy.zeros(tuple(lengths) + (self.segments, ))
