@@ -60,7 +60,7 @@ class Connectivity(SetMergeMixin, BaseFeature):
 
     Attributes
     ----------
-    _base_chains : tuple, tuples
+    _base_groups : tuple, tuples
         All the chains that are in the fit molecules.
 
     References
@@ -68,8 +68,8 @@ class Connectivity(SetMergeMixin, BaseFeature):
     Collins, C.; Gordon, G.; von Lilienfeld, O. A.; Yaron, D. Constant Size
     Molecular Descriptors For Use With Machine Learning. arXiv:1701.06649
     """
-    ATTRIBUTES = ("_base_chains", "_idf_values")
-    LABELS = (("get_chain_labels", "_base_chains"), )
+    ATTRIBUTES = ("_base_groups", "_idf_values")
+    LABELS = (("get_chain_labels", "_base_groups"), )
 
     def __init__(self, input_type='list', n_jobs=1, depth=1,
                  use_bond_order=False, use_coordination=False,
@@ -81,7 +81,7 @@ class Connectivity(SetMergeMixin, BaseFeature):
         self.use_coordination = use_coordination
         self.add_unknown = add_unknown
         self.do_tfidf = do_tfidf
-        self._base_chains = None
+        self._base_groups = None
 
         if self.do_tfidf:
             self._idf_values = None
@@ -173,7 +173,7 @@ class Connectivity(SetMergeMixin, BaseFeature):
             temp.append((symbol1, symbol2, connections[idx1][idx2]))
         return temp
 
-    def _tally_chains(self, chains, nodes, connections=None):
+    def _tally_groups(self, chains, nodes, connections=None):
         """
         Tally chain types and return a dictonary with counts of the types.
 
@@ -234,7 +234,7 @@ class Connectivity(SetMergeMixin, BaseFeature):
         """
         data = self.convert_input(X)
         chains = self._loop_depth(data.connections)
-        all_counts = self._tally_chains(chains, data.elements,
+        all_counts = self._tally_groups(chains, data.elements,
                                         data.connections)
         return list(all_counts.keys())
 
@@ -249,7 +249,7 @@ class Connectivity(SetMergeMixin, BaseFeature):
     def fit(self, X, y=None):
         res = self.map(self._para_fit, X)
         vals = self.reduce(lambda x, y: set(x) | set(y), res)
-        self._base_chains = tuple(sorted(vals))
+        self._base_groups = tuple(sorted(vals))
 
         if self.do_tfidf:
             self._idf_values = self._idf(res)
@@ -280,11 +280,11 @@ class Connectivity(SetMergeMixin, BaseFeature):
         self.check_fit()
 
         data = self.convert_input(X)
-        chains = self._loop_depth(data.connections)
-        tallies = self._tally_chains(chains, data.elements, data.connections)
+        groups = self._loop_depth(data.connections)
+        tallies = self._tally_groups(groups, data.elements, data.connections)
 
         vector = []
-        for x in self._base_chains:
+        for x in self._base_groups:
             value = tallies.get(x, 0)
             if self.do_tfidf:
                 value *= self._idf_values[x]
@@ -293,7 +293,7 @@ class Connectivity(SetMergeMixin, BaseFeature):
         if self.add_unknown:
             unknown = 0
             for key, value in tallies.items():
-                if key not in self._base_chains:
+                if key not in self._base_groups:
                     unknown += value
             vector.append(unknown)
         return vector
@@ -304,7 +304,7 @@ class Connectivity(SetMergeMixin, BaseFeature):
         return ['-'.join(x) for x in chains]
 
 
-class ConnectivityTree(SetMergeMixin, BaseFeature):
+class ConnectivityTree(Connectivity):
     """
     A collection of feature types based on a connectivity tree of atoms.
 
@@ -353,11 +353,11 @@ class ConnectivityTree(SetMergeMixin, BaseFeature):
 
     Attributes
     ----------
-    _base_trees : tuple, tuples
+    _base_groups : tuple, tuples
         All the trees that are in the fit molecules.
     """
-    ATTRIBUTES = ("_base_trees", "_idf_values")
-    LABELS = (("get_tree_labels", "_base_trees"), )
+    ATTRIBUTES = ("_base_groups", "_idf_values")
+    LABELS = (("get_tree_labels", "_base_groups"), )
 
     def __init__(self, input_type='list', n_jobs=1, depth=1,
                  use_bond_order=False, use_coordination=False,
@@ -372,7 +372,7 @@ class ConnectivityTree(SetMergeMixin, BaseFeature):
         self.use_parent_element = use_parent_element
         self.add_unknown = add_unknown
         self.do_tfidf = do_tfidf
-        self._base_trees = None
+        self._base_groups = None
 
         if self.do_tfidf:
             self._idf_values = None
@@ -463,7 +463,7 @@ class ConnectivityTree(SetMergeMixin, BaseFeature):
             temp.append((idx, new_ele,  p_idx, rel_p_idx, depth))
         return temp
 
-    def _tally_trees(self, trees, nodes, connections=None):
+    def _tally_groups(self, trees, nodes, connections=None):
         """
         Tally tree types and return a dictonary with counts of the types.
 
@@ -522,89 +522,6 @@ class ConnectivityTree(SetMergeMixin, BaseFeature):
                 results[labelled] = 0
             results[labelled] += 1
         return results
-
-    def _para_fit(self, X):
-        """
-        A single instance of the fit procedure.
-
-        This is formulated in a way that the fits can be done completely
-        parallel in a map/reduce fashion.
-
-        Parameters
-        ----------
-        X : object
-            An object to use for the fit
-
-        Returns
-        -------
-        value : list
-            All the trees in the molecule
-        """
-        data = self.convert_input(X)
-        trees = self._loop_depth(data.connections)
-        all_counts = self._tally_trees(trees, data.elements,
-                                       data.connections)
-        return list(all_counts.keys())
-
-    def _idf(self, all_keys):
-        res = defaultdict(float)
-        for mol in all_keys:
-            for key in mol:
-                res[key] += 1
-        N = len(all_keys)
-        return {key: numpy.log(N / x) for key, x in res.items()}
-
-    def fit(self, X, y=None):
-        res = self.map(self._para_fit, X)
-        vals = self.reduce(lambda x, y: set(x) | set(y), res)
-        self._base_trees = tuple(sorted(vals))
-
-        if self.do_tfidf:
-            self._idf_values = self._idf(res)
-        return self
-
-    def _para_transform(self, X, y=None):
-        """
-        A single instance of the transform procedure.
-
-        This is formulated in a way that the transformations can be done
-        completely parallel with map.
-
-        Parameters
-        ----------
-        X : object
-            An object to use for the transform
-
-        Returns
-        -------
-        value : list
-            The features extracted from the molecule
-
-        Raises
-        ------
-        ValueError
-            If the transformer has not been fit.
-        """
-        self.check_fit()
-
-        data = self.convert_input(X)
-        trees = self._loop_depth(data.connections)
-        tallies = self._tally_trees(trees, data.elements, data.connections)
-
-        vector = []
-        for x in self._base_trees:
-            value = tallies.get(x, 0)
-            if self.do_tfidf:
-                value *= self._idf_values[x]
-            vector.append(value)
-
-        if self.add_unknown:
-            unknown = 0
-            for key, value in tallies.items():
-                if key not in self._base_trees:
-                    unknown += value
-            vector.append(unknown)
-        return vector
 
     def get_tree_labels(self, trees):
         return ['__'.join('-'.join(str(z) for z in y)

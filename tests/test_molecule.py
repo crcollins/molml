@@ -40,26 +40,26 @@ class ConnectivityTest(unittest.TestCase):
     def test_fit_atom(self):
         a = Connectivity(depth=1)
         a.fit(ALL_DATA)
-        self.assertEqual(a._base_chains, (('C',), ('H',), ('N',), ('O',)))
+        self.assertEqual(a._base_groups, (('C',), ('H',), ('N',), ('O',)))
 
     def test_fit_atom_separated(self):
         a = Connectivity(depth=1)
         a.fit([METHANE2])
-        self.assertEqual(a._base_chains, (('C',), ('H',)))
+        self.assertEqual(a._base_groups, (('C',), ('H',)))
         self.assertTrue(
             (a.transform([METHANE2]) == numpy.array([[1, 4]])).all())
 
     def test_fit_bond(self):
         a = Connectivity(depth=2)
         a.fit(ALL_DATA)
-        self.assertEqual(a._base_chains,
+        self.assertEqual(a._base_groups,
                          (('C', 'C'), ('C', 'H'), ('C', 'N'), ('C', 'O'),
                           ('H', 'H'), ('H', 'N'), ('H', 'O'), ('O', 'O')))
 
     def test_fit_angle(self):
         a = Connectivity(depth=3)
         a.fit(ALL_DATA)
-        self.assertEqual(a._base_chains,
+        self.assertEqual(a._base_groups,
                          (('C', 'C', 'C'), ('C', 'C', 'H'),
                           ('C', 'C', 'N'), ('C', 'C', 'O'),
                           ('C', 'N', 'C'), ('C', 'N', 'H'),
@@ -72,7 +72,7 @@ class ConnectivityTest(unittest.TestCase):
         # This is to test the double order flipping (CCCH vs HCCC)
         a = Connectivity(depth=4)
         a.fit(ALL_DATA)
-        self.assertEqual(a._base_chains,
+        self.assertEqual(a._base_groups,
                          (('C', 'C', 'C', 'C'), ('C', 'C', 'C', 'H'),
                           ('C', 'C', 'C', 'N'), ('C', 'C', 'C', 'O'),
                           ('C', 'C', 'N', 'C'), ('C', 'C', 'N', 'H'),
@@ -88,12 +88,12 @@ class ConnectivityTest(unittest.TestCase):
         # use_bond_order=False
         a = Connectivity(depth=1, use_bond_order=True)
         a.fit(ALL_DATA)
-        self.assertEqual(a._base_chains, (('C',), ('H',), ('N',), ('O',)))
+        self.assertEqual(a._base_groups, (('C',), ('H',), ('N',), ('O',)))
 
     def test_fit_bond_bond(self):
         a = Connectivity(depth=2, use_bond_order=True)
         a.fit(ALL_DATA)
-        self.assertEqual(a._base_chains,
+        self.assertEqual(a._base_groups,
                          ((('C', 'C', '1'),), (('C', 'C', '2'),),
                           (('C', 'C', '3'),), (('C', 'C', 'Ar'),),
                           (('C', 'H', '1'),), (('C', 'N', '2'),),
@@ -105,7 +105,7 @@ class ConnectivityTest(unittest.TestCase):
     def test_fit_atom_coordination(self):
         a = Connectivity(depth=1, use_coordination=True)
         a.fit(ALL_DATA)
-        self.assertEqual(a._base_chains,
+        self.assertEqual(a._base_groups,
                          (('C1',), ('C2',), ('C3',), ('C4',), ('H0',),
                           ('H1',), ('N1',), ('N2',), ('N3',), ('O0',),
                           ('O1',), ('O2',)))
@@ -185,7 +185,7 @@ class ConnectivityTreeTest(unittest.TestCase):
         a = ConnectivityTree(depth=1, use_parent_element=False)
         a.fit(ALL_DATA)
         base = ('C', 'H', 'N', 'O')
-        self.assertEqual(a._base_trees, tuple(((0, x, 1), ) for x in base))
+        self.assertEqual(a._base_groups, tuple(((0, x, 1), ) for x in base))
 
     def test_fit_depth_1_separated(self):
         a = ConnectivityTree(depth=1)
@@ -210,7 +210,7 @@ class ConnectivityTreeTest(unittest.TestCase):
             ((0, 'O', 1), (1, 'C', 1), (1, 'H', 1)),
             ((0, 'O', 1), (1, 'O', 1)),
         )
-        self.assertEqual(a._base_trees[::2], expected)
+        self.assertEqual(a._base_groups[::2], expected)
 
     def test_fit_depth_2_parent_element(self):
         a = ConnectivityTree(depth=2, use_parent_element=True)
@@ -233,7 +233,7 @@ class ConnectivityTreeTest(unittest.TestCase):
             ((0, 'Root', 'O', 1), (1, 'O', 'C', 1), (1, 'O', 'H', 1)),
             ((0, 'Root', 'O', 1), (1, 'O', 'O', 1)),
         )
-        self.assertEqual(a._base_trees[::2], expected)
+        self.assertEqual(a._base_groups[::2], expected)
 
     def test_fit_depth_2_parent_element_bond_order(self):
         a = ConnectivityTree(depth=2, use_parent_element=True,
@@ -256,7 +256,7 @@ class ConnectivityTreeTest(unittest.TestCase):
             ((1, 'H_1_H', 1),),
             ((1, 'O_1_H', 1),)
         )
-        self.assertEqual(a._base_trees[::2], expected)
+        self.assertEqual(a._base_groups[::2], expected)
 
     def test_fit_depth_3(self):
         a = ConnectivityTree(depth=3, use_parent_element=False,
@@ -274,7 +274,7 @@ class ConnectivityTreeTest(unittest.TestCase):
             ((0, 'N', 1), (1, 'C', 1), (2, 'C', 1)),
             ((0, 'O', 1), (1, 'C', 1), (2, 'C', 1))
         )
-        self.assertEqual(a._base_trees[::5], expected)
+        self.assertEqual(a._base_groups[::5], expected)
 
     def test_fit_depth_3_preserve_paths(self):
         a = ConnectivityTree(depth=3, use_parent_element=False,
@@ -301,7 +301,7 @@ class ConnectivityTreeTest(unittest.TestCase):
             ((0, -1, 'O', 1), (1, 0, 'C', 1), (1, 1, 'C', 1), (2, 1, 'C', 2),
              (2, 4, 'C', 2))
         )
-        self.assertEqual(a._base_trees[::5], expected)
+        self.assertEqual(a._base_groups[::5], expected)
 
     def test_fit_depth_1_use_bond_order(self):
         # This should be the exact same thing as doing it with
@@ -310,7 +310,7 @@ class ConnectivityTreeTest(unittest.TestCase):
                              use_bond_order=True)
         a.fit(ALL_DATA)
         base = ('C', 'H', 'N', 'O')
-        self.assertEqual(a._base_trees, tuple(((0, x, 1), ) for x in base))
+        self.assertEqual(a._base_groups, tuple(((0, x, 1), ) for x in base))
 
     def test_fit_depth_2_use_bond_order(self):
         a = ConnectivityTree(depth=2, use_parent_element=False,
@@ -324,7 +324,7 @@ class ConnectivityTreeTest(unittest.TestCase):
             ((1, 'C_Ar_C', 2), (1, 'H_1_C', 1)),
             ((1, 'H_1_C', 4),)
         )
-        self.assertEqual(a._base_trees[::5], expected)
+        self.assertEqual(a._base_groups[::5], expected)
 
     def test_fit_depth_1_coordination(self):
         a = ConnectivityTree(depth=1, use_coordination=True)
@@ -333,7 +333,7 @@ class ConnectivityTreeTest(unittest.TestCase):
         bases = ('C1', 'C2', 'C3', 'C4', 'H0', 'H1',
                  'N1', 'N2', 'N3', 'O0', 'O1', 'O2')
         expected = tuple(((0, 'Root', x, 1), ) for x in bases)
-        self.assertEqual(a._base_trees, expected)
+        self.assertEqual(a._base_groups, expected)
 
     def test_transform(self):
         a = ConnectivityTree()
