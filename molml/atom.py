@@ -61,7 +61,7 @@ class Shell(SetMergeMixin, BaseFeature):
     5, 34.
     """
     ATTRIBUTES = ("_elements", )
-    LABELS = ("_elements", )
+    LABELS = (("get_shell_labels", "_elements"), )
 
     def __init__(self, input_type='list', n_jobs=1, depth=1,
                  use_coordination=False, add_unknown=False):
@@ -203,6 +203,11 @@ class Shell(SetMergeMixin, BaseFeature):
                 vec.append(unknown)
             vectors.append(vec)
         return vectors
+
+    def get_shell_labels(self, elements):
+        if self.add_unknown:
+            elements += ('UNKNOWN', )
+        return elements
 
 
 class LocalEncodedBond(SetMergeMixin, EncodedFeature):

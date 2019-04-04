@@ -299,9 +299,12 @@ class Connectivity(SetMergeMixin, BaseFeature):
         return vector
 
     def get_chain_labels(self, chains):
+        unknown = ['UNKNOWN'] if self.add_unknown else []
         if self.use_bond_order:
-            return ['_'.join(['-'.join(y) for y in x]) for x in chains]
-        return ['-'.join(x) for x in chains]
+            temp = ['_'.join(['-'.join(y) for y in x]) for x in chains]
+        else:
+            temp = ['-'.join(x) for x in chains]
+        return temp + unknown
 
 
 class ConnectivityTree(Connectivity):
@@ -524,8 +527,9 @@ class ConnectivityTree(Connectivity):
         return results
 
     def get_tree_labels(self, trees):
+        unknown = ['UNKNOWN'] if self.add_unknown else []
         return ['__'.join('-'.join(str(z) for z in y)
-                          for y in x) for x in trees]
+                          for y in x) for x in trees] + unknown
 
 
 class Autocorrelation(BaseFeature):

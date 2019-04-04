@@ -180,6 +180,12 @@ class ShellTest(unittest.TestCase):
         expected = ('C', 'H', 'N', 'O')
         self.assertEqual(a.get_labels(), expected)
 
+    def test_get_labels_unknown(self):
+        a = Shell(add_unknown=True)
+        a.fit(ALL_DATA)
+        expected = ('C', 'H', 'N', 'O', 'UNKNOWN')
+        self.assertEqual(a.get_labels(), expected)
+
 
 class LocalEncodedBondTest(unittest.TestCase):
 

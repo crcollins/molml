@@ -162,6 +162,14 @@ class ConnectivityTest(unittest.TestCase):
         expected = ('C-H', )
         self.assertEqual(labels, expected)
 
+    def test_get_labels_unknown(self):
+        a = Connectivity(depth=2, add_unknown=True)
+        X = a.fit_transform([METHANE])
+        labels = a.get_labels()
+        self.assertEqual(X.shape[1], len(labels))
+        expected = ('C-H', 'UNKNOWN')
+        self.assertEqual(labels, expected)
+
     def test_get_labels_coordination(self):
         a = Connectivity(depth=1, use_coordination=True)
         X = a.fit_transform([METHANE])
@@ -389,6 +397,14 @@ class ConnectivityTreeTest(unittest.TestCase):
         labels = a.get_labels()
         self.assertEqual(X.shape[1], len(labels))
         expected = ('0-Root-C-1__1-C-H-4', '0-Root-H-1__1-H-C-1')
+        self.assertEqual(labels, expected)
+
+    def test_get_labels_unknown(self):
+        a = ConnectivityTree(depth=2, add_unknown=True)
+        X = a.fit_transform([METHANE])
+        labels = a.get_labels()
+        self.assertEqual(X.shape[1], len(labels))
+        expected = ('0-Root-C-1__1-C-H-4', '0-Root-H-1__1-H-C-1', 'UNKNOWN')
         self.assertEqual(labels, expected)
 
     def test_get_labels_coordination(self):

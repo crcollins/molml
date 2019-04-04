@@ -486,6 +486,17 @@ class TestEncodedFeature(unittest.TestCase):
         ]
         self.assertEqual(labels, expected)
 
+    def test_get_encoded_labels_unknown(self):
+        a = EncodedFeature(segments=3, start=1., end=3.)
+        a.add_unknown = True
+        labels = a.get_encoded_labels([('A', 'B'), ('C', 'D')])
+        expected = [
+            'A-B_1.0', 'A-B_2.0', 'A-B_3.0',
+            'C-D_1.0', 'C-D_2.0', 'C-D_3.0',
+            'UNKNOWN_1.0', 'UNKNOWN_2.0', 'UNKNOWN_3.0',
+        ]
+        self.assertEqual(labels, expected)
+
 
 if __name__ == '__main__':
     unittest.main()
