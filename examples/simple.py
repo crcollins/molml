@@ -33,9 +33,18 @@ HCN_CONNS = {
 
 
 if __name__ == "__main__":
-    # Example of Generating the Coulomb matrix with just elements and coords.
+    # Example of generating the Coulomb matrix with just elements and coords
+    # for a single example molecule.
     feat = CoulombMatrix()
     H2 = (H2_ELES, H2_COORDS)
+    feat.fit([H2])
+    print("Transformed H2")
+    print(feat.transform([H2]))
+    print()
+
+    # Example of generating the Coulomb matrix with just elements and coords
+    # for multiple molecules.
+    feat = CoulombMatrix()
     HCN = (HCN_ELES, HCN_COORDS)
     feat.fit([H2, HCN])
     print("Transformed H2")
