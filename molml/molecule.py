@@ -1135,6 +1135,7 @@ class CoulombMatrix(BaseFeature):
 
         if self.eigen:
             values = numpy.linalg.eig(values)[0]
+            values = numpy.sort(values)[::-1]
 
         values = numpy.pad(values,
                            (0, padding_difference),

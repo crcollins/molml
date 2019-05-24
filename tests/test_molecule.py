@@ -1062,10 +1062,11 @@ class CoulombMatrixTest(unittest.TestCase):
 
         expected_results = numpy.array([
                                         40.04619974,
-                                        -1.00605888,
                                         -0.06059994,
                                         -0.06071616,
-                                        -0.06071957])
+                                        -0.06071957,
+                                        -1.00605888,
+        ])
         try:
             numpy.testing.assert_array_almost_equal(
                 a.fit_transform([METHANE])[0],
