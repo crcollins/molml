@@ -1042,13 +1042,14 @@ class CoulombMatrix(BaseFeature):
     LABELS = (("get_coulomb_labels", "_max_size"), )
 
     def __init__(self, input_type='list', n_jobs=1, sort=False, eigen=False,
-                 drop_values=False):
+                 drop_values=False, only_lower_triangle=False):
         super(CoulombMatrix, self).__init__(input_type=input_type,
                                             n_jobs=n_jobs)
         self._max_size = None
         self.sort = sort
         self.eigen = eigen
         self.drop_values = drop_values
+        self.only_lower_triangle = only_lower_triangle
 
     def _para_fit(self, X):
         """
@@ -1140,6 +1141,9 @@ class CoulombMatrix(BaseFeature):
         values = numpy.pad(values,
                            (0, padding_difference),
                            mode="constant")
+        if self.only_lower_triangle and len(values.shape) > 1:
+            idxs = numpy.tril_indices(values.shape[0])
+            values = values[idxs]
         return values.reshape(-1)
 
     def get_coulomb_labels(self, max_size):
@@ -1148,6 +1152,8 @@ class CoulombMatrix(BaseFeature):
         labels = []
         for i in range(max_size):
             for j in range(max_size):
+                if self.only_lower_triangle and j > i:
+                    continue
                 labels.append('coul-%d-%d' % (i, j))
         return labels
 

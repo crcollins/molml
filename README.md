@@ -66,7 +66,7 @@ Example Usage
     ...         ]
     ... )
     >>> feat.fit([H2, HCN])
-    CoulombMatrix(input_type='list', n_jobs=1, sort=False, eigen=False, drop_values=False)
+    CoulombMatrix(input_type='list', n_jobs=1, sort=False, eigen=False, drop_values=False, only_lower_triangle=False)
     >>> feat.transform([H2])
     array([[ 0.5,  1. ,  0. ,  1. ,  0.5,  0. ,  0. ,  0. ,  0. ]])
     >>> feat.transform([H2, HCN])
@@ -77,7 +77,7 @@ Example Usage
     >>>
     >>> # Example loading from files directly
     >>> feat2 = CoulombMatrix(input_type='filename')
-    CoulombMatrix(input_type='filename', n_jobs=1, sort=False, eigen=False, drop_values=False)
+    CoulombMatrix(input_type='filename', n_jobs=1, sort=False, eigen=False, drop_values=False, only_lower_triangle=False)
     >>> paths = ['data/qm7/qm-%04d.out' % i for i in xrange(2)]
     >>> feat2.fit_transform(paths)
     array([[ 36.8581052 ,   5.49459021,   5.49462885,   5.4945    ,

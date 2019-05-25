@@ -1074,6 +1074,19 @@ class CoulombMatrixTest(unittest.TestCase):
         except AssertionError as e:
             self.fail(e)
 
+    def test_only_lower_triangle(self):
+        a = CoulombMatrix(only_lower_triangle=True)
+        expected_results = numpy.array([36.858105, 5.49459, 0.5, 5.494629,
+                                        0.560719, 0.5, 5.4945, 0.560717,
+                                        0.560718, 0.5, 5.490313, 0.56064,
+                                        0.560641, 0.560638, 0.5])
+        try:
+            numpy.testing.assert_array_almost_equal(
+                a.fit_transform([METHANE])[0],
+                expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
     def test_get_labels(self):
         a = CoulombMatrix()
         X = a.fit_transform([METHANE])
@@ -1094,6 +1107,20 @@ class CoulombMatrixTest(unittest.TestCase):
         labels = a.get_labels()
         self.assertEqual(X.shape[1], len(labels))
         expected = ('coul-0', 'coul-1', 'coul-2', 'coul-3', 'coul-4')
+        self.assertEqual(labels, expected)
+
+    def test_get_labels_lower_triangle(self):
+        a = CoulombMatrix(only_lower_triangle=True)
+        X = a.fit_transform([METHANE])
+        labels = a.get_labels()
+        self.assertEqual(X.shape[1], len(labels))
+        expected = (
+            'coul-0-0',
+            'coul-1-0', 'coul-1-1',
+            'coul-2-0', 'coul-2-1', 'coul-2-2',
+            'coul-3-0', 'coul-3-1', 'coul-3-2', 'coul-3-3',
+            'coul-4-0', 'coul-4-1', 'coul-4-2', 'coul-4-3', 'coul-4-4',
+        )
         self.assertEqual(labels, expected)
 
 
