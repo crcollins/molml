@@ -1177,6 +1177,21 @@ class BagOfBondsTest(unittest.TestCase):
         a.fit([METHANE])
         self.assertEqual(a.transform(ALL_DATA).shape, (3, 10))
 
+    def test_add_atoms(self):
+        a = BagOfBonds(add_atoms=True)
+        a.fit([METHANE])
+        expected_results = numpy.array([[
+            36.8581052, 5.49462885, 5.49459021, 5.4945, 5.49031286, 0.5,
+            0.5, 0.5, 0.5, 0.56071947, 0.56071752, 0.56071656, 0.56064089,
+            0.56064037, 0.56063783]])
+        try:
+
+            numpy.testing.assert_array_almost_equal(
+                a.transform([METHANE]),
+                expected_results)
+        except AssertionError as e:
+            self.fail(e)
+
     def test_large_to_small_transform(self):
         a = BagOfBonds()
         a.fit([BIG])
@@ -1209,6 +1224,20 @@ class BagOfBondsTest(unittest.TestCase):
         self.assertEqual(X.shape[1], len(labels))
         expected = (
             'C-H_0', 'C-H_1', 'C-H_2', 'C-H_3',
+            'H-H_0', 'H-H_1', 'H-H_2',
+            'H-H_3', 'H-H_4', 'H-H_5',
+        )
+        self.assertEqual(labels, expected)
+
+    def test_get_labels_add_atoms(self):
+        a = BagOfBonds(add_atoms=True)
+        X = a.fit_transform([METHANE])
+        labels = a.get_labels()
+        self.assertEqual(X.shape[1], len(labels))
+        expected = (
+            'C_0',
+            'C-H_0', 'C-H_1', 'C-H_2', 'C-H_3',
+            'H_0', 'H_1', 'H_2', 'H_3',
             'H-H_0', 'H-H_1', 'H-H_2',
             'H-H_3', 'H-H_4', 'H-H_5',
         )

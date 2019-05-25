@@ -1190,6 +1190,9 @@ class BagOfBonds(BaseFeature):
         is set to True, then it will truncate that particular bag to only
         include the largest _bag_sizes[ele1, ele2] of the molecule.
 
+    add_atoms : bool, default=False
+        Adds the diagonal of the Coulomb Matrix to the bags.
+
     Attributes
     ----------
     _bag_sizes : dict, element pair->int
@@ -1206,10 +1209,12 @@ class BagOfBonds(BaseFeature):
     ATTRIBUTES = ("_bag_sizes", )
     LABELS = (("get_bob_labels", "_bag_sizes"), )
 
-    def __init__(self, input_type='list', n_jobs=1, drop_values=False):
+    def __init__(self, input_type='list', n_jobs=1, drop_values=False,
+                 add_atoms=False):
         super(BagOfBonds, self).__init__(input_type=input_type, n_jobs=n_jobs)
         self._bag_sizes = None
         self.drop_values = drop_values
+        self.add_atoms = add_atoms
 
     def _para_fit(self, X):
         """
@@ -1229,13 +1234,16 @@ class BagOfBonds(BaseFeature):
             All the element pairs in the molecule
         """
         data = self.convert_input(X)
-        bags = {}
 
         local = {}
         for element in data.elements:
             if element not in local:
                 local[element] = 0
             local[element] += 1
+
+        bags = {}
+        if self.add_atoms:
+            bags = {(ele, ): val for ele, val in local.items()}
 
         for i, ele1 in enumerate(local.keys()):
             for j, ele2 in enumerate(local.keys()):
@@ -1327,28 +1335,34 @@ class BagOfBonds(BaseFeature):
         coulomb_matrix = get_coulomb_matrix(numbers, coords)
 
         ele_array = numpy.array(elements)
-        for ele1, ele2 in bags.keys():
-            # Select only the rows that are of type ele1
-            first = ele_array == ele1
+        for eles in bags.keys():
+            if len(eles) == 2:
+                # Select only the rows that are of the first element
+                first = ele_array == eles[0]
+                # Select only the cols that are of the second element
+                second = ele_array == eles[1]
 
-            # Select only the cols that are of type ele2
-            second = ele_array == ele2
-            # Select only the rows/cols that are in the upper triangle
-            # (This could also be the lower), and are in a row, col with
-            # ele1 and ele2 respectively
-            outer = numpy.logical_and.outer(first, second)
-            mask = numpy.triu(outer | outer.T, k=1)
-            # Add to correct double element bag highest to lowest
-            values = sorted(coulomb_matrix[mask].tolist(), reverse=True)
+                # Select only the rows/cols that are in the upper triangle
+                # (This could also be the lower), and are in a row, col with
+                # the first element and the second element respectively
+                outer = numpy.logical_and.outer(first, second)
+                mask = numpy.triu(outer | outer.T, k=1)
+                values = coulomb_matrix[mask]
+            else:
+                mask = ele_array == eles[0]
+                values = numpy.diag(coulomb_matrix)[mask]
+
+            # Sort order of values to be consistent
+            values = sorted(values, reverse=True)
 
             # The molecule being used was fit to something smaller
-            if len(values) > len(bags[ele1, ele2]):
+            if len(values) > len(bags[eles]):
                 if not self.drop_values:
                     msg = "The size of the %s bag is too small for this input"
-                    raise ValueError(msg % ((ele1, ele2), ))
-                values = values[:len(bags[ele1, ele2])]
+                    raise ValueError(msg % (eles, ))
+                values = values[:len(bags[eles])]
 
-            bags[ele1, ele2][:len(values)] = values
+            bags[eles][:len(values)] = values
         order = [x[0] for x in self._bag_sizes]
         return sum((bags[key] for key in order), [])
 
