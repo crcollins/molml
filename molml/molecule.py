@@ -1323,7 +1323,8 @@ class BagOfBonds(BaseFeature):
             # Select only the rows/cols that are in the upper triangle
             # (This could also be the lower), and are in a row, col with
             # ele1 and ele2 respectively
-            mask = numpy.triu(numpy.logical_and.outer(first, second), k=1)
+            outer = numpy.logical_and.outer(first, second)
+            mask = numpy.triu(outer | outer.T, k=1)
             # Add to correct double element bag highest to lowest
             values = sorted(coulomb_matrix[mask].tolist(), reverse=True)
 
