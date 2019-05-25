@@ -1307,11 +1307,12 @@ class BagOfBonds(BaseFeature):
 
         data = self.convert_input(X)
         # Sort the elements and coords based on the element
-        temp = sorted(zip(data.elements, data.coords), key=lambda x: x[0])
-        elements, coords = zip(*temp)
+        temp = sorted(zip(data.elements, data.numbers, data.coords),
+                      key=lambda x: x[0])
+        elements, numbers, coords = zip(*temp)
 
         bags = {k: [0 for i in range(v)] for k, v in self._bag_sizes}
-        coulomb_matrix = get_coulomb_matrix(data.numbers, coords)
+        coulomb_matrix = get_coulomb_matrix(numbers, coords)
 
         ele_array = numpy.array(elements)
         for ele1, ele2 in bags.keys():
