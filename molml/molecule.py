@@ -1021,6 +1021,12 @@ class CoulombMatrix(BaseFeature):
         set to True, then it will truncate the molecule to only include the
         first _max_size atoms of the molecule.
 
+    only_lower_triangle : bool, default=False
+        Specifies whether or not to only use the lower triangle of the Coulomb
+        Matrix. This cuts the dimensionality in half by removing the duplicate
+        values in the upper triangle of the matrix. This does nothing if
+        `eigen` is set.
+
     Attributes
     ----------
     _max_size : int
