@@ -553,7 +553,7 @@ class IndexMapTest(unittest.TestCase):
         self.assertEqual(a.get_value_order(),
                          [('C', ), ('H', ), ('UNKNOWN', )])
 
-    def test__get_form_indicies(self):
+    def test__get_form_indices(self):
         data = (
             (  # 1
                 (0, ([], False)),
@@ -601,7 +601,7 @@ class IndexMapTest(unittest.TestCase):
                 vals = IndexMap._get_form_indices(i + 1, depth)
                 self.assertEqual(vals, expected)
 
-    def test__get_form_indicies_invalid(self):
+    def test__get_form_indices_invalid(self):
         with self.assertRaises(ValueError):
             IndexMap._get_form_indices(0, 1)
 
