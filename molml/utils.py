@@ -544,19 +544,15 @@ def cosine_decay(R, r_cut=6.):
     return values
 
 
-def _get_form_indices(values, depth):
+def _get_form_indices(value_length, depth):
     """
     """
     if depth < 1:
         return [], False
 
-    # get the first value
-    for val in values:
-        break
-    else:
+    if value_length < 1:
         raise ValueError("No values to use.")
 
-    value_length = len(val)
     if depth >= value_length:
         return list(range(value_length)), False
 
@@ -572,7 +568,7 @@ def _get_form_indices(values, depth):
     return res, bool(both)
 
 
-def get_index_mapping(values, depth, add_unknown):
+def get_index_mapping(values, depth):
     """
     Determine the ordering and mapping of feature groups.
 
@@ -584,42 +580,63 @@ def get_index_mapping(values, depth, add_unknown):
     depth : int
         The number of elements to use from each values value.
 
-    add_unknown : bool
-        Whether or not to include an extra collector for unknown values.
-
     Returns
     -------
-    map_func : function(key)->int
-        A function that gives the mapping index for a given key.
+    mapping : dict(key)->int
+        A dict that gives the mapping index for a given key.
 
-    length : int
+    idxs : list of int
         The length of the mapping values.
 
     both : bool
-        Indicates whether both values are needed in a loop (A, B) vs (B, A).
+        Indicates whether both values are needed in a loop (A, B) vs
+        (B, A).
     """
     if depth < 1:
         # Just a constant value
-        return (lambda _: 0), 1, False
-    extra = bool(add_unknown)
-    idxs, both = _get_form_indices(values, depth)
+        return {tuple(): 0}, [], False
+    values_length = len(values[0])
+    idxs, both = _get_form_indices(values_length, depth)
     new_values = [tuple(x[i] for i in idxs) for x in values]
     if both:
         other_idxs = [i + 1 for i in idxs]
         temp = [tuple(x[i] for i in other_idxs) for x in values]
         new_values.extend(temp)
     new_values = set(sort_chain(x) for x in new_values)
-
     mapping = {key: i for i, key in enumerate(sorted(new_values))}
+    return mapping, idxs, both
 
-    def map_func(key):
-        key = tuple(key[i] for i in idxs)
-        if not both:
+
+class IndexMap(object):
+    def __init__(self, values, depth, add_unknown=False):
+        self.values = values
+        self.depth = depth
+        self.add_unknown = add_unknown
+        parts = get_index_mapping(values, depth)
+        self._mapping, self._idxs, self.both = parts
+
+    def __len__(self):
+        return len(self._mapping) + int(self.add_unknown)
+
+    def __iter__(self):
+        for x in self.get_value_order():
+            yield x
+
+    def __getitem__(self, key):
+        key = tuple(key[i] for i in self._idxs)
+        if not self.both:
             key = sort_chain(key)
-        if key not in mapping and add_unknown:
+        if key not in self._mapping and self.add_unknown:
             return -1
-        return mapping[key]
-    return map_func, len(mapping) + extra, both
+        return self._mapping[key]
+
+    def get_value_order(self):
+        base = [None for x in range(len(self))]
+        for key, val in self._mapping.items():
+            base[val] = key
+        if self.add_unknown:
+            base[-1] = ('UNKNOWN', )
+        return base
 
 
 def needs_reversal(chain):

@@ -13,7 +13,7 @@ from molml.utils import LazyValues, get_smoothing_function
 from molml.utils import get_coulomb_matrix, get_element_pairs
 from molml.utils import deslugify, _get_form_indices, get_index_mapping
 from molml.utils import sort_chain, needs_reversal
-from molml.utils import load_json
+from molml.utils import load_json, IndexMap
 
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
@@ -207,48 +207,29 @@ class UtilsTest(unittest.TestCase):
             )
         )
         for i, group in enumerate(data):
-            values = [list(range(i + 1))]
             for depth, expected in group:
-                vals = _get_form_indices(values, depth)
+                vals = _get_form_indices(i + 1, depth)
                 self.assertEqual(vals, expected)
 
     def test__get_form_indicies_invalid(self):
         with self.assertRaises(ValueError):
-            _get_form_indices([], 1)
+            _get_form_indices(0, 1)
 
     def test_get_index_mapping(self):
         values = [('H', 'H'), ('H', 'C'), ('C', 'C')]
         expected = (
-            (0, 1, False, (0, 0, 0)),
-            (1, 2, True, (1, 1, 0)),
-            (2, 3, False, (2, 1, 0)),
-            (3, 3, False, (2, 1, 0)),
+            (0, False, {tuple(): 0}),
+            (1, True, {('C', ): 0, ('H', ): 1}),
+            (2, False, {('C', 'C'): 0, ('C', 'H'): 1, ('H', 'H'): 2}),
+            (3, False, {('C', 'C'): 0, ('C', 'H'): 1, ('H', 'H'): 2}),
         )
-        for depth, expected_length, expected_both, idxs in expected:
-            f, length, both = get_index_mapping(values, depth, False)
-            self.assertEqual(length, expected_length)
+        for depth, expected_both, expected_mapping in expected:
+            mapping, idxs, both = get_index_mapping(values, depth)
+            self.assertEqual(mapping, expected_mapping)
             self.assertEqual(both, expected_both)
-            self.assertEqual(tuple(f(x) for x in values), idxs)
-
-    def test_get_index_mapping_add_unknown(self):
-        values = [('H', 'H'), ('H', 'C'), ('C', 'C')]
-        expected = (
-            (0, 1, False, (0, 0, 0)),
-            (1, 3, True, (1, 1, 0)),
-            (2, 4, False, (2, 1, 0)),
-            (3, 4, False, (2, 1, 0)),
-            (1, 3, True, (1, 1, 0)),
-            (2, 4, False, (2, 1, 0)),
-        )
-        for depth, expected_length, expected_both, idxs in expected:
-            f, length, both = get_index_mapping(values, depth, True)
-            self.assertEqual(length, expected_length)
-            self.assertEqual(both, expected_both)
-            self.assertEqual(tuple(f(x) for x in values), idxs)
-            if not depth:
-                self.assertEqual(f("NEW"), 0)
-            else:
-                self.assertEqual(f("NEW"), -1)
+            for value in values:
+                new_value = sort_chain(tuple(value[i] for i in idxs))
+                self.assertIn(new_value, mapping)
 
     def test_sort_chain(self):
         needs_flip = ("O", "H", "C")
@@ -603,6 +584,42 @@ class LazyValuesTest(unittest.TestCase):
         a = LazyValues(elements=ELEMENTS, coords=COORDS, unit_cell=UNIT_CELL)
         a.fill_in_crystal(radius=1.)
         self.assertEqual(a.elements.tolist(), ELEMENTS * length)
+
+
+class IndexMapTest(unittest.TestCase):
+    def test_standard(self):
+        a = IndexMap([('C', 'H'), ('H', 'H'), ('C', 'C')], 2)
+        self.assertEqual(a['C', 'C'], 0)
+        self.assertEqual(a['C', 'H'], 1)
+        self.assertEqual(a['H', 'C'], 1)
+        with self.assertRaises(KeyError):
+            a['something']
+        self.assertFalse(a.both)
+        self.assertEqual(len(a), 3)
+        expected_order = [('C', 'C'), ('C', 'H'), ('H', 'H')]
+        self.assertEqual(a.get_value_order(), expected_order)
+
+        for x, y in zip(a, expected_order):
+            self.assertEqual(x, y)
+
+    def test_shorter(self):
+        a = IndexMap([('C', 'H'), ('H', 'H'), ('C', 'C')], 1)
+        self.assertEqual(a['C'], 0)
+        self.assertEqual(a['H'], 1)
+        with self.assertRaises(KeyError):
+            a['something']
+        self.assertTrue(a.both)
+        self.assertEqual(len(a), 2)
+        self.assertEqual(a.get_value_order(), [('C', ), ('H', )])
+
+    def test_all_add_unknown(self):
+        a = IndexMap([('C', 'H'), ('H', 'H'), ('C', 'C')], 1, add_unknown=True)
+        self.assertEqual(a['C'], 0)
+        self.assertEqual(a['H'], 1)
+        self.assertEqual(a['something'], -1)
+        self.assertEqual(len(a), 3)
+        self.assertEqual(a.get_value_order(),
+                         [('C', ), ('H', ), ('UNKNOWN', )])
 
 
 if __name__ == '__main__':

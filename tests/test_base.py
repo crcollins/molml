@@ -9,7 +9,7 @@ except ImportError:
 import numpy
 
 from molml.base import BaseFeature, SetMergeMixin, InputTypeMixin, _func_star
-from molml.base import EncodedFeature
+from molml.base import EncodedFeature, FormMixin
 
 from .constants import METHANE_ELEMENTS, METHANE_COORDS, METHANE_PATH
 from .constants import METHANE, METHANE_NUMBERS, METHANE_CONNECTIONS
@@ -444,6 +444,47 @@ class TestInputTypeMixin(unittest.TestCase):
         self.assertEqual("filename", a.input_type)
 
 
+class FormFeature(FormMixin, BaseFeature):
+    ATTRIBUTES = ('data', )
+    LABELS = ('data', )
+
+    def __init__(self, input_type=None, form=1, add_unknown=False,
+                 *args, **kwargs):
+        super(FormFeature, self).__init__(input_type=input_type,
+                                          *args, **kwargs)
+        self.data = (('A', 'B'), ('B', 'C'), ('C', 'D'))
+        self.form = form
+        self.add_unknown = add_unknown
+
+    def _para_transform(self, X):
+        pass
+
+
+class TestFormMixin(unittest.TestCase):
+    def test_get_encoded_labels_unknown(self):
+        a = FormFeature(form=1)
+        labels = a.get_labels()
+        self.assertEqual(labels, a.data)
+
+    def test_get_idx_map(self):
+        a = FormFeature(form=1)
+        self.assertFalse(hasattr(a, '_idx_map'))
+        b = a.get_idx_map()
+        self.assertTrue(hasattr(a, '_idx_map'))
+        c = a.get_idx_map()
+        self.assertIs(b, c)
+
+    def test_get_group_order(self):
+        a = FormFeature(form=1)
+        self.assertEqual(a.get_group_order(None),
+                         [('A', ), ('B', ), ('C', ), ('D', )])
+
+    def test_transform(self):
+        a = FormFeature(form=1)
+        a.transform([None, None])
+        self.assertTrue(hasattr(a, '_idx_map'))
+
+
 class TestEncodedFeature(unittest.TestCase):
 
     def test_encode_values(self):
@@ -483,17 +524,6 @@ class TestEncodedFeature(unittest.TestCase):
         expected = [
             'A-B_1.0', 'A-B_2.0', 'A-B_3.0',
             'C-D_1.0', 'C-D_2.0', 'C-D_3.0',
-        ]
-        self.assertEqual(labels, expected)
-
-    def test_get_encoded_labels_unknown(self):
-        a = EncodedFeature(segments=3, start=1., end=3.)
-        a.add_unknown = True
-        labels = a.get_encoded_labels([('A', 'B'), ('C', 'D')])
-        expected = [
-            'A-B_1.0', 'A-B_2.0', 'A-B_3.0',
-            'C-D_1.0', 'C-D_2.0', 'C-D_3.0',
-            'UNKNOWN_1.0', 'UNKNOWN_2.0', 'UNKNOWN_3.0',
         ]
         self.assertEqual(labels, expected)
 

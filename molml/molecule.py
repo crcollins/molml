@@ -12,11 +12,10 @@ from itertools import product
 import numpy
 from scipy.spatial.distance import cdist
 
-from .base import BaseFeature, SetMergeMixin, EncodedFeature
+from .base import BaseFeature, SetMergeMixin, EncodedFeature, FormMixin
 from .utils import get_depth_threshold_mask_connections, get_coulomb_matrix
 from .utils import get_element_pairs, cosine_decay, needs_reversal
-from .utils import get_index_mapping, get_angles
-from .utils import get_graph_distance
+from .utils import get_angles, get_graph_distance
 from .constants import ELECTRONEGATIVITY, BOND_LENGTHS
 
 
@@ -626,7 +625,7 @@ class Autocorrelation(BaseFeature):
         return res
 
 
-class EncodedAngle(SetMergeMixin, EncodedFeature):
+class EncodedAngle(FormMixin, SetMergeMixin, EncodedFeature):
     r"""
     A smoothed histogram of atomic angles.
 
@@ -754,7 +753,7 @@ class EncodedAngle(SetMergeMixin, EncodedFeature):
     def f_c(self, R):
         return cosine_decay(R, r_cut=self.r_cut)
 
-    def _iterator(self, data, get_index, both):
+    def _iterator(self, data, idx_map):
         mat = get_depth_threshold_mask_connections(data.connections,
                                                    min_depth=self.min_depth,
                                                    max_depth=self.max_depth)
@@ -770,14 +769,14 @@ class EncodedAngle(SetMergeMixin, EncodedFeature):
                 for k, ele3 in enumerate(data.elements):
                     if j == k or not mat[j, k]:
                         continue
-                    if i > k and not both:
+                    if i > k and not idx_map.both:
                         continue
                     if not f_c[i, k] or not f_c[j, k]:
                         continue
                     F = f_c[i, j] * f_c[j, k] * f_c[i, k]
                     eles = ele1, ele2, ele3
                     try:
-                        idx = (get_index(eles), )
+                        idx = (idx_map[eles], )
                     except KeyError:
                         idx = None
                     yield idx, angles[i, j, k], F
@@ -806,14 +805,12 @@ class EncodedAngle(SetMergeMixin, EncodedFeature):
         """
         self.check_fit()
         data = self.convert_input(X)
-        get_index, length, both = get_index_mapping(self._groups,
-                                                    self.form,
-                                                    self.add_unknown)
-        iterator = self._iterator(data, get_index, both)
-        return self.encode_values(iterator, (length, ))
+        idx_map = self.get_idx_map()
+        iterator = self._iterator(data, idx_map)
+        return self.encode_values(iterator, (len(idx_map), ))
 
 
-class EncodedBond(SetMergeMixin, EncodedFeature):
+class EncodedBond(FormMixin, SetMergeMixin, EncodedFeature):
     """
     A smoothed histogram of atomic distances.
 
@@ -930,20 +927,20 @@ class EncodedBond(SetMergeMixin, EncodedFeature):
         data = self.convert_input(X)
         return get_element_pairs(data.elements)
 
-    def _iterator(self, data, get_index, both):
+    def _iterator(self, data, idx_map):
         mat = get_depth_threshold_mask_connections(data.connections,
                                                    max_depth=self.max_depth,
                                                    min_depth=self.min_depth)
         distances = cdist(data.coords, data.coords)
         for i, ele1 in enumerate(data.elements):
             for j, ele2 in enumerate(data.elements):
-                if i > j and not both:
+                if i > j and not idx_map.both:
                     continue
                 if i == j or not mat[i, j]:
                     continue
                 eles = (ele1, ele2)
                 try:
-                    idx = (get_index(eles), )
+                    idx = (idx_map[eles], )
                 except KeyError:
                     idx = None
                 yield idx, distances[i, j], 1.
@@ -972,11 +969,9 @@ class EncodedBond(SetMergeMixin, EncodedFeature):
         """
         self.check_fit()
         data = self.convert_input(X)
-        get_index, length, both = get_index_mapping(self._element_pairs,
-                                                    self.form,
-                                                    self.add_unknown)
-        iterator = self._iterator(data, get_index, both)
-        return self.encode_values(iterator, (length, ))
+        idx_map = self.get_idx_map()
+        iterator = self._iterator(data, idx_map)
+        return self.encode_values(iterator, (len(idx_map), ))
 
 
 class CoulombMatrix(BaseFeature):

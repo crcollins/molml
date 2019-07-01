@@ -11,10 +11,9 @@ from itertools import product
 import numpy
 from scipy.spatial.distance import cdist
 
-from .base import BaseFeature, SetMergeMixin, EncodedFeature
+from .base import BaseFeature, SetMergeMixin, EncodedFeature, FormMixin
 from .utils import get_depth_threshold_mask_connections, get_coulomb_matrix
 from .utils import get_element_pairs, cosine_decay, get_angles
-from .utils import get_index_mapping
 
 
 __all__ = ("Shell", "LocalEncodedBond", "LocalEncodedAngle",
@@ -210,7 +209,7 @@ class Shell(SetMergeMixin, BaseFeature):
         return elements
 
 
-class LocalEncodedBond(SetMergeMixin, EncodedFeature):
+class LocalEncodedBond(FormMixin, SetMergeMixin, EncodedFeature):
     """
     A smoothed histogram of atomic distances.
 
@@ -323,7 +322,7 @@ class LocalEncodedBond(SetMergeMixin, EncodedFeature):
         # This is just a cheap way to approximate the actual value
         return set(data.elements)
 
-    def _iterator(self, data, get_index, both=None):
+    def _iterator(self, data, idx_map):
         mat = get_depth_threshold_mask_connections(data.connections,
                                                    min_depth=self.min_depth,
                                                    max_depth=self.max_depth)
@@ -333,7 +332,7 @@ class LocalEncodedBond(SetMergeMixin, EncodedFeature):
                 if i == j or not mat[i, j]:
                     continue
                 try:
-                    idx = i, get_index(ele2)
+                    idx = i, idx_map[ele2]
                 except KeyError:
                     idx = None
                 yield idx, distances[i, j], 1.
@@ -362,14 +361,13 @@ class LocalEncodedBond(SetMergeMixin, EncodedFeature):
         """
         self.check_fit()
         data = self.convert_input(X)
-        get_index, length, _ = get_index_mapping(self._elements, self.form,
-                                                 self.add_unknown)
-        iterator = self._iterator(data, get_index)
-        return self.encode_values(iterator, (len(data.elements), length),
+        idx_map = self.get_idx_map()
+        iterator = self._iterator(data, idx_map)
+        return self.encode_values(iterator, (len(data.elements), len(idx_map)),
                                   saved_lengths=1)
 
 
-class LocalEncodedAngle(SetMergeMixin, EncodedFeature):
+class LocalEncodedAngle(FormMixin, SetMergeMixin, EncodedFeature):
     r"""
     A smoothed histogram of atomic angles.
 
@@ -472,7 +470,7 @@ class LocalEncodedAngle(SetMergeMixin, EncodedFeature):
         # This is just a cheap way to approximate the actual value
         return get_element_pairs(data.elements)
 
-    def _iterator(self, data, get_index, both):
+    def _iterator(self, data, idx_map):
         mat = get_depth_threshold_mask_connections(data.connections,
                                                    min_depth=self.min_depth,
                                                    max_depth=self.max_depth)
@@ -489,14 +487,14 @@ class LocalEncodedAngle(SetMergeMixin, EncodedFeature):
                 for k, ele3 in enumerate(data.elements):
                     if j == k or not mat[j, k]:
                         continue
-                    if i > k and not both:
+                    if i > k and not idx_map.both:
                         continue
                     if not f_c[i, k] or not f_c[j, k]:
                         continue
 
                     eles = ele1, ele3
                     try:
-                        idx = j, get_index(eles)
+                        idx = j, idx_map[eles]
                     except KeyError:
                         idx = None
                     F = f_c[i, j] * f_c[j, k] * f_c[i, k]
@@ -526,11 +524,9 @@ class LocalEncodedAngle(SetMergeMixin, EncodedFeature):
         """
         self.check_fit()
         data = self.convert_input(X)
-        get_index, length, both = get_index_mapping(self._pairs, self.form,
-                                                    self.add_unknown)
-
-        iterator = self._iterator(data, get_index, both)
-        return self.encode_values(iterator, (len(data.elements), length),
+        idx_map = self.get_idx_map()
+        iterator = self._iterator(data, idx_map)
+        return self.encode_values(iterator, (len(data.elements), len(idx_map)),
                                   saved_lengths=1)
 
 

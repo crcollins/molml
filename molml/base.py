@@ -13,7 +13,7 @@ import numpy
 from pathos.multiprocessing import ProcessingPool as Pool
 
 from .utils import get_smoothing_function, get_spacing_function
-from .utils import LazyValues
+from .utils import LazyValues, IndexMap
 from .io import read_file_data
 
 
@@ -368,6 +368,7 @@ class BaseFeature(object):
         array : array, shape=(n_samples, n_features)
             The transformed features
         """
+        self.check_fit()
         results = self.map(self._para_transform, X)
         return numpy.array(results)
 
@@ -468,6 +469,44 @@ class SetMergeMixin(object):
             vals = self.reduce(lambda x, y: set(x) | set(y), res)
             setattr(self, self.ATTRIBUTES[0], tuple(sorted(set(vals))))
         return self
+
+
+class FormMixin(object):
+    """
+    A simple mixin for handling form transformations
+
+    This mixin handles all how index mapping is done when going from higher
+    dimensional attributes to lower dimensional ones. By default, this mixin
+    uses the first value in ATTRIBUTES as the basis for the index mapping.
+    """
+    def get_idx_map(self):
+        if not hasattr(self, '_idx_map'):
+            add_unknown = hasattr(self, 'add_unknown') and self.add_unknown
+            values = getattr(self, self.ATTRIBUTES[0])
+            self._idx_map = IndexMap(values, self.form, add_unknown)
+        return self._idx_map
+
+    def get_group_order(self, groups):
+        return self.get_idx_map().get_value_order()
+
+    def transform(self, X, y=None):
+        """
+        Framework for a potentially parallel transform.
+
+        Parameters
+        ----------
+        X : list, shape=(n_samples, )
+            A list of objects to use to transform
+
+        Returns
+        -------
+        array : array, shape=(n_samples, n_features)
+            The transformed features
+        """
+        self.check_fit()
+        self.get_idx_map()
+        results = self.map(self._para_transform, X)
+        return numpy.array(results)
 
 
 class InputTypeMixin(object):
@@ -628,12 +667,13 @@ class EncodedFeature(BaseFeature):
         reshape = tuple(lengths)[:saved_lengths] + (-1, )
         return vector.reshape(*reshape)
 
+    def get_group_order(self, groups):
+        return groups
+
     def get_encoded_labels(self, groups):
         theta, theta_func = self._get_theta_info()
         labels = []
-        if hasattr(self, 'add_unknown') and getattr(self, 'add_unknown'):
-            groups += (("UNKNOWN", ), )
-        for group in groups:
+        for group in self.get_group_order(groups):
             name = '-'.join(group)
             for x in theta:
                 labels.append('%s_%s' % (name, round(x, 5)))
