@@ -11,7 +11,7 @@ from molml.utils import get_connections, get_depth_threshold_mask_connections
 from molml.utils import get_graph_distance
 from molml.utils import LazyValues, get_smoothing_function
 from molml.utils import get_coulomb_matrix, get_element_pairs
-from molml.utils import deslugify, _get_form_indices, get_index_mapping
+from molml.utils import deslugify
 from molml.utils import sort_chain, needs_reversal
 from molml.utils import load_json, IndexMap
 
@@ -162,74 +162,6 @@ class UtilsTest(unittest.TestCase):
         string = 'ClassM__none=None__true=True__false=False'
         expected = ('ClassM', {'none': None, 'true': True, 'false': False})
         self.assertEqual(deslugify(string), expected)
-
-    def test__get_form_indicies(self):
-        data = (
-            (  # 1
-                (0, ([], False)),
-                (1, ([0], False)),
-                (2, ([0], False)),
-            ),
-            (  # 2
-                (0, ([], False)),
-                (1, ([0], True)),
-                (2, ([0, 1], False)),
-            ),
-            (  # 3
-                (0, ([], False)),
-                (1, ([1], False)),
-                (2, ([0, 2], False)),
-                (3, ([0, 1, 2], False)),
-            ),
-            (  # 4
-                (0, ([], False)),
-                (1, ([1], True)),
-                (2, ([1, 2], False)),
-                (3, ([0, 1, 2], True)),
-                (4, ([0, 1, 2, 3], False)),
-            ),
-            (  # 5
-                (0, ([], False)),
-                (1, ([2], False)),
-                (2, ([1, 3], False)),
-                (3, ([1, 2, 3], False)),
-                (4, ([0, 1, 3, 4], False)),
-                (5, ([0, 1, 2, 3, 4], False)),
-            ),
-            (  # 6
-                (0, ([], False)),
-                (1, ([2], True)),
-                (2, ([2, 3], False)),
-                (3, ([1, 2, 3], True)),
-                (4, ([1, 2, 3, 4], False)),
-                (5, ([0, 1, 2, 3, 4], True)),
-                (6, ([0, 1, 2, 3, 4, 5], False)),
-            )
-        )
-        for i, group in enumerate(data):
-            for depth, expected in group:
-                vals = _get_form_indices(i + 1, depth)
-                self.assertEqual(vals, expected)
-
-    def test__get_form_indicies_invalid(self):
-        with self.assertRaises(ValueError):
-            _get_form_indices(0, 1)
-
-    def test_get_index_mapping(self):
-        values = [('H', 'H'), ('H', 'C'), ('C', 'C')]
-        expected = (
-            (0, False, {tuple(): 0}),
-            (1, True, {('C', ): 0, ('H', ): 1}),
-            (2, False, {('C', 'C'): 0, ('C', 'H'): 1, ('H', 'H'): 2}),
-            (3, False, {('C', 'C'): 0, ('C', 'H'): 1, ('H', 'H'): 2}),
-        )
-        for depth, expected_both, expected_mapping in expected:
-            mapping, idxs, both = get_index_mapping(values, depth)
-            self.assertEqual(mapping, expected_mapping)
-            self.assertEqual(both, expected_both)
-            for value in values:
-                new_value = sort_chain(tuple(value[i] for i in idxs))
-                self.assertIn(new_value, mapping)
 
     def test_sort_chain(self):
         needs_flip = ("O", "H", "C")
@@ -620,6 +552,74 @@ class IndexMapTest(unittest.TestCase):
         self.assertEqual(len(a), 3)
         self.assertEqual(a.get_value_order(),
                          [('C', ), ('H', ), ('UNKNOWN', )])
+
+    def test__get_form_indicies(self):
+        data = (
+            (  # 1
+                (0, ([], False)),
+                (1, ([0], False)),
+                (2, ([0], False)),
+            ),
+            (  # 2
+                (0, ([], False)),
+                (1, ([0], True)),
+                (2, ([0, 1], False)),
+            ),
+            (  # 3
+                (0, ([], False)),
+                (1, ([1], False)),
+                (2, ([0, 2], False)),
+                (3, ([0, 1, 2], False)),
+            ),
+            (  # 4
+                (0, ([], False)),
+                (1, ([1], True)),
+                (2, ([1, 2], False)),
+                (3, ([0, 1, 2], True)),
+                (4, ([0, 1, 2, 3], False)),
+            ),
+            (  # 5
+                (0, ([], False)),
+                (1, ([2], False)),
+                (2, ([1, 3], False)),
+                (3, ([1, 2, 3], False)),
+                (4, ([0, 1, 3, 4], False)),
+                (5, ([0, 1, 2, 3, 4], False)),
+            ),
+            (  # 6
+                (0, ([], False)),
+                (1, ([2], True)),
+                (2, ([2, 3], False)),
+                (3, ([1, 2, 3], True)),
+                (4, ([1, 2, 3, 4], False)),
+                (5, ([0, 1, 2, 3, 4], True)),
+                (6, ([0, 1, 2, 3, 4, 5], False)),
+            )
+        )
+        for i, group in enumerate(data):
+            for depth, expected in group:
+                vals = IndexMap._get_form_indices(i + 1, depth)
+                self.assertEqual(vals, expected)
+
+    def test__get_form_indicies_invalid(self):
+        with self.assertRaises(ValueError):
+            IndexMap._get_form_indices(0, 1)
+
+    def test_get_index_mapping(self):
+        values = [('H', 'H'), ('H', 'C'), ('C', 'C')]
+        expected = (
+            (0, False, {tuple(): 0}),
+            (1, True, {('C', ): 0, ('H', ): 1}),
+            (2, False, {('C', 'C'): 0, ('C', 'H'): 1, ('H', 'H'): 2}),
+            (3, False, {('C', 'C'): 0, ('C', 'H'): 1, ('H', 'H'): 2}),
+        )
+        for depth, expected_both, expected_mapping in expected:
+            mapping, idxs, both = IndexMap.get_index_mapping(values, depth)
+            self.assertEqual(mapping, expected_mapping)
+            self.assertEqual(both, expected_both)
+            for value in values:
+                new_value = sort_chain(tuple(value[i] for i in idxs))
+                self.assertIn(new_value, mapping)
 
 
 if __name__ == '__main__':

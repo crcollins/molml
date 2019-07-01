@@ -544,75 +544,12 @@ def cosine_decay(R, r_cut=6.):
     return values
 
 
-def _get_form_indices(value_length, depth):
-    """
-    """
-    if depth < 1:
-        return [], False
-
-    if value_length < 1:
-        raise ValueError("No values to use.")
-
-    if depth >= value_length:
-        return list(range(value_length)), False
-
-    middle_idx = value_length // 2
-    even = not (value_length % 2)
-    both = even and depth % 2
-    half_depth = depth // 2
-    start = middle_idx - half_depth - both
-    end = middle_idx + half_depth + (not even)
-    res = list(range(start, end))
-    if not even and not (depth % 2):
-        res.remove(middle_idx)
-    return res, bool(both)
-
-
-def get_index_mapping(values, depth):
-    """
-    Determine the ordering and mapping of feature groups.
-
-    Parameters
-    ----------
-    values : list
-        A list of possible values.
-
-    depth : int
-        The number of elements to use from each values value.
-
-    Returns
-    -------
-    mapping : dict(key)->int
-        A dict that gives the mapping index for a given key.
-
-    idxs : list of int
-        The length of the mapping values.
-
-    both : bool
-        Indicates whether both values are needed in a loop (A, B) vs
-        (B, A).
-    """
-    if depth < 1:
-        # Just a constant value
-        return {tuple(): 0}, [], False
-    values_length = len(values[0])
-    idxs, both = _get_form_indices(values_length, depth)
-    new_values = [tuple(x[i] for i in idxs) for x in values]
-    if both:
-        other_idxs = [i + 1 for i in idxs]
-        temp = [tuple(x[i] for i in other_idxs) for x in values]
-        new_values.extend(temp)
-    new_values = set(sort_chain(x) for x in new_values)
-    mapping = {key: i for i, key in enumerate(sorted(new_values))}
-    return mapping, idxs, both
-
-
 class IndexMap(object):
     def __init__(self, values, depth, add_unknown=False):
         self.values = values
         self.depth = depth
         self.add_unknown = add_unknown
-        parts = get_index_mapping(values, depth)
+        parts = IndexMap.get_index_mapping(values, depth)
         self._mapping, self._idxs, self.both = parts
 
     def __len__(self):
@@ -637,6 +574,97 @@ class IndexMap(object):
         if self.add_unknown:
             base[-1] = ('UNKNOWN', )
         return base
+
+    @staticmethod
+    def _get_form_indices(value_length, depth):
+        """
+        Determine the indices to select from a value for a given form.
+
+        One can view this function as a way to get the indices to extract all
+        the unique subchains from a single chain starting from the center of a
+        given size.
+
+        Ex:
+            (A, B, C) -> [0, 1, 2]  # Depth 3
+            (A, B, C) -> [0, 2]     # Depth 2
+            (A, B, C) -> [1]        # Depth 1
+            (A, B, C) -> []         # Depth 0
+
+        Parameters
+        ----------
+        value_length : int
+            The length of a value to select from.
+
+        depth : int
+            The number of elements to use from the value.
+
+        Returns
+        -------
+        res : list int
+            A list of the indices to select.
+
+        both : bool
+            Indicates whether both values are needed in a loop (A, B) vs
+            (B, A).
+        """
+        if depth < 1:
+            return [], False
+
+        if value_length < 1:
+            raise ValueError("No values to use.")
+
+        if depth >= value_length:
+            return list(range(value_length)), False
+
+        middle_idx = value_length // 2
+        even = not (value_length % 2)
+        both = even and depth % 2
+        half_depth = depth // 2
+        start = middle_idx - half_depth - both
+        end = middle_idx + half_depth + (not even)
+        res = list(range(start, end))
+        if not even and not (depth % 2):
+            res.remove(middle_idx)
+        return res, bool(both)
+
+    @staticmethod
+    def get_index_mapping(values, depth):
+        """
+        Determine the ordering and mapping of feature groups.
+
+        Parameters
+        ----------
+        values : list
+            A list of possible values.
+
+        depth : int
+            The number of elements to use from each values value.
+
+        Returns
+        -------
+        mapping : dict(key)->int
+            A dict that gives the mapping index for a given key.
+
+        idxs : list of int
+            The length of the mapping values.
+
+        both : bool
+            Indicates whether both values are needed in a loop (A, B) vs
+            (B, A).
+        """
+        if depth < 1:
+            # Just a constant value
+            return {tuple(): 0}, [], False
+        values_length = len(values[0])
+        idxs, both = IndexMap._get_form_indices(values_length, depth)
+        new_values = [tuple(x[i] for i in idxs) for x in values]
+        if both:
+            other_idxs = [i + 1 for i in idxs]
+            temp = [tuple(x[i] for i in other_idxs) for x in values]
+            new_values.extend(temp)
+        new_values = set(sort_chain(x) for x in new_values)
+        mapping = {key: i for i, key in enumerate(sorted(new_values))}
+        return mapping, idxs, both
 
 
 def needs_reversal(chain):
