@@ -14,6 +14,7 @@ from molml.utils import get_coulomb_matrix, get_element_pairs
 from molml.utils import deslugify
 from molml.utils import sort_chain, needs_reversal
 from molml.utils import load_json, IndexMap
+from molml.constants import UNKNOWN
 
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
@@ -551,7 +552,7 @@ class IndexMapTest(unittest.TestCase):
         self.assertEqual(a['something'], -1)
         self.assertEqual(len(a), 3)
         self.assertEqual(a.get_value_order(),
-                         [('C', ), ('H', ), ('UNKNOWN', )])
+                         [('C', ), ('H', ), (UNKNOWN, )])
 
     def test__get_form_indices(self):
         data = (

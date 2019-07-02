@@ -5,6 +5,7 @@ import numpy
 from molml.molecule import BagOfBonds, Connectivity, Autocorrelation
 from molml.molecule import CoulombMatrix, EncodedBond, EncodedAngle
 from molml.molecule import ConnectivityTree
+from molml.constants import UNKNOWN
 
 from .constants import METHANE, BIG, MID, ALL_DATA
 
@@ -167,7 +168,7 @@ class ConnectivityTest(unittest.TestCase):
         X = a.fit_transform([METHANE])
         labels = a.get_labels()
         self.assertEqual(X.shape[1], len(labels))
-        expected = ('C-H', 'UNKNOWN')
+        expected = ('C-H', UNKNOWN)
         self.assertEqual(labels, expected)
 
     def test_get_labels_coordination(self):
@@ -404,7 +405,7 @@ class ConnectivityTreeTest(unittest.TestCase):
         X = a.fit_transform([METHANE])
         labels = a.get_labels()
         self.assertEqual(X.shape[1], len(labels))
-        expected = ('0-Root-C-1__1-C-H-4', '0-Root-H-1__1-H-C-1', 'UNKNOWN')
+        expected = ('0-Root-C-1__1-C-H-4', '0-Root-H-1__1-H-C-1', UNKNOWN)
         self.assertEqual(labels, expected)
 
     def test_get_labels_coordination(self):

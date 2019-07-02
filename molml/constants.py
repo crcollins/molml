@@ -61,3 +61,4 @@ ELECTRONEGATIVITY = {
     "P": 2.19,
     "S": 2.58,
 }
+UNKNOWN = 'UNKNOWN'

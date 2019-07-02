@@ -5,6 +5,7 @@ import numpy
 from molml.atom import Shell, LocalEncodedBond, LocalCoulombMatrix
 from molml.atom import LocalEncodedAngle
 from molml.atom import BehlerParrinello
+from molml.constants import UNKNOWN
 
 from .constants import METHANE, BIG, MID, ALL_DATA
 
@@ -183,7 +184,7 @@ class ShellTest(unittest.TestCase):
     def test_get_labels_unknown(self):
         a = Shell(add_unknown=True)
         a.fit(ALL_DATA)
-        expected = ('C', 'H', 'N', 'O', 'UNKNOWN')
+        expected = ('C', 'H', 'N', 'O', UNKNOWN)
         self.assertEqual(a.get_labels(), expected)
 
 

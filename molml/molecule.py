@@ -16,7 +16,7 @@ from .base import BaseFeature, SetMergeMixin, EncodedFeature, FormMixin
 from .utils import get_depth_threshold_mask_connections, get_coulomb_matrix
 from .utils import get_element_pairs, cosine_decay, needs_reversal
 from .utils import get_angles, get_graph_distance
-from .constants import ELECTRONEGATIVITY, BOND_LENGTHS
+from .constants import ELECTRONEGATIVITY, BOND_LENGTHS, UNKNOWN
 
 
 __all__ = ("Connectivity", "ConnectivityTree", "Autocorrelation",
@@ -298,7 +298,7 @@ class Connectivity(SetMergeMixin, BaseFeature):
         return vector
 
     def get_chain_labels(self, chains):
-        unknown = ['UNKNOWN'] if self.add_unknown else []
+        unknown = [UNKNOWN] if self.add_unknown else []
         if self.use_bond_order:
             temp = ['_'.join(['-'.join(y) for y in x]) for x in chains]
         else:
@@ -526,7 +526,7 @@ class ConnectivityTree(Connectivity):
         return results
 
     def get_tree_labels(self, trees):
-        unknown = ['UNKNOWN'] if self.add_unknown else []
+        unknown = [UNKNOWN] if self.add_unknown else []
         return ['__'.join('-'.join(str(z) for z in y)
                           for y in x) for x in trees] + unknown
 

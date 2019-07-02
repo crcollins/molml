@@ -14,6 +14,7 @@ from scipy.spatial.distance import cdist
 from .base import BaseFeature, SetMergeMixin, EncodedFeature, FormMixin
 from .utils import get_depth_threshold_mask_connections, get_coulomb_matrix
 from .utils import get_element_pairs, cosine_decay, get_angles
+from .constants import UNKNOWN
 
 
 __all__ = ("Shell", "LocalEncodedBond", "LocalEncodedAngle",
@@ -205,7 +206,7 @@ class Shell(SetMergeMixin, BaseFeature):
 
     def get_shell_labels(self, elements):
         if self.add_unknown:
-            elements += ('UNKNOWN', )
+            elements += (UNKNOWN, )
         return elements
 
 

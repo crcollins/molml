@@ -13,7 +13,7 @@ from scipy.spatial.distance import cdist
 from scipy.special import expit
 import scipy.stats
 
-from .constants import ELE_TO_NUM, TYPE_ORDER, BOND_LENGTHS
+from .constants import ELE_TO_NUM, TYPE_ORDER, BOND_LENGTHS, UNKNOWN
 
 
 def lerp_smooth(x):
@@ -572,7 +572,7 @@ class IndexMap(object):
         for key, val in self._mapping.items():
             base[val] = key
         if self.add_unknown:
-            base[-1] = ('UNKNOWN', )
+            base[-1] = (UNKNOWN, )
         return base
 
     @staticmethod
