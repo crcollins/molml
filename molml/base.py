@@ -480,6 +480,14 @@ class FormMixin(object):
     uses the first value in ATTRIBUTES as the basis for the index mapping.
     """
     def get_idx_map(self):
+        """
+        Lazily load the idx_map.
+
+        Returns
+        -------
+        idx_map : IndexMap
+            The IndexMap object for this form and add_unknown setting.
+        """
         if not hasattr(self, '_idx_map'):
             add_unknown = hasattr(self, 'add_unknown') and self.add_unknown
             values = getattr(self, self.ATTRIBUTES[0])
@@ -487,6 +495,17 @@ class FormMixin(object):
         return self._idx_map
 
     def get_group_order(self, groups):
+        """
+        Parameters
+        ----------
+        groups : list
+            A list of all the groups. This is ignored.
+
+        Returns
+        -------
+        value_order : list
+            A list of all groups in order.
+        """
         return self.get_idx_map().get_value_order()
 
     def transform(self, X, y=None):
@@ -668,9 +687,31 @@ class EncodedFeature(BaseFeature):
         return vector.reshape(*reshape)
 
     def get_group_order(self, groups):
+        """
+        Parameters
+        ----------
+        groups : list
+            A list of all the groups.
+
+        Returns
+        -------
+        value_order : list
+            A list of all groups in order.
+        """
         return groups
 
     def get_encoded_labels(self, groups):
+        """
+        Parameters
+        ----------
+        groups : list
+            A list of all the groups.
+
+        Returns
+        -------
+        labels : list
+            A list of all the feature labels.
+        """
         theta, theta_func = self._get_theta_info()
         labels = []
         for group in self.get_group_order(groups):
