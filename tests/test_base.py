@@ -474,6 +474,17 @@ class TestFormMixin(unittest.TestCase):
         c = a.get_idx_map()
         self.assertIs(b, c)
 
+    def test_rebuild_idx_map_on_change(self):
+        a = FormFeature(form=1)
+        self.assertFalse(hasattr(a, '_idx_map'))
+        b = a.get_idx_map()
+        self.assertTrue(hasattr(a, '_idx_map'))
+        c = a.get_idx_map()
+        self.assertIs(b, c)
+        a.data = (('D', 'B'), )
+        d = a.get_idx_map()
+        self.assertIsNot(d, c)
+
     def test_get_group_order(self):
         a = FormFeature(form=1)
         self.assertEqual(a.get_group_order(None),

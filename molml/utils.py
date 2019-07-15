@@ -552,6 +552,9 @@ class IndexMap(object):
         parts = IndexMap.get_index_mapping(values, depth)
         self._mapping, self._idxs, self.both = parts
 
+    def is_valid(self, values):
+        return self.values == values
+
     def __len__(self):
         return len(self._mapping) + int(self.add_unknown)
 

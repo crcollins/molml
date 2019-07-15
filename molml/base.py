@@ -488,11 +488,14 @@ class FormMixin(object):
         idx_map : IndexMap
             The IndexMap object for this form and add_unknown setting.
         """
-        if not hasattr(self, '_idx_map'):
-            add_unknown = hasattr(self, 'add_unknown') and self.add_unknown
-            values = getattr(self, self.ATTRIBUTES[0])
+        add_unknown = hasattr(self, 'add_unknown') and self.add_unknown
+        values = getattr(self, self.ATTRIBUTES[0])
+        if not self.has_idx_map() or not self._idx_map.is_valid(values):
             self._idx_map = IndexMap(values, self.form, add_unknown)
         return self._idx_map
+
+    def has_idx_map(self):
+        return hasattr(self, '_idx_map') and self._idx_map is not None
 
     def get_group_order(self, groups):
         """
