@@ -6,7 +6,8 @@ from collections import Counter
 import importlib
 import json
 import warnings
-from itertools import product
+from itertools import product, combinations
+
 
 import numpy
 from scipy.spatial.distance import cdist
@@ -545,12 +546,20 @@ def cosine_decay(R, r_cut=6.):
 
 
 class IndexMap(object):
-    def __init__(self, values, depth, add_unknown=False):
+    def __init__(self, values, depth, add_unknown=False,
+                 use_combination_idxs=False):
         self.values = values
         self.depth = depth
         self.add_unknown = add_unknown
-        parts = IndexMap.get_index_mapping(values, depth)
-        self._mapping, self._idxs, self.both = parts
+        self.use_combination_idxs = use_combination_idxs
+        length = len(values[0])
+        if use_combination_idxs:
+            idx_values = list(range(length))
+            self.idx_groups = list(combinations(idx_values, self.depth))
+        else:
+            self.idx_groups = IndexMap._get_form_indices(length, depth)
+        self._mapping = IndexMap.get_index_mapping(values, depth,
+                                                   self.idx_groups)
 
     def is_valid(self, values):
         return self.values == values
@@ -563,12 +572,22 @@ class IndexMap(object):
             yield x
 
     def __getitem__(self, key):
-        key = tuple(key[i] for i in self._idxs)
-        if not self.both:
-            key = sort_chain(key)
+        return self._inner(key, self.idx_groups[0])
+
+    def _inner(self, key, idxs):
+        key = sort_chain(tuple(key[i] for i in idxs))
         if key not in self._mapping and self.add_unknown:
             return -1
         return self._mapping[key]
+
+    def get_idx_iter(self, key, other=None):
+        if other is None:
+            other = tuple()
+        for idxs in self.idx_groups:
+            try:
+                yield other + (self._inner(key, idxs), )
+            except KeyError:
+                yield None
 
     def get_value_order(self):
         base = [None for x in range(len(self))]
@@ -603,21 +622,17 @@ class IndexMap(object):
 
         Returns
         -------
-        res : list int
-            A list of the indices to select.
-
-        both : bool
-            Indicates whether both values are needed in a loop (A, B) vs
-            (B, A).
+        final : list of tuples of ints
+            A list of list of indices to select.
         """
         if depth < 1:
-            return [], False
+            return [tuple()]
 
         if value_length < 1:
             raise ValueError("No values to use.")
 
         if depth >= value_length:
-            return list(range(value_length)), False
+            return [tuple(range(value_length))]
 
         middle_idx = value_length // 2
         even = not (value_length % 2)
@@ -628,10 +643,13 @@ class IndexMap(object):
         res = list(range(start, end))
         if not even and not (depth % 2):
             res.remove(middle_idx)
-        return res, bool(both)
+        final = [tuple(res)]
+        if both:
+            final.append(tuple(i + 1 for i in res))
+        return final
 
     @staticmethod
-    def get_index_mapping(values, depth):
+    def get_index_mapping(values, depth, idx_groups):
         """
         Determine the ordering and mapping of feature groups.
 
@@ -643,31 +661,22 @@ class IndexMap(object):
         depth : int
             The number of elements to use from each values value.
 
+        idx_groups : list of list of int
+            A list of list of indices to select.
+
         Returns
         -------
         mapping : dict(key)->int
             A dict that gives the mapping index for a given key.
-
-        idxs : list of int
-            The length of the mapping values.
-
-        both : bool
-            Indicates whether both values are needed in a loop (A, B) vs
-            (B, A).
         """
         if depth < 1:
             # Just a constant value
-            return {tuple(): 0}, [], False
-        values_length = len(values[0])
-        idxs, both = IndexMap._get_form_indices(values_length, depth)
-        new_values = [tuple(x[i] for i in idxs) for x in values]
-        if both:
-            other_idxs = [i + 1 for i in idxs]
-            temp = [tuple(x[i] for i in other_idxs) for x in values]
-            new_values.extend(temp)
-        new_values = set(sort_chain(x) for x in new_values)
+            return {tuple(): 0}
+        temp_values = [[tuple(x[i] for i in idxs) for x in values]
+                       for idxs in idx_groups]
+        new_values = set(sort_chain(x) for x in sum(temp_values, []))
         mapping = {key: i for i, key in enumerate(sorted(new_values))}
-        return mapping, idxs, both
+        return mapping
 
 
 def needs_reversal(chain):

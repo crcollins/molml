@@ -527,7 +527,6 @@ class IndexMapTest(unittest.TestCase):
         self.assertEqual(a['H', 'C'], 1)
         with self.assertRaises(KeyError):
             a['something']
-        self.assertFalse(a.both)
         self.assertEqual(len(a), 3)
         expected_order = [('C', 'C'), ('C', 'H'), ('H', 'H')]
         self.assertEqual(a.get_value_order(), expected_order)
@@ -535,13 +534,17 @@ class IndexMapTest(unittest.TestCase):
         for x, y in zip(a, expected_order):
             self.assertEqual(x, y)
 
+    def test_use_combination_idxs(self):
+        a = IndexMap([('C', 'H', 'A'), ('H', 'H', 'A'), ('C', 'C', 'B')], 2,
+                     use_combination_idxs=True)
+        self.assertEqual(a.idx_groups, [(0, 1), (0, 2), (1, 2)])
+
     def test_shorter(self):
         a = IndexMap([('C', 'H'), ('H', 'H'), ('C', 'C')], 1)
         self.assertEqual(a['C'], 0)
         self.assertEqual(a['H'], 1)
         with self.assertRaises(KeyError):
             a['something']
-        self.assertTrue(a.both)
         self.assertEqual(len(a), 2)
         self.assertEqual(a.get_value_order(), [('C', ), ('H', )])
 
@@ -557,44 +560,44 @@ class IndexMapTest(unittest.TestCase):
     def test__get_form_indices(self):
         data = (
             (  # 1
-                (0, ([], False)),
-                (1, ([0], False)),
-                (2, ([0], False)),
+                (0, [tuple()]),
+                (1, [(0, )]),
+                (2, [(0, )]),
             ),
             (  # 2
-                (0, ([], False)),
-                (1, ([0], True)),
-                (2, ([0, 1], False)),
+                (0, [tuple()]),
+                (1, [(0, ), (1, )]),
+                (2, [(0, 1)]),
             ),
             (  # 3
-                (0, ([], False)),
-                (1, ([1], False)),
-                (2, ([0, 2], False)),
-                (3, ([0, 1, 2], False)),
+                (0, [tuple()]),
+                (1, [(1, )]),
+                (2, [(0, 2)]),
+                (3, [(0, 1, 2)]),
             ),
             (  # 4
-                (0, ([], False)),
-                (1, ([1], True)),
-                (2, ([1, 2], False)),
-                (3, ([0, 1, 2], True)),
-                (4, ([0, 1, 2, 3], False)),
+                (0, [tuple()]),
+                (1, [(1, ), (2, )]),
+                (2, [(1, 2)]),
+                (3, [(0, 1, 2), (1, 2, 3)]),
+                (4, [(0, 1, 2, 3)]),
             ),
             (  # 5
-                (0, ([], False)),
-                (1, ([2], False)),
-                (2, ([1, 3], False)),
-                (3, ([1, 2, 3], False)),
-                (4, ([0, 1, 3, 4], False)),
-                (5, ([0, 1, 2, 3, 4], False)),
+                (0, [tuple()]),
+                (1, [(2, )]),
+                (2, [(1, 3)]),
+                (3, [(1, 2, 3)]),
+                (4, [(0, 1, 3, 4)]),
+                (5, [(0, 1, 2, 3, 4)]),
             ),
             (  # 6
-                (0, ([], False)),
-                (1, ([2], True)),
-                (2, ([2, 3], False)),
-                (3, ([1, 2, 3], True)),
-                (4, ([1, 2, 3, 4], False)),
-                (5, ([0, 1, 2, 3, 4], True)),
-                (6, ([0, 1, 2, 3, 4, 5], False)),
+                (0, [tuple()]),
+                (1, [(2, ), (3, )]),
+                (2, [(2, 3)]),
+                (3, [(1, 2, 3), (2, 3, 4)]),
+                (4, [(1, 2, 3, 4)]),
+                (5, [(0, 1, 2, 3, 4), (1, 2, 3, 4, 5)]),
+                (6, [(0, 1, 2, 3, 4, 5)]),
             )
         )
         for i, group in enumerate(data):
@@ -609,15 +612,14 @@ class IndexMapTest(unittest.TestCase):
     def test_get_index_mapping(self):
         values = [('H', 'H'), ('H', 'C'), ('C', 'C')]
         expected = (
-            (0, False, {tuple(): 0}),
-            (1, True, {('C', ): 0, ('H', ): 1}),
-            (2, False, {('C', 'C'): 0, ('C', 'H'): 1, ('H', 'H'): 2}),
-            (3, False, {('C', 'C'): 0, ('C', 'H'): 1, ('H', 'H'): 2}),
+            (0, [], {tuple(): 0}),
+            (1, [0], {('C', ): 0, ('H', ): 1}),
+            (2, [0, 1], {('C', 'C'): 0, ('C', 'H'): 1, ('H', 'H'): 2}),
+            (3, [0, 1], {('C', 'C'): 0, ('C', 'H'): 1, ('H', 'H'): 2}),
         )
-        for depth, expected_both, expected_mapping in expected:
-            mapping, idxs, both = IndexMap.get_index_mapping(values, depth)
+        for depth, idxs, expected_mapping in expected:
+            mapping = IndexMap.get_index_mapping(values, depth, [idxs])
             self.assertEqual(mapping, expected_mapping)
-            self.assertEqual(both, expected_both)
             for value in values:
                 new_value = sort_chain(tuple(value[i] for i in idxs))
                 self.assertIn(new_value, mapping)

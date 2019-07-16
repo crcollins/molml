@@ -769,17 +769,13 @@ class EncodedAngle(FormMixin, SetMergeMixin, EncodedFeature):
                 for k, ele3 in enumerate(data.elements):
                     if j == k or not mat[j, k]:
                         continue
-                    if i > k and not idx_map.both:
+                    if i > k:
                         continue
                     if not f_c[i, k] or not f_c[j, k]:
                         continue
                     F = f_c[i, j] * f_c[j, k] * f_c[i, k]
-                    eles = ele1, ele2, ele3
-                    try:
-                        idx = (idx_map[eles], )
-                    except KeyError:
-                        idx = None
-                    yield idx, angles[i, j, k], F
+                    for idx in idx_map.get_idx_iter((ele1, ele2, ele3)):
+                        yield idx, angles[i, j, k], F
 
     def _para_transform(self, X, y=None):
         """
@@ -934,16 +930,10 @@ class EncodedBond(FormMixin, SetMergeMixin, EncodedFeature):
         distances = cdist(data.coords, data.coords)
         for i, ele1 in enumerate(data.elements):
             for j, ele2 in enumerate(data.elements):
-                if i > j and not idx_map.both:
+                if i >= j or not mat[i, j]:
                     continue
-                if i == j or not mat[i, j]:
-                    continue
-                eles = (ele1, ele2)
-                try:
-                    idx = (idx_map[eles], )
-                except KeyError:
-                    idx = None
-                yield idx, distances[i, j], 1.
+                for idx in idx_map.get_idx_iter((ele1, ele2)):
+                    yield idx, distances[i, j], 1.
 
     def _para_transform(self, X, y=None):
         """
