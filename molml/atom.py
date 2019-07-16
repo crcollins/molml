@@ -295,12 +295,12 @@ class LocalEncodedBond(FormMixin, SetMergeMixin, EncodedFeature):
                                                start=start,
                                                end=end,
                                                slope=slope,
-                                               spacing=spacing)
+                                               spacing=spacing,
+                                               form=form,
+                                               add_unknown=add_unknown)
         self._elements = None
         self.min_depth = min_depth
         self.max_depth = max_depth
-        self.form = form
-        self.add_unknown = add_unknown
 
     def _para_fit(self, X):
         """
@@ -436,13 +436,13 @@ class LocalEncodedAngle(FormMixin, SetMergeMixin, EncodedFeature):
                                                 smoothing=smoothing,
                                                 slope=slope,
                                                 start=0.,
-                                                end=numpy.pi)
+                                                end=numpy.pi,
+                                                form=form,
+                                                add_unknown=add_unknown)
         self._pairs = None
         self.min_depth = min_depth
         self.max_depth = max_depth
         self.r_cut = r_cut
-        self.form = form
-        self.add_unknown = add_unknown
 
     def f_c(self, R):
         return cosine_decay(R, r_cut=self.r_cut)

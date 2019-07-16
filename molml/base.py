@@ -479,6 +479,12 @@ class FormMixin(object):
     dimensional attributes to lower dimensional ones. By default, this mixin
     uses the first value in ATTRIBUTES as the basis for the index mapping.
     """
+    def __init__(self, form=1, add_unknown=False, *args, **kwargs):
+        super(FormMixin, self).__init__(*args, **kwargs)
+        self.form = form
+        self.add_unknown = add_unknown
+        self._idx_map = None
+
     def get_idx_map(self):
         """
         Lazily load the idx_map.
@@ -488,14 +494,10 @@ class FormMixin(object):
         idx_map : IndexMap
             The IndexMap object for this form and add_unknown setting.
         """
-        add_unknown = hasattr(self, 'add_unknown') and self.add_unknown
         values = getattr(self, self.ATTRIBUTES[0])
-        if not self.has_idx_map() or not self._idx_map.is_valid(values):
-            self._idx_map = IndexMap(values, self.form, add_unknown)
+        if self._idx_map is None or not self._idx_map.is_valid(values):
+            self._idx_map = IndexMap(values, self.form, self.add_unknown)
         return self._idx_map
-
-    def has_idx_map(self):
-        return hasattr(self, '_idx_map') and self._idx_map is not None
 
     def get_group_order(self, groups):
         """

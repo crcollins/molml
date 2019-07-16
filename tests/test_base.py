@@ -468,17 +468,15 @@ class TestFormMixin(unittest.TestCase):
 
     def test_get_idx_map(self):
         a = FormFeature(form=1)
-        self.assertFalse(hasattr(a, '_idx_map'))
         b = a.get_idx_map()
-        self.assertTrue(hasattr(a, '_idx_map'))
+        self.assertIsNotNone(a._idx_map)
         c = a.get_idx_map()
         self.assertIs(b, c)
 
     def test_rebuild_idx_map_on_change(self):
         a = FormFeature(form=1)
-        self.assertFalse(hasattr(a, '_idx_map'))
         b = a.get_idx_map()
-        self.assertTrue(hasattr(a, '_idx_map'))
+        self.assertIsNotNone(a._idx_map)
         c = a.get_idx_map()
         self.assertIs(b, c)
         a.data = (('D', 'B'), )

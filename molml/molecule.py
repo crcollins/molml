@@ -697,13 +697,12 @@ class EncodedAngle(FormMixin, SetMergeMixin, EncodedFeature):
         super(EncodedAngle, self).__init__(input_type=input_type,
                                            n_jobs=n_jobs, segments=segments,
                                            smoothing=smoothing, slope=slope,
-                                           start=0., end=numpy.pi)
+                                           start=0., end=numpy.pi,
+                                           form=form, add_unknown=add_unknown)
         self._groups = None
         self.min_depth = min_depth
         self.max_depth = max_depth
-        self.form = form
         self.r_cut = r_cut
-        self.add_unknown = add_unknown
 
     def _para_fit(self, X):
         """
@@ -896,12 +895,11 @@ class EncodedBond(FormMixin, SetMergeMixin, EncodedFeature):
                                           n_jobs=n_jobs, segments=segments,
                                           smoothing=smoothing, start=start,
                                           end=end, slope=slope,
-                                          spacing=spacing)
+                                          spacing=spacing, form=form,
+                                          add_unknown=add_unknown)
         self._element_pairs = None
         self.min_depth = min_depth
         self.max_depth = max_depth
-        self.form = form
-        self.add_unknown = add_unknown
 
     def _para_fit(self, X):
         """
