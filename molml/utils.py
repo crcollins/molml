@@ -546,6 +546,32 @@ def cosine_decay(R, r_cut=6.):
 
 
 class IndexMap(object):
+    '''
+    An object to handle dynamic mapping of groups to indices.
+
+    The intention of the class is to allow for dynamic subselection from lists
+    to give new mapping groups.
+
+    Ex: (0, 1, 2) -> (0, 1) -> idx=10
+        (3, 54, 0) -> (3, 54) -> idx=3
+
+    This class also allows handling of groups that are not in the map.
+
+    Parameters
+    ----------
+    values : list of tuples
+        A collection of values overwhich the mapping will be done.
+
+    depth : int
+        The number of values that are retained in the subselection.
+
+    add_unknown : bool, default=False
+        Whether or not to allocate an UNKNOWN index.
+
+    use_combination_idxs : bool, default=False
+        Whether or not to use all combinations of indices when doing the
+        subselection. If this is false, a  middle out scheme will be used.
+    '''
     def __init__(self, values, depth, add_unknown=False,
                  use_combination_idxs=False):
         self.values = values
