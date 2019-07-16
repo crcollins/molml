@@ -526,6 +526,8 @@ class FormMixin(object):
             The transformed features
         """
         self.check_fit()
+        # This is to ensure that the idx_map exists before potentially
+        # duplicating the process for parallelization.
         self.get_idx_map()
         results = self.map(self._para_transform, X)
         return numpy.array(results)
