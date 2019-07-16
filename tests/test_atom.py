@@ -193,7 +193,7 @@ class LocalEncodedBondTest(unittest.TestCase):
     def test_fit(self):
         a = LocalEncodedBond()
         a.fit(ALL_DATA)
-        self.assertEqual(a._elements, ('C', 'H', 'N', 'O'))
+        self.assertEqual(a._elements, (('C', ), ('H', ), ('N', ), ('O', )))
 
     def test_transform(self):
         a = LocalEncodedBond()

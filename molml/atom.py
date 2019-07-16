@@ -321,7 +321,7 @@ class LocalEncodedBond(FormMixin, SetMergeMixin, EncodedFeature):
         """
         data = self.convert_input(X)
         # This is just a cheap way to approximate the actual value
-        return set(data.elements)
+        return set((x, ) for x in data.elements)
 
     def _iterator(self, data, idx_map):
         mat = get_depth_threshold_mask_connections(data.connections,
