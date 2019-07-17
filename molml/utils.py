@@ -552,8 +552,12 @@ class IndexMap(object):
     The intention of the class is to allow for dynamic subselection from lists
     to give new mapping groups.
 
-    Ex: (0, 1, 2) -> (0, 1) -> idx=10
-        (3, 54, 0) -> (3, 54) -> idx=3
+    For example, with the a group of values that have length three might be
+    reduced as follows:
+        ('A', 'B', 'C') -> ('A', 'C')
+    using some predefined index selection. Then, this new reduced value is
+    used to find the index for this new value just like a dict that maps
+    the new shorter values to an int index.
 
     This class also allows handling of groups that are not in the map.
 
@@ -570,7 +574,8 @@ class IndexMap(object):
 
     use_comb_idxs : bool, default=False
         Whether or not to use all combinations of indices when doing the
-        subselection. If this is false, a  middle out scheme will be used.
+        subselection. If this is False, it will use the old style of trying to
+        select indices from the center of the value outward.
     '''
     def __init__(self, values, depth, add_unknown=False,
                  use_comb_idxs=False):
