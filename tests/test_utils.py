@@ -534,9 +534,9 @@ class IndexMapTest(unittest.TestCase):
         for x, y in zip(a, expected_order):
             self.assertEqual(x, y)
 
-    def test_use_combination_idxs(self):
+    def test_use_comb_idxs(self):
         a = IndexMap([('C', 'H', 'A'), ('H', 'H', 'A'), ('C', 'C', 'B')], 2,
-                     use_combination_idxs=True)
+                     use_comb_idxs=True)
         self.assertEqual(a.idx_groups, [(0, 1), (0, 2), (1, 2)])
 
     def test_shorter(self):

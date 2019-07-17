@@ -568,18 +568,18 @@ class IndexMap(object):
     add_unknown : bool, default=False
         Whether or not to allocate an UNKNOWN index.
 
-    use_combination_idxs : bool, default=False
+    use_comb_idxs : bool, default=False
         Whether or not to use all combinations of indices when doing the
         subselection. If this is false, a  middle out scheme will be used.
     '''
     def __init__(self, values, depth, add_unknown=False,
-                 use_combination_idxs=False):
+                 use_comb_idxs=False):
         self.values = values
         self.depth = depth
         self.add_unknown = add_unknown
-        self.use_combination_idxs = use_combination_idxs
+        self.use_comb_idxs = use_comb_idxs
         length = len(values[0])
-        if use_combination_idxs:
+        if use_comb_idxs:
             idx_values = list(range(length))
             self.idx_groups = list(combinations(idx_values, self.depth))
         else:

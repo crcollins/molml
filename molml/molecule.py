@@ -683,6 +683,10 @@ class EncodedAngle(FormMixin, SetMergeMixin, EncodedFeature):
         Specifies whether or not to include an extra UNKNOWN count in the
         feature vector.
 
+    use_comb_idxs : bool, default=False
+        Whether or not to use all combinations of indices when doing the
+        subselection. If this is false, a  middle out scheme will be used.
+
     Attributes
     ----------
     _groups : tuple, tuples
@@ -693,12 +697,14 @@ class EncodedAngle(FormMixin, SetMergeMixin, EncodedFeature):
 
     def __init__(self, input_type='list', n_jobs=1, segments=40,
                  smoothing="norm", slope=20., min_depth=0, max_depth=0,
-                 form=3, r_cut=6., add_unknown=False):
+                 form=3, r_cut=6., add_unknown=False,
+                 use_comb_idxs=False):
         super(EncodedAngle, self).__init__(input_type=input_type,
                                            n_jobs=n_jobs, segments=segments,
                                            smoothing=smoothing, slope=slope,
                                            start=0., end=numpy.pi,
-                                           form=form, add_unknown=add_unknown)
+                                           form=form, add_unknown=add_unknown,
+                                           use_comb_idxs=use_comb_idxs)
         self._groups = None
         self.min_depth = min_depth
         self.max_depth = max_depth
@@ -874,6 +880,10 @@ class EncodedBond(FormMixin, SetMergeMixin, EncodedFeature):
         Specifies whether or not to include an extra UNKNOWN count in the
         feature vector.
 
+    use_comb_idxs : bool, default=False
+        Whether or not to use all combinations of indices when doing the
+        subselection. If this is false, a  middle out scheme will be used.
+
     Attributes
     ----------
     _element_pairs : tuple, tuples
@@ -890,13 +900,14 @@ class EncodedBond(FormMixin, SetMergeMixin, EncodedFeature):
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing='norm', start=0.2, end=6.0, slope=20.,
                  min_depth=0, max_depth=0, spacing='linear', form=2,
-                 add_unknown=False):
+                 add_unknown=False, use_comb_idxs=False):
         super(EncodedBond, self).__init__(input_type=input_type,
                                           n_jobs=n_jobs, segments=segments,
                                           smoothing=smoothing, start=start,
                                           end=end, slope=slope,
                                           spacing=spacing, form=form,
-                                          add_unknown=add_unknown)
+                                          add_unknown=add_unknown,
+                                          use_comb_idxs=use_comb_idxs)
         self._element_pairs = None
         self.min_depth = min_depth
         self.max_depth = max_depth

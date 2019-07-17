@@ -277,6 +277,10 @@ class LocalEncodedBond(FormMixin, SetMergeMixin, EncodedFeature):
         Specifies whether or not to include an extra UNKNOWN count in the
         feature vector.
 
+    use_comb_idxs : bool, default=False
+        Whether or not to use all combinations of indices when doing the
+        subselection. If this is false, a  middle out scheme will be used.
+
     Attributes
     ----------
     _elements : tuple
@@ -287,7 +291,8 @@ class LocalEncodedBond(FormMixin, SetMergeMixin, EncodedFeature):
 
     def __init__(self, input_type='list', n_jobs=1, segments=100,
                  smoothing='norm', start=0.2, end=6.0, slope=20., min_depth=0,
-                 max_depth=0, spacing='linear', form=1, add_unknown=False):
+                 max_depth=0, spacing='linear', form=1, add_unknown=False,
+                 use_comb_idxs=False):
         super(LocalEncodedBond, self).__init__(input_type=input_type,
                                                n_jobs=n_jobs,
                                                segments=segments,
@@ -297,7 +302,8 @@ class LocalEncodedBond(FormMixin, SetMergeMixin, EncodedFeature):
                                                slope=slope,
                                                spacing=spacing,
                                                form=form,
-                                               add_unknown=add_unknown)
+                                               add_unknown=add_unknown,
+                                               use_comb_idxs=use_comb_idxs)
         self._elements = None
         self.min_depth = min_depth
         self.max_depth = max_depth
@@ -418,6 +424,10 @@ class LocalEncodedAngle(FormMixin, SetMergeMixin, EncodedFeature):
     add_unknown : boolean, default=False
         Specifies whether or not to include an extra UNKNOWN count in the
         feature vector.
+
+    use_comb_idxs : bool, default=False
+        Whether or not to use all combinations of indices when doing the
+        subselection. If this is false, a  middle out scheme will be used.
 
     Attributes
     ----------

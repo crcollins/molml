@@ -478,11 +478,17 @@ class FormMixin(object):
     This mixin handles all how index mapping is done when going from higher
     dimensional attributes to lower dimensional ones. By default, this mixin
     uses the first value in ATTRIBUTES as the basis for the index mapping.
+
+    use_comb_idxs : bool, default=False
+        Whether or not to use all combinations of indices when doing the
+        subselection. If this is false, a  middle out scheme will be used.
     """
-    def __init__(self, form=1, add_unknown=False, *args, **kwargs):
+    def __init__(self, form=1, add_unknown=False, use_comb_idxs=False,
+                 *args, **kwargs):
         super(FormMixin, self).__init__(*args, **kwargs)
         self.form = form
         self.add_unknown = add_unknown
+        self.use_comb_idxs = use_comb_idxs
         self._idx_map = None
 
     def get_idx_map(self):
@@ -496,7 +502,8 @@ class FormMixin(object):
         """
         values = getattr(self, self.ATTRIBUTES[0])
         if self._idx_map is None or not self._idx_map.is_valid(values):
-            self._idx_map = IndexMap(values, self.form, self.add_unknown)
+            self._idx_map = IndexMap(values, self.form, self.add_unknown,
+                                     self.use_comb_idxs)
         return self._idx_map
 
     def get_group_order(self, groups):
