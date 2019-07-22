@@ -365,21 +365,17 @@ class ConnectivityTree(Connectivity):
                  use_bond_order=False, use_coordination=False,
                  preserve_paths=False, use_parent_element=True,
                  add_unknown=False, do_tfidf=False):
-        super(ConnectivityTree, self).__init__(input_type=input_type,
-                                               n_jobs=n_jobs)
-        self.depth = depth
-        self.use_bond_order = use_bond_order
-        self.use_coordination = use_coordination
+        super(ConnectivityTree, self).__init__(
+            input_type=input_type,
+            n_jobs=n_jobs,
+            depth=depth,
+            use_bond_order=use_bond_order,
+            use_coordination=use_coordination,
+            add_unknown=add_unknown,
+            do_tfidf=do_tfidf)
         self.preserve_paths = preserve_paths
         self.use_parent_element = use_parent_element
-        self.add_unknown = add_unknown
-        self.do_tfidf = do_tfidf
         self._base_groups = None
-
-        if self.do_tfidf:
-            self._idf_values = None
-        else:
-            self._idf_values = {}
 
     def _loop_depth(self, connections):
         """
