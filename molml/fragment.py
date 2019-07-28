@@ -59,7 +59,7 @@ class FragmentMap(BaseFeature):
 
     n_jobs : int, default=1
         Specifies the number of processes to create when generating the
-        features. Positive numbers specify a specifc amount, and numbers less
+        features. Positive numbers specify a specific amount, and numbers less
         than 1 will use the number of cores the computer has.
 
     transformer : BaseFeature, default=None
