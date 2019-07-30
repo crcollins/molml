@@ -377,89 +377,92 @@ class ConnectivityTree(Connectivity):
         self.use_parent_element = use_parent_element
         self._base_groups = None
 
-    def _loop_depth(self, connections):
-        """
-        Loop over the depth number expanding trees.
+    def _get_trees(self, nodes, connections):
+        trees = []
+        for start in connections:
+            trees.append(self._bfs(connections, start))
+        new_trees = [self._convert_tree(x) for x in trees]
+        labelled_trees = self._label_trees(new_trees, nodes, connections)
+        sorted_trees = [self._sort_tree(x) for x in labelled_trees]
+        return sorted_trees
 
-        Parameters
-        ----------
-        connections : dict, key->list of keys
-            A dictonary edge table with all the bidirectional connections
+    def _bfs(self, connections, start):
+        seen = {start}
+        tree = dict()
+        frontier = [(start, 0, tree)]
 
-        Returns
-        -------
-        trees : list
-            A list of key tuples of all the trees in the molecule
-        """
+        while len(frontier):
+            node, depth, parent_tree = frontier.pop(0)
+            if depth >= self.depth:
+                continue
+            parent_tree[node] = dict()
 
-        trees = [[(x, -1, -1, 0)] for x in connections]
-        for i in range(self.depth - 1):
-            trees = self._expand_trees(trees, connections, i)
-        return trees
-
-    def _expand_trees(self, initial, connections, depth):
-        """
-        Use the connectivity information to add one more atom to each tree.
-
-        Parameters
-        ----------
-        initial : list
-            A list of key tuples of all the tree in the molecule
-
-        connections : dict, key->list of keys
-            A dictonary edge table with all the bidirectional connections
-
-        Returns
-        -------
-        results : list
-            Something
-        """
-        new_trees = []
-        for tree in initial:
-            seen = set([x[0] for x in tree])
-
-            new_tree = []
-            new_seen = set(seen)
-
-            parent_rel_idx = -1
-            for j, (item, parent, _, item_depth) in enumerate(tree):
-                new_tree.append((item, parent, parent_rel_idx, item_depth))
-                parent_rel_idx = len(new_tree) - 1
-                if item_depth < depth:
+            for neighbor in connections[node]:
+                if neighbor in seen:
                     continue
-                # We sort this to fix consistency in 3.6 dicts.
-                for x in sorted(connections[item]):
-                    if x in seen:
-                        continue
-                    new_seen |= {x}
-                    new_tree.append((x, item, parent_rel_idx, item_depth + 1))
-            new_trees.append(new_tree)
-        return new_trees
+                seen.update({neighbor})
+                frontier.append((neighbor, depth + 1, parent_tree[node]))
 
-    def _convert_to_bond_order(self, labelled, connections):
-        """
-        Convert a tree based on elements into one that includes bond order.
+        return tree
 
-        Parameters
-        ----------
-        labelled : tuple of tuples
-            Elements corresponding to the tree indices
+    def _convert_tree(self, tree, parent_idx=-1, depth=0):
+        if tree == {}:
+            return None
 
-        connections : dict, key->list of keys
-            A dictonary edge table with all the bidirectional connections
+        res = []
+        for key, value in tree.items():
+            sub_tree = self._convert_tree(value, parent_idx=key, depth=depth+1)
+            res.append(((depth, parent_idx, key), sub_tree))
+        return res
 
-        Returns
-        -------
-        labelled : list
-            The new labelled tree
-        """
-        temp = []
-        # We drop the root the the tree because it does not have a parent
-        for idx, ele, p_idx, rel_p_idx, depth in labelled[1:]:
-            conn = connections[idx][p_idx]
-            new_ele = '%s_%s_%s' % (ele, conn, labelled[rel_p_idx][1])
-            temp.append((idx, new_ele,  p_idx, rel_p_idx, depth))
-        return temp
+    def _label_trees(self, trees, nodes, connections):
+        if self.use_coordination:
+            extra = tuple(str(len(v)) for k, v in sorted(connections.items()))
+            nodes = [x + y for x, y in zip(nodes, extra)]
+
+        # Add a hack to label the parents of root node separately
+        nodes = list(nodes) + ['Root']
+
+        def label_tree(tree):
+            if tree is None:
+                return None
+            new = []
+            for key, subtree in tree:
+                depth, parent_idx, idx = key
+                ele = nodes[idx]
+                p_ele = nodes[parent_idx]
+                if self.use_bond_order and self.depth > 1:
+                    if parent_idx == -1:
+                        ele = None
+                    else:
+                        bond = connections[idx][parent_idx]
+                        ele = (ele, bond, p_ele)
+                new_key = depth, p_ele, ele
+                new.append((new_key, label_tree(subtree)))
+            return new
+        return [label_tree(x) for x in trees]
+
+    def _sort_tree(self, tree):
+        if tree is None:
+            return
+        new_tree = [(x, self._sort_tree(y)) for x, y in tree]
+        return sorted(new_tree)
+
+    def _linearize_tree(self, tree, idx=-1):
+        if tree is None:
+            return []
+        vals = [[x + (idx, )] + self._linearize_tree(y, idx=i)
+                for i, (x, y) in enumerate(tree)]
+        return sum(vals, [])
+
+    def _fix_bond_order(self, linear):
+        new_linear = []
+        for x in linear:
+            if x[2] is None:
+                continue
+            new_ele = '_'.join(x[2])
+            new_linear.append(x[:2] + (new_ele, ) + x[3:])
+        return new_linear
 
     def _tally_groups(self, trees, nodes, connections=None):
         """
@@ -481,40 +484,31 @@ class ConnectivityTree(Connectivity):
         results : dict, labelled_tree->int
             Totals of the number of each type of tree
         """
-        if self.use_coordination:
-            extra = tuple(str(len(v)) for k, v in sorted(connections.items()))
-            nodes = [x + y for x, y in zip(nodes, extra)]
 
-        # Add a hack to label the parents of root node separately
-        nodes = list(nodes) + ['Root']
+        # (depth, p_ele, ele, p_rel_idx)
+        select_idxs = (0, )
+        if self.preserve_paths and self.depth > 2:
+            select_idxs += (3, )
+        if self.use_parent_element and not self.use_bond_order:
+            select_idxs += (1, )
+        select_idxs += (2, )
 
         results = {}
-        for tree in trees:
+        for tree in self._get_trees(nodes, connections):
+            linear = self._linearize_tree(tree)
+            if self.use_bond_order:
+                linear = self._fix_bond_order(linear)
+                if not len(linear):
+                    continue
 
-            labelled = [(idx, nodes[idx], a, b, c) for (idx, a, b, c) in tree]
+            selected = [tuple(x[i] for i in select_idxs) for x in linear]
 
-            if self.use_bond_order and len(labelled) > 1:
-                labelled = self._convert_to_bond_order(labelled,
-                                                       connections)
-
-            labelled = [(depth, rel_idx, nodes[p_idx], ele) for
-                        (idx, ele, p_idx, rel_idx, depth) in labelled]
-
-            # Order matters for the sorting
-            select_idxs = (0, )
-            if self.preserve_paths and self.depth > 2:
-                select_idxs += (1, )
-            if self.use_parent_element and not self.use_bond_order:
-                select_idxs += (2, )
-            select_idxs += (3, )
-
-            labelled = [tuple(x[i] for i in select_idxs) for x in labelled]
-            # labelled is now one of these three states:
+            # selected is now one of these three states:
             # [(depth, ele), ...],
             # [(depth, p_ele, ele), ...],
             # [(depth, rel_idx, p_ele, ele), ...]
 
-            items = sorted(Counter(labelled).items())
+            items = sorted(Counter(selected).items())
             labelled = tuple(x + (y, ) for x, y in items)
             if labelled not in results:
                 results[labelled] = 0
