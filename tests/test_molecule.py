@@ -340,6 +340,31 @@ class ConnectivityTreeTest(unittest.TestCase):
         expected = tuple(((0, 'Root', x, 1), ) for x in bases)
         self.assertEqual(a._base_groups, expected)
 
+    def test_sorting_order(self):
+        eles = ['A', 'B', 'B', 'B', 'C', 'D', 'B']
+        connections = {
+            0: {1: '1', 2: '1', 3: '1'},
+            1: {0: '1', 4: '1'},
+            2: {0: '1', 5: '1'},
+            3: {0: '1', 6: '1'},
+            4: {1: '1'},
+            5: {2: '1'},
+            6: {3: '1'},
+        }
+        a = ConnectivityTree(input_type=('elements', 'connections'), depth=3,
+                             preserve_paths=True, use_parent_element=True)
+        a.fit([(eles, connections)])
+        expected = (
+            (0, -1, 'Root', 'A', 1),
+            (1, 0, 'A', 'B', 3),
+            (2, 0, 'B', 'B', 1),
+            (2, 1, 'B', 'C', 1),
+            (2, 2, 'B', 'D', 1),
+        )
+        a_base = [x for x in a._base_groups if x[0][-2] == 'A']
+        self.assertEqual(len(a_base), 1)
+        self.assertEqual(a_base[0], expected)
+
     def test_transform(self):
         a = ConnectivityTree()
         a.fit(ALL_DATA)
