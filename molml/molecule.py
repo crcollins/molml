@@ -460,7 +460,8 @@ class ConnectivityTree(Connectivity):
         for x in linear:
             if x[2] is None:
                 continue
-            new_ele = '_'.join(x[2])
+            # The order is reversed to get parent -> child chains
+            new_ele = '_'.join(x[2][::-1])
             new_linear.append(x[:2] + (new_ele, ) + x[3:])
         return new_linear
 

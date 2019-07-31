@@ -250,19 +250,19 @@ class ConnectivityTreeTest(unittest.TestCase):
         a.fit(ALL_DATA)
         expected = (
             ((1, 'C_1_C', 1), (1, 'C_2_C', 2)),
-            ((1, 'C_1_O', 1),),
-            ((1, 'C_1_O', 2),),
-            ((1, 'C_2_C', 1), (1, 'C_Ar_C', 1), (1, 'N_Ar_C', 1)),
-            ((1, 'C_2_C', 1), (1, 'N_3_C', 1)),
-            ((1, 'C_2_N', 1), (1, 'H_1_N', 2)),
-            ((1, 'C_3_N', 1),),
-            ((1, 'C_Ar_C', 1), (1, 'H_1_C', 1), (1, 'N_Ar_C', 1)),
-            ((1, 'C_Ar_C', 1), (1, 'N_Ar_C', 1), (1, 'O_Ar_C', 1)),
-            ((1, 'C_Ar_C', 2), (1, 'H_1_C', 1)),
-            ((1, 'C_Ar_N', 2),),
-            ((1, 'H_1_C', 3), (1, 'O_1_C', 1)),
-            ((1, 'H_1_H', 1),),
-            ((1, 'O_1_H', 1),)
+            ((1, 'C_1_H', 1), (1, 'C_Ar_C', 1), (1, 'C_Ar_N', 1)),
+            ((1, 'C_1_H', 3), (1, 'C_1_O', 1)),
+            ((1, 'C_1_O', 1), (1, 'C_2_C', 2)),
+            ((1, 'C_2_C', 1), (1, 'C_3_C', 1)),
+            ((1, 'C_2_C', 1), (1, 'C_Ar_C', 1), (1, 'C_Ar_N', 1)),
+            ((1, 'C_2_N', 1), (1, 'C_Ar_C', 1), (1, 'C_Ar_N', 1)),
+            ((1, 'C_Ar_C', 1), (1, 'C_Ar_N', 1), (1, 'C_Ar_O', 1)),
+            ((1, 'H_1_C', 1),),
+            ((1, 'H_1_N', 1),),
+            ((1, 'N_1_H', 2), (1, 'N_2_C', 1)),
+            ((1, 'N_Ar_C', 2),),
+            ((1, 'O_1_C', 1), (1, 'O_Ar_C', 1)),
+            ((1, 'O_1_H', 1), (1, 'O_Ar_C', 1)),
         )
         self.assertEqual(a._base_groups[::2], expected)
 
@@ -323,11 +323,11 @@ class ConnectivityTreeTest(unittest.TestCase):
         a.fit(ALL_DATA)
         expected = (
             ((1, 'C_1_C', 1), (1, 'C_2_C', 2)),
-            ((1, 'C_2_C', 1), (1, 'C_3_C', 1)),
-            ((1, 'C_2_N', 1), (1, 'H_1_N', 2)),
-            ((1, 'C_Ar_C', 1), (1, 'N_2_C', 1), (1, 'N_Ar_C', 1)),
-            ((1, 'C_Ar_N', 2),),
-            ((1, 'N_1_H', 1),)
+            ((1, 'C_1_H', 4),),
+            ((1, 'C_2_C', 1), (1, 'C_Ar_C', 1), (1, 'C_Ar_N', 1)),
+            ((1, 'C_Ar_C', 2), (1, 'C_Ar_O', 1)),
+            ((1, 'N_1_H', 2), (1, 'N_2_C', 1)),
+            ((1, 'O_1_C', 2),),
         )
         self.assertEqual(a._base_groups[::5], expected)
 
@@ -417,7 +417,7 @@ class ConnectivityTreeTest(unittest.TestCase):
         X = a.fit_transform([METHANE])
         labels = a.get_labels()
         self.assertEqual(X.shape[1], len(labels))
-        expected = ('1-C_1_H-1__2-H_1_C-3', '1-H_1_C-4')
+        expected = ('1-C_1_H-4', '1-H_1_C-1__2-C_1_H-3')
         self.assertEqual(labels, expected)
 
 
