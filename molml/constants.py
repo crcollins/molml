@@ -9,6 +9,9 @@ ELE_TO_NUM = bidict({
     'P': 15,
     'S': 16,
     'Cl': 17,
+    'Br': 35,
+    'I': 53,
+    'Se': 34
 })
 TYPE_ORDER = ['1', 'Ar', '2', '3']
 BOND_LENGTHS = {
